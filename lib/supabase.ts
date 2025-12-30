@@ -1,0 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("❌ Supabase Environment Variables are MISSING!");
+  console.error("URL:", supabaseUrl);
+  console.error("Key:", supabaseAnonKey ? "Loaded (Hidden)" : "Missing");
+} else {
+  console.log("✅ Supabase Client Initialized with URL:", supabaseUrl);
+}
+
+export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
