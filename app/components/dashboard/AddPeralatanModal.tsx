@@ -15,7 +15,16 @@ interface AddPeralatanModalProps {
 
 export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialData }: AddPeralatanModalProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    nama: string;
+    jenis: string;
+    merk: string;
+    no_sertifikat: string;
+    tahun_instalasi: string | number;
+    kondisi_persen: string | number;
+    status_laik: string;
+    keterangan: string;
+  }>({
     nama: "",
     jenis: "",
     merk: "",
@@ -58,10 +67,37 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'tahun_instalasi' || name === 'kondisi_persen' ? parseInt(value) || 0 : value
-    }));
+    
+    setFormData(prev => {
+        const newData = { ...prev };
+        
+        if (name === 'tahun_instalasi' || name === 'kondisi_persen') {
+            if (value === "") {
+                (newData as any)[name] = "";
+            } else {
+                (newData as any)[name] = parseInt(value);
+            }
+        } else {
+            (newData as any)[name] = value;
+        }
+
+        // Auto-calc logic for Condition based on Year
+        if (name === 'tahun_instalasi' && value !== "") {
+            const year = parseInt(value);
+            const currentYear = new Date().getFullYear();
+            if (year) {
+                const age = currentYear - year;
+                let condition = 100;
+                
+                if (age > 0) {
+                   condition = Math.max(0, 100 - (age * 10));
+                }
+                newData.kondisi_persen = condition;
+            }
+        }
+
+        return newData;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,37 +105,36 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
     setLoading(true);
 
     try {
+      // Parse numbers safely
+      const finalTahun = typeof formData.tahun_instalasi === 'string' ? (parseInt(formData.tahun_instalasi) || 0) : formData.tahun_instalasi;
+      const finalKondisi = typeof formData.kondisi_persen === 'string' ? (parseInt(formData.kondisi_persen) || 0) : formData.kondisi_persen;
+
+      // Auto-Determine Status
+      // Logic: If condition > 0 => LAIK OPERASI. Adapt as needed.
+      const finalStatus = finalKondisi > 0 ? "LAIK OPERASI" : "TIDAK LAIK OPERASI";
+
+      const payload = {
+        nama: formData.nama,
+        jenis: formData.jenis,
+        merk: formData.merk,
+        no_sertifikat: formData.no_sertifikat,
+        tahun_instalasi: finalTahun,
+        kondisi_persen: finalKondisi,
+        status_laik: finalStatus,
+        keterangan: formData.keterangan
+      };
+
       if (initialData?.id) {
         // UPDATE existing record
         const { error } = await supabase
             .from('peralatan')
-            .update({
-                nama: formData.nama,
-                jenis: formData.jenis,
-                merk: formData.merk,
-                no_sertifikat: formData.no_sertifikat,
-                tahun_instalasi: formData.tahun_instalasi,
-                kondisi_persen: formData.kondisi_persen,
-                status_laik: formData.status_laik,
-                keterangan: formData.keterangan
-            })
+            .update(payload)
             .eq('id', initialData.id);
 
         if (error) throw error;
       } else {
         // INSERT new record
-        const { error } = await supabase.from('peralatan').insert([
-            {
-            nama: formData.nama,
-            jenis: formData.jenis,
-            merk: formData.merk,
-            no_sertifikat: formData.no_sertifikat,
-            tahun_instalasi: formData.tahun_instalasi,
-            kondisi_persen: formData.kondisi_persen,
-            status_laik: formData.status_laik,
-            keterangan: formData.keterangan
-            }
-        ]);
+        const { error } = await supabase.from('peralatan').insert([payload]);
 
         if (error) throw error;
       }
@@ -126,7 +161,7 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
           />
-          <div className="fixed inset-0 z-[70] flex items-center justify-center pl-0 md:pl-[250px] pointer-events-none">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center pl-0 md:pl-[220px] pointer-events-none">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -168,13 +203,7 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
                     <label className="text-xs font-medium text-slate-400">Kondisi (%)</label>
                     <input type="number" min="0" max="100" name="kondisi_persen" value={formData.kondisi_persen} onChange={handleChange} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500/50 outline-none" />
                 </div>
-                <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-400">Status Kelaikan</label>
-                    <select name="status_laik" value={formData.status_laik} onChange={handleChange} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500/50 outline-none appearance-none">
-                        <option value="LAIK OPERASI">LAIK OPERASI</option>
-                        <option value="TIDAK LAIK OPERASI">TIDAK LAIK OPERASI</option>
-                    </select>
-                </div>
+                {/* Status Input Removed (Automatic) */}
                 <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-xs font-medium text-slate-400">Keterangan</label>
                     <textarea name="keterangan" value={formData.keterangan} onChange={handleChange} rows={3} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500/50 outline-none resize-none" />

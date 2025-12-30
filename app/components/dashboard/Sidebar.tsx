@@ -24,7 +24,7 @@ const menuItems = [
   { name: "Log Peralatan", icon: ClipboardList, href: "/dashboard/log-peralatan" },
   { name: "Tugas", icon: ListTodo, href: "/dashboard/tugas" },
   { name: "Jadwal", icon: CalendarDays, href: "/dashboard/jadwal" },
-  { name: "File", icon: FolderOpen, href: "/dashboard/file" },
+  { name: "File", icon: FolderOpen, href: "/dashboard/files" },
   { name: "Konfirmasi Akun", icon: UserCheck, href: "/dashboard/konfirmasi-akun" },
   { name: "Pengaduan", icon: MessageSquareWarning, href: "/dashboard/pengaduan" },
 ];
@@ -56,7 +56,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const sidebarVariants = {
     desktop: { x: 0, opacity: 1 },
-    mobileClosed: { x: -250, opacity: 1 },
+    mobileClosed: { x: -220, opacity: 1 },
     mobileOpen: { x: 0, opacity: 1 },
   };
 
@@ -80,7 +80,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         animate={!isMobile ? "desktop" : isOpen ? "mobileOpen" : "mobileClosed"}
         variants={sidebarVariants}
         transition={{ duration: 0.3, ease: "circOut" }}
-        className="fixed left-0 top-0 h-screen w-[250px] bg-slate-900/60 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50 selection:bg-blue-500/30 font-sans print:hidden"
+        className="fixed left-0 top-0 h-screen w-[220px] bg-slate-900/60 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50 selection:bg-blue-500/30 font-sans print:hidden"
       >
           {/* Close Button Mobile */}
           <button 
