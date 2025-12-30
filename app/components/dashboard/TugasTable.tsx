@@ -75,7 +75,7 @@ export default function TugasTable({
         cell: (info) => (
           <div className="flex flex-col text-left">
             <span className="font-bold text-indigo-300">{info.getValue() as string}</span>
-            <span className="text-xs text-slate-500">{new Date(info.row.original.desc).toLocaleDateString("id-ID") ? "" : ""}</span>
+            <span className="text-xs text-slate-500">{new Date(info.row.original.created_at).toLocaleDateString("id-ID")}</span>
           </div>
         ),
       },
