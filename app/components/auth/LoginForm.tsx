@@ -28,12 +28,20 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
       // We assume NIP is stored in 'akun' table and acts as the username
       const { data: userData, error: userError } = await supabase
         .from('akun')
-        .select('email')
+        .select('email, status, nama')
         .eq('nip', nip.trim())
         .single();
 
       if (userError || !userData) {
         throw new Error("NIP tidak ditemukan. Silakan NIP yang benar atau daftar akun baru.");
+      }
+
+      if (userData.status === 'pending') {
+         throw new Error(`Halo ${userData.nama}, akun Anda masih menunggu persetujuan Admin.`);
+      }
+
+      if (userData.status === 'rejected') {
+         throw new Error("Maaf, pendaftaran akun Anda ditolak.");
       }
 
       const userEmail = userData.email;
