@@ -23,10 +23,10 @@ import {
   Mail,
   BadgeCheck
 } from "lucide-react";
-import { KonfirmasiAkun } from "@/lib/types";
+import { Akun } from "@/lib/types";
 
 interface AccountTableProps {
-  data: KonfirmasiAkun[];
+  data: Akun[];
   loading: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
@@ -68,7 +68,7 @@ export default function AccountTable({
   };
 
   // Columns Definitions
-  const columns = useMemo<ColumnDef<KonfirmasiAkun>[]>(
+  const columns = useMemo<ColumnDef<Akun>[]>(
     () => [
       {
         header: "No",

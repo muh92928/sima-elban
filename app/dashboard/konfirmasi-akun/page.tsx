@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { UserCheck, RefreshCw, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { KonfirmasiAkun } from "@/lib/types";
+import { Akun } from "@/lib/types";
 import AccountTable from "@/app/components/dashboard/AccountTable";
 
 export default function KonfirmasiAkunPage() {
-  const [data, setData] = useState<KonfirmasiAkun[]>([]);
+  const [data, setData] = useState<Akun[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -17,13 +17,13 @@ export default function KonfirmasiAkunPage() {
     try {
       setLoading(true);
       const { data: accounts, error } = await supabase
-        .from('konfirmasi_akun')
+        .from('akun')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      setData(accounts as KonfirmasiAkun[] || []);
+      setData(accounts as Akun[] || []);
     } catch (error) {
       console.error('Error fetching accounts:', error);
     } finally {
@@ -44,7 +44,7 @@ export default function KonfirmasiAkunPage() {
   const handleStatusUpdate = async (id: string, newStatus: 'approved' | 'rejected') => {
       try {
           const { error } = await supabase
-            .from('konfirmasi_akun')
+            .from('akun')
             .update({ status: newStatus })
             .eq('id', id);
           
@@ -66,7 +66,7 @@ export default function KonfirmasiAkunPage() {
   const handleRoleUpdate = async (id: string, newRole: 'admin' | 'user' | 'teknisi') => {
       try {
           const { error } = await supabase
-            .from('konfirmasi_akun')
+            .from('akun')
             .update({ role: newRole })
             .eq('id', id);
 

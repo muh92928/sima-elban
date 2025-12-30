@@ -27,7 +27,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
       // 1. Lookup Email from NIP
       // We assume NIP is stored in 'akun' table and acts as the username
       const { data: userData, error: userError } = await supabase
-        .from('konfirmasi_akun')
+        .from('akun')
         .select('email')
         .eq('nip', nip.trim())
         .single();

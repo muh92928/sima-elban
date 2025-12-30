@@ -56,7 +56,7 @@ export interface FileItem {
   created_at: string;
 }
 
-export interface KonfirmasiAkun {
+export interface Akun {
   id: string; // UUID
   email: string;
   nip: string;
