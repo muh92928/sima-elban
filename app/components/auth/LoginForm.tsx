@@ -35,16 +35,18 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
       if (userError || !userData) {
         throw new Error("NIP tidak ditemukan. Silakan NIP yang benar atau daftar akun baru.");
       }
+      
+      const user = userData as { email: string; status: string; nama: string };
 
-      if (userData.status === 'pending') {
-         throw new Error(`Halo ${userData.nama}, akun Anda masih menunggu persetujuan Admin.`);
+      if (user.status === 'pending') {
+         throw new Error(`Halo ${user.nama}, akun Anda masih menunggu persetujuan Admin.`);
       }
 
-      if (userData.status === 'rejected') {
+      if (user.status === 'rejected') {
          throw new Error("Maaf, pendaftaran akun Anda ditolak.");
       }
 
-      const userEmail = userData.email;
+      const userEmail = user.email;
       if (!userEmail) {
         // Fallback case if email is missing in table (legacy data)
         throw new Error("Data login korup. Silakan hubungi admin.");
