@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Activity, AlertTriangle, CheckCircle, Database, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
+import { CARD_STYLES } from "@/lib/cardStyles";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -83,10 +84,10 @@ export default function DashboardPage() {
             <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl"
+                className={`${CARD_STYLES.CONTAINER} ${CARD_STYLES.HEADER}`}
             >
                 {/* Glossy Overlay */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-500/5 to-purple-500/5 pointer-events-none" />
+                <div className={CARD_STYLES.GLASS_OVERLAY} />
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
                 
                 <div className="relative z-10">
@@ -126,7 +127,7 @@ export default function DashboardPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 + 0.2 }}
-                        className={`p-6 rounded-2xl border ${stat.border} ${stat.bg} backdrop-blur-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}
+                        className={CARD_STYLES.STAT_CARD}
                     >
                          <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300`}>
                             <stat.icon size={100} className={stat.color} />
@@ -134,8 +135,8 @@ export default function DashboardPage() {
 
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-xl ${stat.bg} border ${stat.border}`}>
-                                    <stat.icon size={24} className={stat.color} />
+                                <div className={`p-3 rounded-xl bg-slate-900/50 border border-white/10 ${stat.color}`}>
+                                    <stat.icon size={24} className="opacity-100" />
                                 </div>
                                 <span className={`text-4xl font-bold text-white`}>{loading ? "-" : stat.value}</span>
                             </div>

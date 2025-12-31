@@ -22,6 +22,7 @@ import {
   Search
 } from "lucide-react";
 import { Peralatan } from "@/lib/types";
+import { TABLE_STYLES } from "@/lib/tableStyles";
 
 interface PeralatanTableProps {
   data: Peralatan[];
@@ -41,7 +42,7 @@ export default function PeralatanTable({
 
   // Check Mobile View
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(window.innerWidth < 1000);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -184,7 +185,7 @@ export default function PeralatanTable({
   return (
     <>
       {/* Mobile Card Render (Visible < MD, Hidden >= MD, Hidden on Print) */}
-      <div className="flex flex-col gap-4 p-4 md:hidden print:hidden">
+      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden print:hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
@@ -305,41 +306,33 @@ export default function PeralatanTable({
       </div>
 
       {/* Desktop Table Render (Hidden < MD, Visible >= MD, Visible on Print) */}
-      <div className="hidden md:block print:block rounded-2xl bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:shadow-none print:border-none print:bg-transparent print:overflow-visible">
+      <div className={TABLE_STYLES.CONTAINER}>
 
-          <div className="hidden md:block overflow-x-auto print:block print:overflow-visible custom-scrollbar">
-             <table className="w-full text-sm text-center relative z-10 print:text-black print-table min-w-[1200px]">
-                 <thead className="text-xs uppercase bg-slate-900/30 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
+          <div className={TABLE_STYLES.WRAPPER}>
+             <table className={TABLE_STYLES.TABLE}>
+                 <thead className={TABLE_STYLES.THEAD}>
                      {table.getHeaderGroups().map(headerGroup => (
                          <tr key={headerGroup.id}>
                              {headerGroup.headers.map(header => (
                                  <th 
                                      key={header.id} 
-                                     className={`px-6 py-4 border-b border-white/10 bg-slate-900/30 print:!bg-[#B4C6E7] ${
-                                         header.id === 'index' ? 'w-[60px] px-4 text-center' :
-                                         header.id === 'nama' ? 'min-w-[200px] px-4 text-center' :
-                                         header.id === 'jenis' ? 'min-w-[150px] px-4 text-center' :
-                                         header.id === 'merk' ? 'min-w-[180px] px-4 text-center' :
-                                         header.id === 'no_sertifikat' ? 'min-w-[140px] px-4 text-center' :
-                                         header.id === 'tahun_instalasi' ? 'min-w-[100px] px-4 text-center' :
-                                         header.id === 'kondisi_persen' ? 'min-w-[80px] px-4 text-center' :
-                                         header.id === 'status_laik' ? 'min-w-[160px] px-4 text-center' :
-                                         header.id === 'keterangan' ? 'min-w-[150px] px-4 text-center' :
-                                         'px-6 py-4 text-center'
-                                     }`}
-                                     onClick={header.column.getToggleSortingHandler()}
+                                    className={`${TABLE_STYLES.TH} ${
+                                        header.id === 'index' ? 'w-[60px]' :
+                                        header.id === 'nama' ? 'min-w-[200px]' :
+                                        header.id === 'jenis' ? 'min-w-[150px]' :
+                                        header.id === 'merk' ? 'min-w-[180px]' :
+                                        header.id === 'no_sertifikat' ? 'min-w-[140px]' :
+                                        header.id === 'tahun_instalasi' ? 'min-w-[100px]' :
+                                        header.id === 'kondisi_persen' ? 'min-w-[80px]' :
+                                        header.id === 'status_laik' ? 'min-w-[160px]' :
+                                        header.id === 'keterangan' ? 'min-w-[150px]' :
+                                        ''
+                                    }`}
                                  >
                                     <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                         {flexRender(
                                             header.column.columnDef.header,
                                             header.getContext()
-                                        )}
-                                        {/* Sort Icons */}
-                                        {{
-                                            asc: <ChevronUp size={12} />,
-                                            desc: <ChevronDown size={12} />,
-                                        }[header.column.getIsSorted() as string] ?? (
-                                            header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
                                         )}
                                     </div>
                                 </th>
@@ -372,7 +365,7 @@ export default function PeralatanTable({
                                 className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                             >
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-6 py-4 border-white/5 print:text-black print:border-black break-words whitespace-normal text-xs lg:text-sm text-center align-middle">
+                                    <td key={cell.id} className={TABLE_STYLES.TD}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}

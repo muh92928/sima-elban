@@ -25,6 +25,7 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import { Tugas, Akun, Peralatan } from "@/lib/types";
+import { TABLE_STYLES } from "@/lib/tableStyles";
 
 interface TugasTableProps {
   data: Tugas[];
@@ -253,7 +254,7 @@ export default function TugasTable({
   return (
     <div className="space-y-4">
         {/* Toolbar */}
-        <div className="flex md:items-center justify-between gap-4 flex-col md:flex-row">
+        <div className="flex min-[820px]:items-center justify-between gap-4 flex-col min-[820px]:flex-row">
             <div className="relative flex-1 max-w-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-4 w-4 text-slate-400" />
@@ -270,7 +271,7 @@ export default function TugasTable({
         </div>
         
         {/* Mobile View (Cards) */}
-        <div className="md:hidden grid grid-cols-1 gap-4">
+        <div className="min-[820px]:hidden grid grid-cols-1 gap-4">
             {table.getRowModel().rows.map(row => {
                 const t = row.original;
                 const statusColor = 
@@ -283,7 +284,7 @@ export default function TugasTable({
                         key={t.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-slate-900/40 border border-white/10 rounded-2xl p-4 flex flex-col gap-3 backdrop-blur-sm"
+                        className={TABLE_STYLES.MOBILE_CARD}
                     >
                         <div className="flex justify-between items-start">
                             <div>
@@ -365,14 +366,14 @@ export default function TugasTable({
         </div>
 
         {/* Desktop Table */}
-        <div className="hidden md:block rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-center">
-                     <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider">
+        <div className={TABLE_STYLES.CONTAINER}>
+              <div className={TABLE_STYLES.WRAPPER}>
+                <table className={TABLE_STYLES.TABLE}>
+                     <thead className={TABLE_STYLES.THEAD}>
                          {table.getHeaderGroups().map(headerGroup => (
                             <tr key={headerGroup.id}>
                                 {headerGroup.headers.map(header => (
-                                    <th key={header.id} className="px-6 py-4 border-b border-white/10 bg-slate-900/30 text-center">
+                                    <th key={header.id} className={TABLE_STYLES.TH}>
                                          {flexRender(header.column.columnDef.header, header.getContext())}
                                     </th>
                                 ))}
@@ -393,7 +394,7 @@ export default function TugasTable({
                                     className="hover:bg-white/5 transition-colors group"
                                 >
                                      {row.getVisibleCells().map(cell => (
-                                        <td key={cell.id} className="px-6 py-4 border-white/5 align-middle text-center">
+                                        <td key={cell.id} className={TABLE_STYLES.TD}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                      ))}

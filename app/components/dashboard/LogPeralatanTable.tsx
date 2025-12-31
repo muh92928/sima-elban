@@ -22,6 +22,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { LogPeralatan } from "@/lib/types";
+import { TABLE_STYLES } from "@/lib/tableStyles";
 
 interface LogPeralatanTableProps {
   data: LogPeralatan[];
@@ -163,7 +164,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
   return (
     <>
       {/* Mobile Card View (Visible on < lg, Hidden on >= lg, Hidden on Print) */}
-      <div className="lg:hidden flex flex-col gap-4 print:hidden">
+      <div className="min-[820px]:hidden flex flex-col gap-4 print:hidden">
             {loading ? (
                  <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
@@ -180,9 +181,12 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
                             key={item.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col gap-3"
+                            className={TABLE_STYLES.MOBILE_CARD}
                         >
-                            <div className="flex justify-between items-start border-b border-white/5 pb-3">
+                            {/* Status Indicator Line based on status */}
+                            <div className={`absolute top-0 left-0 w-1.5 h-full ${getStatusColor(item.status).replace('bg-', 'bg-').split(' ')[0] || 'bg-slate-500'}`} />
+                            
+                            <div className={TABLE_STYLES.MOBILE_CARD_HEADER}>
                                 <div>
                                     <h3 className="font-bold text-white leading-tight">
                                         {item.peralatan?.nama || `Peralatan #${item.peralatan_id}`}
@@ -244,28 +248,19 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
       </div>
 
       {/* Desktop Table View (Hidden on < lg, Visible on >= lg, Visible on Print) */}
-      <div className="hidden lg:block print:block rounded-2xl bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:bg-transparent print:shadow-none print:border-none print:overflow-visible">
-          <div className="overflow-x-auto custom-scrollbar print:overflow-visible">
-              <table className="w-full text-sm text-center relative z-10 min-w-[1000px] print:min-w-0 print:w-full print:text-black print:border-collapse">
-                  <thead className="text-xs uppercase bg-slate-900/30 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
+      <div className={TABLE_STYLES.CONTAINER}>
+          <div className={TABLE_STYLES.WRAPPER}>
+              <table className={TABLE_STYLES.TABLE}>
+                  <thead className={TABLE_STYLES.THEAD}>
                       {table.getHeaderGroups().map(headerGroup => (
                           <tr key={headerGroup.id}>
                               {headerGroup.headers.map(header => (
                                   <th 
                                       key={header.id} 
-                                      className={`px-6 py-4 border-b border-white/10 ${(header.id === 'dokumentasi' || header.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2 print:!bg-[#B4C6E7]`}
-                                      onClick={header.column.getToggleSortingHandler()}
+                                      className={`${TABLE_STYLES.TH} ${(header.id === 'dokumentasi' || header.id === 'aksi') ? 'print:hidden' : ''}`}
                                   >
                                       <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                           {flexRender(header.column.columnDef.header, header.getContext())}
-                                          <span className="print:hidden">
-                                              {{
-                                                  asc: <ChevronUp size={12} />,
-                                                  desc: <ChevronDown size={12} />,
-                                              }[header.column.getIsSorted() as string] ?? (
-                                                  header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
-                                              )}
-                                          </span>
                                       </div>
                                   </th>
                               ))}
@@ -297,7 +292,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
                                   className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                               >
                                   {row.getVisibleCells().map(cell => (
-                                      <td key={cell.id} className={`px-4 py-4 border-white/5 align-middle ${(cell.column.id === 'dokumentasi' || cell.column.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2`}>
+                                      <td key={cell.id} className={`${TABLE_STYLES.TD} ${(cell.column.id === 'dokumentasi' || cell.column.id === 'aksi') ? 'print:hidden' : ''}`}>
                                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                       </td>
                                   ))}

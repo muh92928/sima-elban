@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen, onClose, userRole = "" }: SidebarProps
         animate={!isMobile ? "desktop" : isOpen ? "mobileOpen" : "mobileClosed"}
         variants={sidebarVariants}
         transition={{ duration: 0.3, ease: "circOut" }}
-        className="fixed left-0 top-0 h-screen w-[220px] bg-slate-900/60 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50 selection:bg-blue-500/30 font-sans print:hidden"
+        className="fixed left-0 top-0 h-screen w-[220px] bg-slate-900/60 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50 selection:bg-blue-500/30 font-sans print:hidden overflow-hidden"
       >
           {/* Close Button Mobile */}
           <button 
@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen, onClose, userRole = "" }: SidebarProps
         </div>
   
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 scrollbar-hide">
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
           {filteredMenuItems.map((item, index) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;

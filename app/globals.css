@@ -18,21 +18,28 @@ body {
 }
 
 /* Scrollbar kustom agar terlihat lebih modern */
+/* Global Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  height: 6px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #010413;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #334155;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #475569;
+}
+
+/* Specific overrides if needed, but global covers most */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @layer utilities {

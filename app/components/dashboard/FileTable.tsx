@@ -23,6 +23,7 @@ import {
   File
 } from "lucide-react";
 import { FileItem } from "@/lib/types";
+import { TABLE_STYLES } from "@/lib/tableStyles";
 
 interface FileTableProps {
   data: FileItem[];
@@ -47,15 +48,7 @@ export default function FileTable({
   onEdit 
 }: FileTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Check Mobile View
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Columns Definitions
   const columns = useMemo<ColumnDef<FileItem>[]>(
@@ -147,10 +140,10 @@ export default function FileTable({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Mobile Card Render
-  if (isMobile) {
-    return (
-        <div className="flex flex-col gap-4 p-4">
+  return (
+    <>
+      {/* Mobile Card Render */}
+      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
@@ -166,9 +159,9 @@ export default function FileTable({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={item.id}
-                        className="relative overflow-hidden rounded-xl border border-white/10 bg-slate-900/50 p-4"
+                        className={TABLE_STYLES.MOBILE_CARD}
                     >   
-                        <div className="flex justify-between items-start mb-3">
+                        <div className={TABLE_STYLES.MOBILE_CARD_HEADER}>
                             <div className="flex items-start gap-3">
                                 <div className="p-2 bg-slate-800 rounded-lg text-indigo-400 mt-1">
                                     <File size={20} />
@@ -217,32 +210,22 @@ export default function FileTable({
                     </motion.div>
                 ))
             )}
-        </div>
-    );
-  }
+      </div>
 
-  // Desktop Table Render
-  return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative">
-         <div className="hidden md:block overflow-x-auto custom-scrollbar">
-            <table className="w-full text-sm text-left relative z-10 min-w-[1000px]">
-                <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider">
+      {/* Desktop Table Render */}
+    <div className={TABLE_STYLES.CONTAINER}>
+         <div className={TABLE_STYLES.WRAPPER}>
+            <table className={TABLE_STYLES.TABLE}>
+                <thead className={TABLE_STYLES.THEAD}>
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
                                 <th 
                                     key={header.id} 
-                                    className="py-4 px-4 border-b border-white/10 bg-slate-900/30 text-center"
-                                    onClick={header.column.getToggleSortingHandler()}
+                                    className={TABLE_STYLES.TH}
                                 >
                                     <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                         {flexRender(header.column.columnDef.header, header.getContext())}
-                                        {{
-                                            asc: <ChevronUp size={12} />,
-                                            desc: <ChevronDown size={12} />,
-                                        }[header.column.getIsSorted() as string] ?? (
-                                            header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
-                                        )}
                                     </div>
                                 </th>
                             ))}
@@ -274,7 +257,7 @@ export default function FileTable({
                                 className="hover:bg-white/5 transition-colors group"
                             >
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-4 py-4 border-white/5 border-r last:border-r-0 break-words whitespace-normal text-xs lg:text-sm text-center align-top">
+                                    <td key={cell.id} className={TABLE_STYLES.TD}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}
@@ -285,5 +268,6 @@ export default function FileTable({
             </table>
          </div>
     </div>
+    </>
   );
 }
