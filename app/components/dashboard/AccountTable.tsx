@@ -226,16 +226,16 @@ export default function AccountTable({
                         <div className="grid grid-cols-2 gap-3 py-3 border-t border-white/5 border-dashed">
                              <div className="space-y-1">
                                  <p className="text-[10px] text-slate-500 uppercase font-bold">Unit Kerja</p>
-                                 <p className="text-xs text-white">{item.unit_kerja || '-'}</p>
+                                 <p className="text-xs text-white">{(item as any).unit_kerja || '-'}</p>
                              </div>
                              <div className="space-y-1">
                                  <p className="text-[10px] text-slate-500 uppercase font-bold">Peran</p>
                                  <select 
                                     title="Peran"
-                                    value={item.role}
+                                    value={item.role || 'user'}
                                     onChange={(e) => onUpdateRole(item.id, e.target.value as any)}
                                     disabled={item.status !== 'approved'}
-                                    className={`bg-slate-800 border border-white/10 rounded text-xs py-1 px-1.5 focus:outline-none w-full ${getRoleColor(item.role)} uppercase font-bold disabled:opacity-50`}
+                                    className={`bg-slate-800 border border-white/10 rounded text-xs py-1 px-1.5 focus:outline-none w-full ${getRoleColor(item.role || '')} uppercase font-bold disabled:opacity-50`}
                                 >
                                     <option value="user">User</option>
                                     <option value="teknisi">Teknisi</option>
