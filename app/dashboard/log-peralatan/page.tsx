@@ -129,11 +129,11 @@ export default function LogPeralatanPage() {
 
       <style type="text/css" media="print">
         {`
-          @page { size: landscape; margin: 15mm; }
+          @page { size: landscape; margin: 20mm; }
           body { 
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact; 
-            font-family: 'Arial', sans-serif;
+            font-family: 'Times New Roman', Times, serif;
             background-color: white !important;
           }
           .print-hidden { display: none !important; }
@@ -184,12 +184,56 @@ export default function LogPeralatanPage() {
         </div>
       </motion.div>
 
-       {/* Print Header (Simple) */}
-       <div className="hidden print-block text-black mb-6">
-            <h2 className="text-center font-bold text-lg underline mb-1">LOG KEGIATAN HARIAN</h2>
-            <p className="text-center text-sm font-bold mb-4">
-                PERIODE: {reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}
-            </p>
+       {/* Print Only Header (Official Format) */}
+       <div className="hidden print-block text-black mb-4 print-container">
+         <div className="print-title text-center font-bold mb-4">
+             LAPORAN BULANAN<br/>
+             LAPORAN UNJUK HASIL / PERFORMANCE<br/>
+             PERALATAN KEAMANAN PENERBANGAN
+         </div>
+         
+         <div className="w-full flex justify-between items-start text-xs font-bold leading-relaxed">
+             {/* Left Side Info */}
+             <div className="flex-1">
+                 <table className="print-header-table w-auto">
+                     <tbody>
+                         <tr>
+                             <td className="w-[120px]">BANDAR UDARA</td>
+                             <td className="w-[10px]">:</td>
+                             <td>KAREL SADSUITUBUN - LANGGUR</td>
+                         </tr>
+                         <tr>
+                             <td>Bulan / Tahun</td>
+                             <td>:</td>
+                             <td>{reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</td>
+                         </tr>
+                     </tbody>
+                 </table>
+             </div>
+
+             {/* Right Side Info */}
+             <div className="flex-1 flex flex-col items-end">
+                  <table className="print-header-table w-auto" style={{ width: 'auto' }}>
+                     <tbody>
+                         <tr>
+                             <td className="text-left w-[80px]">LEMBAR I</td>
+                             <td className="text-center w-[10px]">:</td>
+                             <td className="text-left w-[300px]">DIREKTORAT KEAMANAN PENERBANGAN</td>
+                         </tr>
+                         <tr>
+                             <td className="text-left">LEMBAR II</td>
+                             <td className="text-center">:</td>
+                             <td className="text-left">KANTOR OTORITAS BANDAR UDARA WILAYAH VIII</td>
+                         </tr>
+                         <tr>
+                             <td className="text-left">LEMBAR III</td>
+                             <td className="text-center">:</td>
+                             <td className="text-left">KANTOR UPBU KELAS II KAREL SADSUITUBUN</td>
+                         </tr>
+                     </tbody>
+                 </table>
+             </div>
+         </div>
        </div>
 
       {/* Filters */}
@@ -240,6 +284,35 @@ export default function LogPeralatanPage() {
             onEdit={handleEdit}
           />
       </motion.div>
+
+       {/* Print Footer (Signatures) */}
+       <div className="hidden print-block mt-8 text-black text-xs">
+         <div className="flex justify-between px-10 items-start">
+             {/* Left Box */}
+             <div className="text-center flex flex-col items-center">
+                 <p className="mb-1">Mengetahui,</p>
+                 <p className="font-bold">KEPALA SEKSI TOKPD</p>
+                 <p className="font-bold mb-20">UPBU KAREL SADSUITUBUN</p>
+                 <p className="font-bold underline leading-none">ROBERTUS FABUMASSE, ST</p>
+                 <p>NIP. 19821210 200812 1 001</p>
+             </div>
+
+             {/* Right Box */}
+             <div className="text-center flex flex-col items-center">
+                 <p className="mb-1">Langgur, {new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0).getDate()} {reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</p>
+                 <p className="font-bold">PIC PELAPORAN</p>
+                 <div className="relative h-20 w-32 flex items-center justify-center my-1">
+                     <img 
+                          src="/signature-pic.png" 
+                          alt="Signature" 
+                          className="h-full w-full object-contain filter contrast-125"
+                      />
+                 </div>
+                 <p className="font-bold underline leading-none">MUH. FARHAN A.Md.T</p>
+                 <p>NIP. 19990517 202210 1 001</p>
+             </div>
+         </div>
+       </div>
     </div>
   );
 }

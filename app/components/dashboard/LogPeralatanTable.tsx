@@ -56,8 +56,8 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
         header: "Peralatan",
         cell: (info) => (
             <div className="flex flex-col text-left">
-                <span className="font-bold text-white text-xs">{info.row.original.peralatan?.nama || `Peralatan #${info.row.original.peralatan_id}`}</span>
-                <span className="text-[10px] text-slate-400">
+                <span className="font-bold text-white text-xs print:text-black">{info.row.original.peralatan?.nama || `Peralatan #${info.row.original.peralatan_id}`}</span>
+                <span className="text-[10px] text-slate-400 print:text-gray-600">
                     {info.row.original.peralatan?.jenis} 
                     {info.row.original.peralatan?.merk ? ` • ${info.row.original.peralatan?.merk}` : ''}
                 </span>
@@ -68,7 +68,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
         accessorKey: "tanggal",
         header: "Tanggal",
         cell: (info) => (
-            <span className="text-slate-300 text-xs">
+            <span className="text-slate-300 text-xs print:text-black">
                 {new Date(info.getValue() as string).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
         ),
@@ -76,28 +76,28 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
       {
         accessorKey: "waktu_operasi_aktual",
         header: "Waktu Operasi Aktual",
-        cell: (info) => <span className="text-slate-300 font-mono text-xs">{info.getValue() as number}</span>,
+        cell: (info) => <span className="text-slate-300 font-mono text-xs print:text-black">{info.getValue() as number}</span>,
       },
       {
         accessorKey: "waktu_operasi_diterapkan",
         header: "Waktu Operasi Diterapkan",
-        cell: (info) => <span className="text-slate-300 font-mono text-xs">{info.getValue() as number}</span>,
+        cell: (info) => <span className="text-slate-300 font-mono text-xs print:text-black">{info.getValue() as number}</span>,
       },
       {
         accessorKey: "mematikan_terjadwal",
         header: "Periode Mematikan",
-        cell: (info) => <span className="text-slate-300 font-mono text-xs">{info.getValue() as number}</span>,
+        cell: (info) => <span className="text-slate-300 font-mono text-xs print:text-black">{info.getValue() as number}</span>,
       },
       {
         accessorKey: "periode_kegagalan",
         header: "Periode Kegagalan",
-        cell: (info) => <span className="text-slate-300 font-mono text-xs">{info.getValue() as number}</span>,
+        cell: (info) => <span className="text-slate-300 font-mono text-xs print:text-black">{info.getValue() as number}</span>,
       },
       {
         accessorKey: "status",
         header: "Status",
         cell: (info) => (
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap ${getStatusColor(info.getValue() as string)}`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap ${getStatusColor(info.getValue() as string)} print:bg-transparent print:text-black print:border-none print:p-0`}>
                 {info.getValue() as string}
             </span>
         ),
@@ -162,8 +162,8 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
 
   return (
     <>
-      {/* Mobile Card View (Visible on < lg, Hidden on >= lg) */}
-      <div className="lg:hidden flex flex-col gap-4">
+      {/* Mobile Card View (Visible on < lg, Hidden on >= lg, Hidden on Print) */}
+      <div className="lg:hidden flex flex-col gap-4 print:hidden">
             {loading ? (
                  <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
@@ -243,34 +243,36 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
             )}
       </div>
 
-      {/* Desktop Table View (Hidden on < lg, Visible on >= lg) */}
-      <div className="hidden lg:block rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative">
-          <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-sm text-center relative z-10 min-w-[1000px]">
-                  <thead className="text-xs uppercase bg-black/20 text-slate-300 font-bold tracking-wider">
+      {/* Desktop Table View (Hidden on < lg, Visible on >= lg, Visible on Print) */}
+      <div className="hidden lg:block print:block rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:bg-transparent print:shadow-none print:border-none print:overflow-visible">
+          <div className="overflow-x-auto custom-scrollbar print:overflow-visible">
+              <table className="w-full text-sm text-center relative z-10 min-w-[1000px] print:min-w-0 print:w-full print:text-black print:border-collapse">
+                  <thead className="text-xs uppercase bg-black/20 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
                       {table.getHeaderGroups().map(headerGroup => (
                           <tr key={headerGroup.id}>
                               {headerGroup.headers.map(header => (
                                   <th 
                                       key={header.id} 
-                                      className="py-4 px-4 border-b border-white/10 first:border-l-0 border-l border-white/5"
+                                      className={`py-4 px-4 border-b border-white/10 first:border-l-0 border-l border-white/5 ${(header.id === 'dokumentasi' || header.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2 print:!bg-[#B4C6E7]`}
                                       onClick={header.column.getToggleSortingHandler()}
                                   >
                                       <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                           {flexRender(header.column.columnDef.header, header.getContext())}
-                                          {{
-                                              asc: <ChevronUp size={12} />,
-                                              desc: <ChevronDown size={12} />,
-                                          }[header.column.getIsSorted() as string] ?? (
-                                              header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
-                                          )}
+                                          <span className="print:hidden">
+                                              {{
+                                                  asc: <ChevronUp size={12} />,
+                                                  desc: <ChevronDown size={12} />,
+                                              }[header.column.getIsSorted() as string] ?? (
+                                                  header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
+                                              )}
+                                          </span>
                                       </div>
                                   </th>
                               ))}
                           </tr>
                       ))}
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-white/5 print:divide-none">
                       {loading ? (
                           <tr>
                               <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">
@@ -292,10 +294,10 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
                                   key={row.id}
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
-                                  className="hover:bg-white/5 transition-colors group"
+                                  className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                               >
                                   {row.getVisibleCells().map(cell => (
-                                      <td key={cell.id} className="px-4 py-4 border-white/5 border-l first:border-l-0 align-middle">
+                                      <td key={cell.id} className={`px-4 py-4 border-white/5 border-l first:border-l-0 align-middle ${(cell.column.id === 'dokumentasi' || cell.column.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2`}>
                                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                       </td>
                                   ))}
@@ -307,7 +309,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
           </div>
           
           {/* Pagination Controls */}
-          <div className="flex items-center justify-between p-4 border-t border-white/10 bg-black/20">
+          <div className="flex items-center justify-between p-4 border-t border-white/10 bg-black/20 print:hidden">
               <div className="text-xs text-slate-400">
                   Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
               </div>
