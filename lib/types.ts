@@ -81,7 +81,7 @@ export interface Akun {
   nama: string;
   peran: string; // Renamed from unit_kerja
   unit_kerja?: string; // Legacy support
-  status: 'AKTIF' | 'NONAKTIF' | 'pending' | 'approved';
+  status: 'AKTIF' | 'NONAKTIF' | 'pending' | 'approved' | 'rejected';
   created_at: string;
   role?: string; // Optional helper
 }
