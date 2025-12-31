@@ -32,9 +32,10 @@ const menuItems = [
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  userRole?: string;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, userRole = "" }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
@@ -54,11 +55,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Removed internal role fetching
+
   const sidebarVariants = {
     desktop: { x: 0, opacity: 1 },
     mobileClosed: { x: -220, opacity: 1 },
     mobileOpen: { x: 0, opacity: 1 },
   };
+
+  const filteredMenuItems = menuItems.filter(item => {
+    const privilegedRoles = ['KANIT_ELBAN', 'TEKNISI_ELBAN'];
+    const isPrivileged = privilegedRoles.some(p => userRole.includes(p));
+    
+    if (isPrivileged) return true;
+    return item.name === 'Pengaduan';
+  });
 
   return (
     <>
@@ -99,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="relative group mb-4">
               <div className="absolute transition-all duration-500 opacity-50 -inset-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-lg group-hover:opacity-80"></div>
               <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Logo_of_the_Ministry_of_Transportation_of_the_Republic_of_Indonesia.svg/1034px-Logo_of_the_Ministry_of_Transportation_of_the_Republic_of_Indonesia.svg.png" 
+              src="/logo_kemenhub.png" 
               alt="Logo" 
               className="relative w-16 h-16 object-contain drop-shadow-2xl"
               />
@@ -112,7 +123,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 scrollbar-hide">
-          {menuItems.map((item, index) => {
+          {filteredMenuItems.map((item, index) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
   

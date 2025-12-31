@@ -78,7 +78,7 @@ export default function KonfirmasiAkunPage() {
           
       } catch (error) {
            console.error("Error updating role:", error);
-           alert("Gagal memperbarui role akun.");
+           alert("Gagal memperbarui peran akun.");
       }
   };
 

@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { count } from "console";
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, CheckCircle, Wrench, ArrowRight, Database } from "lucide-react";
-import Link from "next/link";
+import { Activity, AlertTriangle, CheckCircle, Database, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { Akun } from "@/lib/types";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -16,6 +15,7 @@ export default function DashboardPage() {
     });
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<Akun | null>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -23,6 +23,11 @@ export default function DashboardPage() {
                 // Get User
                 const { data: { user } } = await supabase.auth.getUser();
                 setUser(user);
+
+                if (user?.email) {
+                    const { data: akun } = await supabase.from('akun').select('*').eq('email', user.email).single();
+                    if (akun) setProfile(akun);
+                }
 
                 // Get Stats
                 const { data, error } = await supabase.from('peralatan').select('status_laik');
@@ -74,13 +79,44 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-8">
-            {/* Welcome Section */}
-            <div className="flex flex-col gap-1">
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-white">
-                    Selamat Datang, {user?.user_metadata?.full_name || "Petugas"}
-                </h1>
-                <p className="text-slate-400">Ringkasan status peralatan dan aktivitas terbaru.</p>
-            </div>
+            {/* Welcome Section / Profile Card */}
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl"
+            >
+                {/* Glossy Overlay */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-500/5 to-purple-500/5 pointer-events-none" />
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
+                
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-white mb-2">
+                        Selamat Datang, {profile?.nama || user?.user_metadata?.full_name || "Petugas"}
+                    </h1>
+                    <p className="text-slate-400">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
+                    
+                    <div className="flex flex-wrap items-center gap-3 mt-5">
+                         {/* Role Badge */}
+                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_-3px_rgba(99,102,241,0.4)]">
+                            {(profile?.peran || user?.user_metadata?.peran || "").replace(/_/g, " ")}
+                         </div>
+                         
+                         {/* NIP Badge */}
+                         {(profile?.nip || user?.user_metadata?.nip) && (
+                             <div className="px-3 py-1.5 rounded-full bg-slate-800/50 border border-white/10 text-slate-400 text-xs font-mono">
+                                NIP: {profile?.nip || user?.user_metadata?.nip}
+                             </div>
+                         )}
+                    </div>
+                </div>
+                
+                {/* Decorative Icon */}
+                <div className="relative z-10 hidden md:block mr-4">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 border border-white/20">
+                        <Activity className="text-white" size={40} />
+                    </div>
+                </div>
+            </motion.div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -89,9 +125,13 @@ export default function DashboardPage() {
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`p-6 rounded-2xl border ${stat.border} ${stat.bg} backdrop-blur-sm relative overflow-hidden group`}
+                        transition={{ delay: index * 0.1 + 0.2 }}
+                        className={`p-6 rounded-2xl border ${stat.border} ${stat.bg} backdrop-blur-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300`}
                     >
+                         <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300`}>
+                            <stat.icon size={100} className={stat.color} />
+                        </div>
+
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-4">
                                 <div className={`p-3 rounded-xl ${stat.bg} border ${stat.border}`}>
@@ -99,65 +139,15 @@ export default function DashboardPage() {
                                 </div>
                                 <span className={`text-4xl font-bold text-white`}>{loading ? "-" : stat.value}</span>
                             </div>
-                            <h3 className="text-slate-300 font-medium text-sm">{stat.title}</h3>
+                            <h3 className="text-slate-400 font-medium">{stat.title}</h3>
                         </div>
-                        {/* Decorative Gradient */}
-                        <div className={`absolute -right-6 -bottom-6 w-32 h-32 rounded-full blur-3xl opacity-20 ${stat.bg.replace('/10', '/50')}`} />
                     </motion.div>
                 ))}
             </div>
-
+            
             {/* Quick Actions / Navigation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="p-6 rounded-2xl bg-slate-900/40 border border-white/10 backdrop-blur-sm shadow-xl"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                                <Activity className="text-indigo-400" size={20} />
-                            </div>
-                            <h3 className="text-lg font-bold text-white">Manajemen Peralatan</h3>
-                        </div>
-                    </div>
-                    <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                        Akses database lengkap peralatan, kelola inventaris, update status kelaikan, dan cetak laporan bulanan.
-                    </p>
-                    <Link href="/dashboard/peralatan">
-                        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all group shadow-lg shadow-indigo-500/20">
-                            Buka Data Peralatan
-                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    </Link>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="p-6 rounded-2xl bg-slate-900/40 border border-white/10 backdrop-blur-sm shadow-xl"
-                >
-                     <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                <Wrench className="text-amber-400" size={20} />
-                            </div>
-                            <h3 className="text-lg font-bold text-white">Log Aktivitas</h3>
-                        </div>
-                    </div>
-                    <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                         Pantau riwayat perbaikan, jadwal maintenance rutin, dan catatan aktivitas teknis harian.
-                    </p>
-                    <Link href="/dashboard/log-peralatan">
-                         <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white border border-white/10 rounded-xl text-sm font-semibold transition-all group hover:border-white/20">
-                            Lihat Log Aktivitas
-                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    </Link>
-                </motion.div>
+                 {/* Can add more cards here if needed */}
             </div>
         </div>
     );

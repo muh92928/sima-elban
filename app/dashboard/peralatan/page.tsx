@@ -155,7 +155,7 @@ export default function PeralatanPage() {
         <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
             >
                 <Plus size={16} />
                 Tambah Alat

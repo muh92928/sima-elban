@@ -35,6 +35,7 @@ export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [picName, setPicName] = useState<string>("");
+  const [currentUserNip, setCurrentUserNip] = useState<string>("");
 
   // UI State: Collapsed Groups
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -46,8 +47,11 @@ export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList 
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: akun } = await supabase.from('akun').select('nama').eq('email', user.email).single();
-        if (akun) setPicName(akun.nama);
+        const { data: akun } = await supabase.from('akun').select('nama, nip').eq('email', user.email).single();
+        if (akun) {
+           setPicName(akun.nama);
+           setCurrentUserNip(akun.nip);
+        }
         else setPicName(user.user_metadata?.name || user.email?.split('@')[0] || "Admin");
       }
     };
@@ -257,6 +261,55 @@ export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList 
         .insert(rowsToInsert);
 
       if (insertError) throw insertError;
+
+      // --- AUTOMATIC TASK CREATION LOGIC ---
+      // Check if any inserted row has a status needing attention
+      const logsNeedingAction = rowsToInsert.filter(row => 
+          row.status === 'Perlu Perbaikan' || row.status === 'Perlu Perawatan'
+      );
+
+      if (logsNeedingAction.length > 0) {
+          // 1. Find ALL Technicians to assign (Broadcast)
+          // We search for 'TEKNISI_ELBAN' specifically.
+          const { data: technicians } = await supabase
+              .from('akun')
+              .select('nip, nama, status')
+              .eq('peran', 'TEKNISI_ELBAN');
+
+          // 2. Ensure we have a creator NIP (dibuat_oleh)
+          let creatorNip = currentUserNip;
+          if (!creatorNip) {
+              // Try to find an admin to attribute to if current user has no NIP profile
+              const { data: admins } = await supabase.from('akun').select('nip').eq('peran', 'UNIT_ADMIN').limit(1);
+              creatorNip = admins?.[0]?.nip || "";
+          }
+
+          if (technicians && technicians.length > 0 && creatorNip) {
+              // Create a task for EACH technician for EACH log (Broadcast)
+              const tasksToCreate = logsNeedingAction.flatMap(log => 
+                  technicians.map(tech => ({
+                      peralatan_id: log.peralatan_id,
+                      judul: `Tindak Lanjut: ${log.status}`,
+                      deskripsi: `Dibuat otomatis dari Log Harian tanggal ${log.tanggal}. Status peralatan: ${log.status}. Mohon segera diperiksa.`,
+                      status: 'PENDING',
+                      sumber: 'Log Otomatis',
+                      dibuat_kapan: new Date().toISOString(),
+                      dibuat_oleh_nip: creatorNip,
+                      ditugaskan_ke_nip: tech.nip
+                  }))
+              );
+
+              const { error: taskError } = await supabase.from('tugas').insert(tasksToCreate);
+              if (taskError) {
+                  console.error("Gagal membuat tugas otomatis:", taskError);
+                  alert(`Info: Log tersimpan, tapi gagal membuat tugas otomatis: ${taskError.message}`);
+              }
+          } else {
+             console.warn("Skipping auto-task creation: No technician or creator NIP found.");
+             alert(`Info: Log tersimpan, tapi Tugas Otomatis GAGAL dibuat. \n\nDiagnosa:\n- Teknisi (TEKNISI_ELBAN) ditemukan: ${technicians && technicians.length > 0 ? 'YA (' + technicians.length + ' orang)' : 'TIDAK'}\n- Creator NIP ditemukan: ${creatorNip ? 'YA (' + creatorNip + ')' : 'TIDAK'}\n\nPastikan ada akun dengan peran 'TEKNISI_ELBAN' dan akun Anda memiliki NIP.`);
+          }
+      }
+      // -------------------------------------
 
       onSuccess();
       handleClose();

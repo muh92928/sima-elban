@@ -305,32 +305,30 @@ export default function PeralatanTable({
       </div>
 
       {/* Desktop Table Render (Hidden < MD, Visible >= MD, Visible on Print) */}
-      <div className="hidden md:block print:block rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:shadow-none print:border-none print:bg-transparent print:overflow-visible">
-         {/* Glass Gradient Overlay (Hidden on Print & Mobile) */}
-         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-blue-500/5 pointer-events-none print:hidden hidden md:block" />
+      <div className="hidden md:block print:block rounded-2xl bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:shadow-none print:border-none print:bg-transparent print:overflow-visible">
 
-         <div className="hidden md:block overflow-x-auto print:block print:overflow-visible custom-scrollbar">
-            <table className="w-full text-sm text-left relative z-10 print:text-black print-table min-w-[1200px]">
-                <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <th 
-                                    key={header.id} 
-                                    className={`py-4 border-b border-white/10 bg-slate-900/30 print:!bg-[#B4C6E7] ${
-                                        header.id === 'index' ? 'w-[60px] px-4 text-center' :
-                                        header.id === 'nama' ? 'min-w-[200px] px-4 text-center' :
-                                        header.id === 'jenis' ? 'min-w-[150px] px-4 text-center' :
-                                        header.id === 'merk' ? 'min-w-[180px] px-4 text-center' :
-                                        header.id === 'no_sertifikat' ? 'min-w-[140px] px-4 text-center' :
-                                        header.id === 'tahun_instalasi' ? 'min-w-[100px] px-4 text-center' :
-                                        header.id === 'kondisi_persen' ? 'min-w-[80px] px-4 text-center' :
-                                        header.id === 'status_laik' ? 'min-w-[160px] px-4 text-center' :
-                                        header.id === 'keterangan' ? 'min-w-[150px] px-4 text-center' :
-                                        'px-4 text-center'
-                                    }`}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                >
+          <div className="hidden md:block overflow-x-auto print:block print:overflow-visible custom-scrollbar">
+             <table className="w-full text-sm text-center relative z-10 print:text-black print-table min-w-[1200px]">
+                 <thead className="text-xs uppercase bg-slate-900/30 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
+                     {table.getHeaderGroups().map(headerGroup => (
+                         <tr key={headerGroup.id}>
+                             {headerGroup.headers.map(header => (
+                                 <th 
+                                     key={header.id} 
+                                     className={`px-6 py-4 border-b border-white/10 bg-slate-900/30 print:!bg-[#B4C6E7] ${
+                                         header.id === 'index' ? 'w-[60px] px-4 text-center' :
+                                         header.id === 'nama' ? 'min-w-[200px] px-4 text-center' :
+                                         header.id === 'jenis' ? 'min-w-[150px] px-4 text-center' :
+                                         header.id === 'merk' ? 'min-w-[180px] px-4 text-center' :
+                                         header.id === 'no_sertifikat' ? 'min-w-[140px] px-4 text-center' :
+                                         header.id === 'tahun_instalasi' ? 'min-w-[100px] px-4 text-center' :
+                                         header.id === 'kondisi_persen' ? 'min-w-[80px] px-4 text-center' :
+                                         header.id === 'status_laik' ? 'min-w-[160px] px-4 text-center' :
+                                         header.id === 'keterangan' ? 'min-w-[150px] px-4 text-center' :
+                                         'px-6 py-4 text-center'
+                                     }`}
+                                     onClick={header.column.getToggleSortingHandler()}
+                                 >
                                     <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                         {flexRender(
                                             header.column.columnDef.header,
@@ -374,7 +372,7 @@ export default function PeralatanTable({
                                 className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                             >
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-4 py-4 border-white/5 print:text-black print:border-black border-r last:border-r-0 break-words whitespace-normal text-xs lg:text-sm text-center align-middle">
+                                    <td key={cell.id} className="px-6 py-4 border-white/5 print:text-black print:border-black break-words whitespace-normal text-xs lg:text-sm text-center align-middle">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}

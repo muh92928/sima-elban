@@ -55,7 +55,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
         accessorKey: "peralatan.nama", // Access nested data
         header: "Peralatan",
         cell: (info) => (
-            <div className="flex flex-col text-left">
+            <div className="flex flex-col items-center text-center">
                 <span className="font-bold text-white text-xs print:text-black">{info.row.original.peralatan?.nama || `Peralatan #${info.row.original.peralatan_id}`}</span>
                 <span className="text-[10px] text-slate-400 print:text-gray-600">
                     {info.row.original.peralatan?.jenis} 
@@ -244,16 +244,16 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
       </div>
 
       {/* Desktop Table View (Hidden on < lg, Visible on >= lg, Visible on Print) */}
-      <div className="hidden lg:block print:block rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:bg-transparent print:shadow-none print:border-none print:overflow-visible">
+      <div className="hidden lg:block print:block rounded-2xl bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:bg-transparent print:shadow-none print:border-none print:overflow-visible">
           <div className="overflow-x-auto custom-scrollbar print:overflow-visible">
               <table className="w-full text-sm text-center relative z-10 min-w-[1000px] print:min-w-0 print:w-full print:text-black print:border-collapse">
-                  <thead className="text-xs uppercase bg-black/20 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
+                  <thead className="text-xs uppercase bg-slate-900/30 text-slate-300 font-bold tracking-wider print:bg-[#B4C6E7] print:text-black">
                       {table.getHeaderGroups().map(headerGroup => (
                           <tr key={headerGroup.id}>
                               {headerGroup.headers.map(header => (
                                   <th 
                                       key={header.id} 
-                                      className={`py-4 px-4 border-b border-white/10 first:border-l-0 border-l border-white/5 ${(header.id === 'dokumentasi' || header.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2 print:!bg-[#B4C6E7]`}
+                                      className={`px-6 py-4 border-b border-white/10 ${(header.id === 'dokumentasi' || header.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2 print:!bg-[#B4C6E7]`}
                                       onClick={header.column.getToggleSortingHandler()}
                                   >
                                       <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
@@ -297,7 +297,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
                                   className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                               >
                                   {row.getVisibleCells().map(cell => (
-                                      <td key={cell.id} className={`px-4 py-4 border-white/5 border-l first:border-l-0 align-middle ${(cell.column.id === 'dokumentasi' || cell.column.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2`}>
+                                      <td key={cell.id} className={`px-4 py-4 border-white/5 align-middle ${(cell.column.id === 'dokumentasi' || cell.column.id === 'aksi') ? 'print:hidden' : ''} print:border print:border-black print:first:border-l print:py-2 print:px-2`}>
                                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                       </td>
                                   ))}

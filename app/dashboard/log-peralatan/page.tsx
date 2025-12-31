@@ -8,6 +8,7 @@ import { LogPeralatan, Peralatan } from "@/lib/types";
 import AddLogModal from "@/app/components/dashboard/AddLogModal";
 import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
+import Toast, { ToastType } from "@/app/components/Toast";
 
 export default function LogPeralatanPage() {
   const [data, setData] = useState<LogPeralatan[]>([]);
@@ -19,6 +20,17 @@ export default function LogPeralatanPage() {
   const [editingItem, setEditingItem] = useState<LogPeralatan | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [reportDate, setReportDate] = useState(new Date());
+  
+  // Toast State
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: ToastType }>({
+      show: false,
+      message: '',
+      type: 'success'
+  });
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+      setToast({ show: true, message, type });
+  };
 
   const fetchData = async () => {
     try {
@@ -45,6 +57,7 @@ export default function LogPeralatanPage() {
       setData(logs as unknown as LogPeralatan[] || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showToast("Gagal memuat data log.", 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -75,9 +88,10 @@ export default function LogPeralatanPage() {
             const { error } = await supabase.from('log_peralatan').delete().eq('id', id);
             if (error) throw error;
             fetchData();
+            showToast("Log berhasil dihapus.");
         } catch (error) {
             console.error("Error deleting log:", error);
-            alert("Gagal menghapus log.");
+            showToast("Gagal menghapus log.", 'error');
         }
     }
   };
@@ -108,11 +122,21 @@ export default function LogPeralatanPage() {
 
   return (
     <div className="space-y-6 print:space-y-4">
+        <Toast 
+            show={toast.show} 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={() => setToast(prev => ({ ...prev, show: false }))} 
+        />
+
         {/* Modals */}
         <AddLogModal 
             isOpen={isAddModalOpen} 
             onClose={() => setIsAddModalOpen(false)} 
-            onSuccess={fetchData} 
+            onSuccess={(msg?: string) => {
+                fetchData();
+                if (msg) showToast(msg, 'success');
+            }} 
             peralatanList={peralatanList}
         />
 
@@ -122,12 +146,15 @@ export default function LogPeralatanPage() {
                 setIsEditModalOpen(false);
                 setEditingItem(null);
             }}
-            onSuccess={fetchData}
+            onSuccess={(msg?: string) => {
+                fetchData();
+                if (msg) showToast(msg, 'success');
+            }}
             logData={editingItem}
             peralatanList={peralatanList}
         />
 
-      <style type="text/css" media="print">
+       <style type="text/css" media="print">
         {`
           @page { size: landscape; margin: 20mm; }
           body { 
@@ -162,7 +189,7 @@ export default function LogPeralatanPage() {
         <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
             >
                 <Plus size={16} />
                 Tambah Log

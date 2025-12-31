@@ -1,293 +1,409 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { 
+  Briefcase, 
+  Calendar, 
+  CheckCircle, 
+  Clock, 
+  MoreHorizontal, 
+  Pencil, 
+  Search, 
+  Trash2, 
+  User, 
+  Wrench 
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useReactTable,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   flexRender,
   ColumnDef,
   SortingState,
 } from "@tanstack/react-table";
-import { motion } from "framer-motion";
-import { 
-  Trash2, 
-  ChevronDown, 
-  ChevronUp, 
-  ChevronsUpDown,
-  RefreshCw,
-  Pencil
-} from "lucide-react";
-import { Tugas } from "@/lib/types";
+import { Tugas, Akun, Peralatan } from "@/lib/types";
 
 interface TugasTableProps {
   data: Tugas[];
   loading: boolean;
-  onDelete: (id: number) => void;
   onEdit: (item: Tugas) => void;
+  onDelete: (id: number | number[]) => void;
+  onStatusChange: (id: number | number[], status: 'PENDING' | 'PROSES' | 'SELESAI') => void;
+  currentUserNip?: string;
+  isKanitOrAdmin: boolean;
 }
-
-const getPriorityColor = (prioritas: string) => {
-    switch(prioritas) {
-        case 'Tinggi': return 'bg-red-500/20 text-red-400 border-red-500/20';
-        case 'Sedang': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-        default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-    }
-};
-
-const getStatusColor = (status: string) => {
-    switch(status) {
-        case 'Selesai': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20';
-        case 'Sedang Dikerjakan': return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
-        default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-    }
-};
 
 export default function TugasTable({ 
   data, 
   loading, 
-  onDelete,
-  onEdit 
+  onEdit, 
+  onDelete, 
+  onStatusChange,
+  currentUserNip,
+  isKanitOrAdmin,
 }: TugasTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [isMobile, setIsMobile] = useState(false);
+  const [globalFilter, setGlobalFilter] = useState("");
 
-  // Check Mobile View
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  // Group Data Logic
+  const groupedData = useMemo(() => {
+     if (!data) return [];
+     
+     // Extend type for internal use
+     type GroupedTugas = Tugas & {
+         ids: number[];
+         assignees: { nama: string | null; nip: string }[];
+         isGroup: boolean;
+     };
 
-  // Columns Definitions
-  const columns = useMemo<ColumnDef<Tugas>[]>(
-    () => [
-      {
-        header: "No",
-        id: "index",
-        cell: (info) => info.row.index + 1,
-        enableSorting: false,
-      },
-      {
-        accessorKey: "judul",
-        header: "Judul Tugas",
-        cell: (info) => (
-          <div className="flex flex-col text-left">
-            <span className="font-bold text-indigo-300">{info.getValue() as string}</span>
-            <span className="text-xs text-slate-500">{new Date(info.row.original.created_at).toLocaleDateString("id-ID")}</span>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "deskripsi",
-        header: "Deskripsi",
-        cell: (info) => <span className="text-slate-300 whitespace-pre-wrap text-left text-xs line-clamp-2">{info.getValue() as string}</span>,
-      },
-      {
-        accessorKey: "prioritas",
-        header: "Prioritas",
-        cell: (info) => (
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getPriorityColor(info.getValue() as string)}`}>
-            {info.getValue() as string}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: (info) => (
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(info.getValue() as string)}`}>
-            {info.getValue() as string}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "tanggal",
-        header: "Tenggat Waktu",
-        cell: (info) => (
-            <span className="text-slate-300 text-xs">
-                {new Date(info.getValue() as string).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-        ),
-      },
-      {
-        accessorKey: "pic",
-        header: "PIC",
-        cell: (info) => (
-          <span className="px-2 py-1 rounded bg-slate-800 border border-white/5 text-xs text-slate-300">
-            {info.getValue() as string}
-          </span>
-        ),
-      },
-      {
-        id: "aksi",
-        header: "Aksi",
-        enableSorting: false,
-        cell: (info) => (
-            <div className="flex items-center justify-center gap-2">
-                <button 
-                    onClick={() => onEdit(info.row.original)}
-                    className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
-                    title="Edit Tugas"
-                >
-                    <Pencil size={16} />
-                </button>
-                <button 
-                    onClick={() => onDelete(info.row.original.id)}
-                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
-                    title="Hapus Tugas"
-                >
-                    <Trash2 size={16} />
-                </button>
-            </div>
-        )
+     const groups: Record<string, GroupedTugas> = {};
+     
+     data.forEach(task => {
+         // Group key: Title + Description + Equipment + Time (up to minute)
+         // Ignore seconds/ms to group batch creations effectively
+         const timeKey = task.dibuat_kapan ? task.dibuat_kapan.substring(0, 16) : 'unknown';
+         const key = `${task.judul || ''}|${task.deskripsi}|${task.peralatan_id}|${timeKey}|${task.status}`;
+
+         if (!groups[key]) {
+             groups[key] = { 
+                 ...task, 
+                 ids: [], 
+                 assignees: [],
+                 isGroup: false 
+             };
+         }
+         
+         groups[key].ids.push(task.id);
+         
+         const assignee = task.ditugaskan_ke 
+             ? { nama: task.ditugaskan_ke.nama, nip: task.ditugaskan_ke.nip }
+             : { nama: task.ditugaskan_ke_nip, nip: task.ditugaskan_ke_nip };
+             
+         // Avoid invalid assignees if any
+         if (assignee.nip) {
+             groups[key].assignees.push(assignee);
+         }
+         
+         groups[key].isGroup = groups[key].ids.length > 1;
+     });
+
+     return Object.values(groups);
+  }, [data]);
+
+  // Define Columns
+  const columns = useMemo<ColumnDef<any>[]>(
+    () => {
+      const cols: ColumnDef<any>[] = [
+        {
+          header: "No",
+          id: "index",
+          cell: (info) => info.row.index + 1,
+          enableSorting: false,
+        },
+        {
+          accessorKey: "peralatan.nama",
+          header: "Peralatan",
+          cell: (info) => {
+              const p = info.row.original.peralatan;
+              if (!p) return <span className="text-slate-500 text-xs italic">Tanpa Peralatan</span>;
+              return (
+                  <div className="flex flex-col items-center">
+                      <span className="font-bold text-white text-sm text-center">{p.nama}</span>
+                      <span className="text-xs text-slate-400">{p.merk || "-"}</span>
+                  </div>
+              )
+          }
+        },
+        {
+          header: "Judul / Deskripsi",
+          accessorKey: "deskripsi",
+          cell: (info) => {
+              const t = info.row.original;
+              return (
+                  <div className="max-w-[300px] mx-auto text-center">
+                      {t.judul && <div className="font-bold text-white mb-1">{t.judul}</div>}
+                      <div className="text-xs text-slate-300">{t.deskripsi}</div>
+                  </div>
+              );
+          }
+        },
+        {
+          header: "Ditugaskan Ke",
+          accessorKey: "ditugaskan_ke", 
+          cell: (info) => {
+              const assignees = info.row.original.assignees as { nama: string; nip: string }[];
+              if (!assignees || assignees.length === 0) return <span className="text-slate-500 text-xs">-</span>;
+              
+              return (
+                  <div className="flex flex-wrap justify-center gap-1 max-w-[200px] mx-auto">
+                       {assignees.map((u, i) => (
+                           <div key={i} className="flex items-center gap-1 bg-slate-800/80 border border-white/5 px-2 py-1 rounded-lg">
+                                <span className={`font-bold text-indigo-200 text-xs whitespace-nowrap`}>
+                                    {u.nama || u.nip}
+                                </span>
+                           </div>
+                       ))}
+                  </div>
+              )
+          }
+        },
+        {
+          header: "Status",
+          accessorKey: "status",
+          cell: (info) => {
+               const s = info.getValue() as string;
+               const row = info.row.original;
+               const color = 
+                  s === 'SELESAI' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                  s === 'PROSES' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                  'bg-pink-500/10 text-pink-400 border-pink-500/20';
+               
+               // Check if current user is one of the assignees
+               const isAssigned = row.assignees.some((a: any) => a.nip === currentUserNip);
+               const canChangeStatus = isAssigned || isKanitOrAdmin;
+               
+               if (canChangeStatus && !isKanitOrAdmin && isAssigned) {
+                   return (
+                      <select 
+                          value={s} 
+                          onChange={(e) => {
+                              onStatusChange(row.ids, e.target.value as any);
+                          }}
+                          className={`text-[10px] font-bold uppercase rounded-lg px-2 py-1 border outline-none cursor-pointer ${color} bg-transparent text-center`}
+                      >
+                          <option value="PENDING" className="bg-slate-900 text-pink-400">PENDING</option>
+                          <option value="PROSES" className="bg-slate-900 text-amber-400">PROSES</option>
+                          <option value="SELESAI" className="bg-slate-900 text-emerald-400">SELESAI</option>
+                      </select>
+                   );
+               }
+
+               return (
+                  <span className={`px-2 py-1 rounded-lg border text-[10px] font-bold uppercase ${color} inline-block min-w-[80px]`}>
+                      {s}
+                  </span>
+               );
+          }
+        },
+        {
+          header: "Dibuat",
+          accessorKey: "dibuat_kapan",
+          cell: (info) => {
+              const d = new Date(info.getValue() as string);
+              return (
+                  <div className="text-xs text-slate-400 text-center">
+                      {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  </div>
+              )
+          }
+        }
+      ];
+
+      if (isKanitOrAdmin) {
+        cols.push({
+          id: "aksi",
+          header: "Aksi",
+          cell: (info) => {
+              const item = info.row.original;  
+              return (
+                  <div className="flex items-center justify-center gap-2">
+                       {/* Edit only visible if single item? Or allow editing 'template' but applies to single? */}
+                       {/* Editing a group is tricky. Let's hide Edit for groups > 1 for safety, or allow it but know it references just one ID? */}
+                       {/* Actually, editing the representative record (ID) is fine, but it will split the group if content changes. */}
+                      <button 
+                          onClick={() => onEdit(item)}
+                          className="p-1.5 text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                          title="Edit"
+                      >
+                          <Pencil size={16} />
+                      </button>
+                      <button 
+                          onClick={() => onDelete(item.ids)} // Pass array of IDs
+                          className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Hapus"
+                      >
+                          <Trash2 size={16} />
+                      </button>
+                  </div>
+              );
+          }
+        });
       }
-    ],
-    [onDelete, onEdit]
+
+      return cols;
+    },
+    [currentUserNip, isKanitOrAdmin, onEdit, onDelete, onStatusChange]
   );
 
   const table = useReactTable({
-    data,
+    data: groupedData,
     columns,
-    state: { sorting },
+    state: { sorting, globalFilter },
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // Mobile Card Render
-  if (isMobile) {
-    return (
-        <div className="flex flex-col gap-4 p-4">
-            {loading ? (
-                <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
-                    <RefreshCw className="animate-spin text-indigo-500" size={24} />
-                    <span>Memuat tugas...</span>
+  return (
+    <div className="space-y-4">
+        {/* Toolbar */}
+        <div className="flex md:items-center justify-between gap-4 flex-col md:flex-row">
+            <div className="relative flex-1 max-w-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-slate-400" />
                 </div>
-            ) : data.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 italic">
-                    Tidak ada tugas ditemukan.
-                </div>
-            ) : (
-                data.map((item) => (
-                    <motion.div 
+                <input
+                    type="text"
+                    value={globalFilter ?? ""}
+                    onChange={(e) => setGlobalFilter(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-white/10 rounded-xl leading-5 bg-white/5 text-slate-300 placeholder-slate-500 focus:outline-none focus:bg-white/10 focus:ring-0 sm:text-sm transition-colors"
+                    placeholder="Cari tugas..."
+                />
+            </div>
+            {/* Additional filters can go here */}
+        </div>
+        
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden grid grid-cols-1 gap-4">
+            {table.getRowModel().rows.map(row => {
+                const t = row.original;
+                const statusColor = 
+                    t.status === 'SELESAI' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                    t.status === 'PROSES' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                    'text-pink-400 bg-pink-500/10 border-pink-500/20';
+                
+                return (
+                    <motion.div
+                        key={t.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        key={item.id}
-                        className="relative overflow-hidden rounded-xl border border-white/10 bg-slate-900/50 p-4"
-                    >   
-                        <div className="flex justify-between items-start mb-3">
-                            <div className="space-y-1">
-                                <div className="flex gap-2 mb-1">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getPriorityColor(item.prioritas)}`}>
-                                        {item.prioritas}
-                                    </span>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(item.status)}`}>
-                                        {item.status}
-                                    </span>
+                        className="bg-slate-900/40 border border-white/10 rounded-2xl p-4 flex flex-col gap-3 backdrop-blur-sm"
+                    >
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h3 className="font-bold text-white leading-snug mb-1">
+                                    {t.judul || `Tugas #${t.id}`}
+                                </h3>
+                                <div className="text-xs text-slate-400">
+                                    {new Date(t.dibuat_kapan).toLocaleDateString("id-ID", { dateStyle: 'long' })}
                                 </div>
-                                <h3 className="font-bold text-indigo-300 text-sm">{item.judul}</h3>
-                                <p className="text-xs text-slate-400">
-                                    Tenggat: {new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                                </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => onEdit(item)}
-                                    className="p-2 text-indigo-400 bg-indigo-500/10 rounded-lg"
+                           
+                            {/* Status Badge mobile */}
+                           {(!isKanitOrAdmin && t.assignees.some((a:any) => a.nip === currentUserNip)) ? (
+                                <select 
+                                    value={t.status} 
+                                    onChange={(e) => t.ids.forEach((id: number) => onStatusChange(id, e.target.value as any))}
+                                    className={`text-[10px] font-bold uppercase rounded-lg px-2 py-1 border outline-none cursor-pointer ${statusColor} bg-transparent`}
                                 >
-                                    <Pencil size={16} />
-                                </button>
-                                <button 
-                                    onClick={() => onDelete(item.id)} 
-                                    className="p-2 text-red-400 bg-red-500/10 rounded-lg"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div className="py-2 border-t border-white/5 border-dashed space-y-2">
-                             <p className="text-sm text-slate-200">{item.deskripsi}</p>
+                                    <option value="PENDING" className="bg-slate-900 text-pink-400">PENDING</option>
+                                    <option value="PROSES" className="bg-slate-900 text-amber-400">PROSES</option>
+                                    <option value="SELESAI" className="bg-slate-900 text-emerald-400">SELESAI</option>
+                                </select>
+                           ) : (
+                                <span className={`px-2 py-1 rounded-lg border text-[10px] font-bold uppercase ${statusColor}`}>
+                                    {t.status}
+                                </span>
+                           )}
                         </div>
 
-                        <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-slate-500 uppercase font-bold">PIC:</span>
-                                <span className="text-xs text-white bg-slate-800 px-2 py-0.5 rounded">{item.pic}</span>
-                             </div>
+                        <div className="bg-black/20 p-3 rounded-xl border border-white/5 space-y-2 text-sm">
+                            <div>
+                                <span className="text-[10px] uppercase font-bold text-slate-500 block">Peralatan</span>
+                                {t.peralatan ? (
+                                    <span className="text-indigo-300 font-medium">{t.peralatan.nama}</span>
+                                ) : (
+                                    <span className="text-slate-500 italic">-</span>
+                                )}
+                            </div>
+                             <div>
+                                <span className="text-[10px] uppercase font-bold text-slate-500 block">Ditugaskan Ke</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {t.assignees.map((u: any, i: number) => (
+                                        <span key={i} className="text-xs bg-white/5 px-2 py-0.5 rounded text-white border border-white/5">
+                                            {u.nama || u.nip}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <span className="text-[10px] uppercase font-bold text-slate-500 block">Deskripsi</span>
+                                <p className="text-slate-300 leading-relaxed text-xs">{t.deskripsi}</p>
+                            </div>
                         </div>
+
+                        {isKanitOrAdmin && (
+                            <div className="flex justify-end gap-2 pt-2 border-t border-white/5 text-sm">
+                                <button 
+                                    onClick={() => onEdit(t)} 
+                                    className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg font-bold hover:bg-indigo-500/20"
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    onClick={() => onDelete(t.ids)} 
+                                    className="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg font-bold hover:bg-red-500/20"
+                                >
+                                    Hapus
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
-                ))
+                )
+            })}
+             {!data.length && (
+                <div className="text-center py-12 text-slate-500 italic">
+                    Belum ada tugas.
+                </div>
             )}
         </div>
-    );
-  }
 
-  // Desktop Table Render
-  return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative">
-         <div className="hidden md:block overflow-x-auto custom-scrollbar">
-            <table className="w-full text-sm text-left relative z-10 min-w-[1000px]">
-                <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider">
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <th 
-                                    key={header.id} 
-                                    className="py-4 px-4 border-b border-white/10 bg-slate-900/30 text-center"
-                                    onClick={header.column.getToggleSortingHandler()}
-                                >
-                                    <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                        {{
-                                            asc: <ChevronUp size={12} />,
-                                            desc: <ChevronDown size={12} />,
-                                        }[header.column.getIsSorted() as string] ?? (
-                                            header.column.getCanSort() ? <ChevronsUpDown size={12} className="text-slate-600" /> : null
-                                        )}
-                                    </div>
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {loading ? (
-                        <tr>
-                            <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">
-                                <div className="flex flex-col items-center gap-3">
-                                    <RefreshCw className="animate-spin text-indigo-500" size={24} />
-                                    <span>Memuat tugas...</span>
-                                </div>
-                            </td>
-                        </tr>
-                    ) : table.getRowModel().rows.length === 0 ? (
-                        <tr>
-                            <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500 italic">
-                                Tidak ada tugas ditemukan.
-                            </td>
-                        </tr>
-                    ) : (
-                        table.getRowModel().rows.map(row => (
-                            <motion.tr 
-                                key={row.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="hover:bg-white/5 transition-colors group"
-                            >
-                                {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-4 py-4 border-white/5 border-r last:border-r-0 break-words whitespace-normal text-xs lg:text-sm text-center align-top">
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </td>
+        {/* Desktop Table */}
+        <div className="hidden md:block rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-center">
+                     <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider">
+                         {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map(header => (
+                                    <th key={header.id} className="px-6 py-4 border-b border-white/10 bg-slate-900/30 text-center">
+                                         {flexRender(header.column.columnDef.header, header.getContext())}
+                                    </th>
                                 ))}
-                            </motion.tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-         </div>
+                            </tr>
+                        ))}
+                     </thead>
+                     <tbody className="divide-y divide-white/5">
+                        {loading ? (
+                             <tr><td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">Memuat data...</td></tr>
+                        ) : groupedData.length === 0 ? (
+                             <tr><td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500 italic">Belum ada tugas.</td></tr>
+                        ) : (
+                             table.getRowModel().rows.map(row => (
+                                <motion.tr 
+                                    key={row.id}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="hover:bg-white/5 transition-colors group"
+                                >
+                                     {row.getVisibleCells().map(cell => (
+                                        <td key={cell.id} className="px-6 py-4 border-white/5 align-middle text-center">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </td>
+                                     ))}
+                                </motion.tr>
+                             ))
+                        )}
+                     </tbody>
+                </table>
+              </div>
+        </div>
     </div>
   );
 }

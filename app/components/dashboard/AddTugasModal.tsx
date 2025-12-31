@@ -20,58 +20,104 @@ export default function AddTugasModal({ isOpen, onClose, onSuccess, initialData 
   const [formData, setFormData] = useState({
       judul: "",
       deskripsi: "",
-      pic: "",
-      prioritas: "Sedang",
       status: "Belum Dikerjakan",
-      tanggal: new Date().toISOString().split('T')[0],
   });
+
+  const [technicians, setTechnicians] = useState<{nip: string, nama: string}[]>([]);
+  const [selectedNips, setSelectedNips] = useState<string[]>([]);
+  const [isMultiSelectOpen, setIsMultiSelectOpen] = useState(false);
+
+  // Fetch Technicians on Mount
+  useEffect(() => {
+      const fetchTechnicians = async () => {
+          const { data } = await supabase
+              .from('akun')
+              .select('nip, nama')
+              .ilike('peran', '%TEKNISI%') 
+              .eq('status', 'AKTIF');
+          
+          if (data) setTechnicians(data);
+      };
+      fetchTechnicians();
+  }, []);
 
   // Populate Form if Editing
   useEffect(() => {
       if (initialData && isOpen) {
           setFormData({
-              judul: initialData.judul,
+              judul: initialData.judul || "",
               deskripsi: initialData.deskripsi,
-              pic: initialData.pic,
-              prioritas: initialData.prioritas,
               status: initialData.status,
-              tanggal: initialData.tanggal,
           });
+          // For edit, we only have one assignee
+          if (initialData.ditugaskan_ke_nip) {
+              setSelectedNips([initialData.ditugaskan_ke_nip]);
+          }
       } else if (isOpen) {
         // Reset if adding new
         setFormData({
             judul: "",
             deskripsi: "",
-            pic: "",
-            prioritas: "Sedang",
             status: "Belum Dikerjakan",
-            tanggal: new Date().toISOString().split('T')[0],
         });
+        setSelectedNips([]);
       }
   }, [initialData, isOpen]);
 
+  const toggleNipSelection = (nip: string) => {
+      // If editing, force single selection behavior or disable?
+      // Let's ensure if editing, we behave like a radio (single select) or restrict it.
+      // But user might want to re-assign.
+      // Simplest for Edit: Allow changing, but only 1.
+      if (initialData?.id) {
+          setSelectedNips([nip]);
+          setIsMultiSelectOpen(false); // Close on select for single mode
+          return;
+      }
+
+      // Create Mode: Multi-select
+      if (selectedNips.includes(nip)) {
+          setSelectedNips(prev => prev.filter(n => n !== nip));
+      } else {
+          setSelectedNips(prev => [...prev, nip]);
+      }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.judul || !formData.pic) {
-        alert("Mohon lengkapi Judul dan PIC");
+    if (!formData.judul || selectedNips.length === 0) {
+        alert("Mohon lengkapi Judul dan pilih minimal satu Penanggung Jawab");
         return;
     }
 
     setLoading(true);
     try {
-      const payload = { ...formData };
       let error;
 
       if (initialData?.id) {
-          // UPDATE
+          // UPDATE (Single Task)
+          // We take the first (and should be only) NIP from selectedNips
+          const singleNip = selectedNips[0];
+          const payload = { 
+              ...formData,
+              ditugaskan_ke_nip: singleNip
+          };
+
           const { error: updateError } = await supabase
               .from("tugas")
               .update(payload)
               .eq('id', initialData.id);
           error = updateError;
       } else {
-          // INSERT
-          const { error: insertError } = await supabase.from("tugas").insert([payload]);
+          // INSERT (Potentially Multiple Tasks)
+          // Create one task row for EACH selected technician
+          const payloads = selectedNips.map(nip => ({
+              ...formData,
+              ditugaskan_ke_nip: nip,
+              dibuat_kapan: new Date().toISOString() // Ensure timestamp
+          }));
+
+          const { error: insertError } = await supabase.from("tugas").insert(payloads);
           error = insertError;
       }
 
@@ -154,55 +200,67 @@ export default function AddTugasModal({ isOpen, onClose, onSuccess, initialData 
                     />
                   </div>
 
-                   {/* Date & PIC Row */}
+                   {/* PIC & Status Row */}
                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Tanggal</label>
-                        <div className="relative group">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="date"
-                                required
-                                value={formData.tanggal}
-                                onChange={e => setFormData({...formData, tanggal: e.target.value})}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
+                      {/* Custom Multi Select for PIC */}
+                      <div className="space-y-1.5 relative">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">
+                            {initialData ? "Penanggung Jawab" : "Pilih Teknisi (Bisa > 1)"}
+                        </label>
+                        <div className="relative">
+                             <button
+                                type="button"
+                                onClick={() => setIsMultiSelectOpen(!isMultiSelectOpen)}
+                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-left text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all flex items-center justify-between"
+                             >
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                     <User size={16} className="text-slate-500 shrink-0" />
+                                     <span className="truncate">
+                                         {selectedNips.length === 0 
+                                            ? "Pilih Teknisi..." 
+                                            : selectedNips.length === 1 
+                                                ? technicians.find(t => t.nip === selectedNips[0])?.nama || selectedNips[0]
+                                                : `${selectedNips.length} Teknisi Dipilih`
+                                         }
+                                     </span>
+                                </div>
+                             </button>
+                             
+                             {/* Dropdown Menu */}
+                             {isMultiSelectOpen && (
+                                 <div className="absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-slate-800 border border-white/10 rounded-xl shadow-xl z-50 p-1">
+                                     {technicians.map(tech => {
+                                         const isSelected = selectedNips.includes(tech.nip);
+                                         return (
+                                             <div 
+                                                key={tech.nip}
+                                                onClick={() => toggleNipSelection(tech.nip)}
+                                                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5 text-slate-300'}`}
+                                             >
+                                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isSelected ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-slate-500'}`}>
+                                                     {isSelected && <CheckCircle2 size={10} />}
+                                                 </div>
+                                                 <div className="flex-1">
+                                                     <div className="text-sm font-medium">{tech.nama}</div>
+                                                     <div className="text-[10px] opacity-60 font-mono">{tech.nip}</div>
+                                                 </div>
+                                             </div>
+                                         )
+                                     })}
+                                     {technicians.length === 0 && (
+                                         <div className="p-3 text-center text-xs text-slate-500">
+                                             Tidak ada teknisi aktif.
+                                         </div>
+                                     )}
+                                 </div>
+                             )}
                         </div>
+                        {/* Overlay to close */}
+                        {isMultiSelectOpen && (
+                            <div className="fixed inset-0 z-40" onClick={() => setIsMultiSelectOpen(false)} />
+                        )}
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Penanggung Jawab</label>
-                        <div className="relative group">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="text"
-                                required
-                                value={formData.pic}
-                                onChange={e => setFormData({...formData, pic: e.target.value})}
-                                placeholder="Nama PIC"
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                      </div>
-                   </div>
 
-                   {/* Prioritas & Status Row */}
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Prioritas</label>
-                        <div className="relative group">
-                            <AlertCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <select
-                                required
-                                value={formData.prioritas}
-                                onChange={e => setFormData({...formData, prioritas: e.target.value})}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
-                            >
-                                <option value="Rendah">Rendah</option>
-                                <option value="Sedang">Sedang</option>
-                                <option value="Tinggi">Tinggi</option>
-                            </select>
-                        </div>
-                      </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Status</label>
                         <div className="relative group">

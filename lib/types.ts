@@ -37,13 +37,20 @@ export interface LogPeralatan {
 
 export interface Tugas {
   id: number;
-  judul: string;
+  peralatan_id: number | null;
+  judul: string | null;
   deskripsi: string;
-  pic: string;
-  prioritas: 'Rendah' | 'Sedang' | 'Tinggi';
-  status: 'Belum Dikerjakan' | 'Sedang Dikerjakan' | 'Selesai';
-  tanggal: string;
-  created_at: string;
+  status: 'PENDING' | 'PROSES' | 'SELESAI';
+  sumber: string | null;
+  dibuat_kapan: string;
+  diupdate_kapan: string | null;
+  dibuat_oleh_nip: string;
+  ditugaskan_ke_nip: string;
+
+  // Relations (Fetched via Joins)
+  peralatan?: Peralatan;
+  dibuat_oleh?: Akun;
+  ditugaskan_ke?: Akun;
 }
 
 export interface Jadwal {
@@ -68,14 +75,14 @@ export interface FileItem {
 }
 
 export interface Akun {
-  id: string; // UUID
+  id: string;
   email: string;
   nip: string;
   nama: string;
-  unit_kerja: string;
-  role: 'admin' | 'user' | 'teknisi';
-  status: 'pending' | 'approved' | 'rejected';
+  peran: string; // Renamed from unit_kerja
+  status: 'AKTIF' | 'NONAKTIF' | 'pending' | 'approved';
   created_at: string;
+  role?: string; // Optional helper
 }
 
 export interface Pengaduan {

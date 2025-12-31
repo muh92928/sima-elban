@@ -10,7 +10,7 @@ import { LogPeralatan, Peralatan } from "@/lib/types";
 interface EditLogModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (message?: string) => void;
   logData: LogPeralatan | null; // Data to edit
   peralatanList: Peralatan[]; // Needed to change equipment if allowed, or just display
 }
@@ -75,27 +75,141 @@ export default function EditLogModal({ isOpen, onClose, onSuccess, logData, pera
         .neq('id', logData.id)
         .single();
       
+      let successMessage = "Log berhasil diperbarui.";
+
       if (duplicate) {
-        throw new Error("Log untuk peralatan dan tanggal tersebut sudah ada.");
+         // DUPLICATE FOUND: Merge/Overwrite Strategy
+         console.log("Duplicate log found. Merging...");
+         
+         // 1. Update the EXISTING conflict record with new values
+         const { error: mergeError } = await supabase
+            .from('log_peralatan')
+            .update({
+                waktu_operasi_aktual: formData.waktu_operasi_aktual,
+                waktu_operasi_diterapkan: formData.waktu_operasi_diterapkan,
+                mematikan_terjadwal: formData.mematikan_terjadwal,
+                periode_kegagalan: formData.periode_kegagalan,
+                status: formData.status,
+                diupdate_kapan: new Date().toISOString(),
+                // Note: Documentation is preserved from the target record, not overwritten
+            })
+            .eq('id', duplicate.id);
+         
+         if (mergeError) throw new Error("Gagal menggabungkan data: " + mergeError.message);
+
+         // 2. Delete the CURRENT record being edited (since it's now merged)
+         const { error: deleteError } = await supabase
+            .from('log_peralatan')
+            .delete()
+            .eq('id', logData.id);
+
+         if (deleteError) throw new Error("Gagal menghapus data lama setelah merge: " + deleteError.message);
+
+         successMessage = "Konflik tanggal ditemukan. Data berhasil digabungkan (merge/timpa) ke log yang sudah ada.";
+
+      } else {
+          // NORMAL UPDATE
+          const { error: updateError } = await supabase
+            .from('log_peralatan')
+            .update({
+              peralatan_id: formData.peralatan_id,
+              tanggal: formData.tanggal,
+              waktu_operasi_aktual: formData.waktu_operasi_aktual,
+              waktu_operasi_diterapkan: formData.waktu_operasi_diterapkan,
+              mematikan_terjadwal: formData.mematikan_terjadwal,
+              periode_kegagalan: formData.periode_kegagalan,
+              status: formData.status,
+              diupdate_kapan: new Date().toISOString(),
+            })
+            .eq('id', logData.id);
+
+          if (updateError) throw updateError;
       }
 
-      const { error: updateError } = await supabase
-        .from('log_peralatan')
-        .update({
-          peralatan_id: formData.peralatan_id,
-          tanggal: formData.tanggal,
-          waktu_operasi_aktual: formData.waktu_operasi_aktual,
-          waktu_operasi_diterapkan: formData.waktu_operasi_diterapkan,
-          mematikan_terjadwal: formData.mematikan_terjadwal,
-          periode_kegagalan: formData.periode_kegagalan,
-          status: formData.status,
-          diupdate_kapan: new Date().toISOString(),
-        })
-        .eq('id', logData.id);
+      // --- AUTO TASK CREATION LOGIC ---
+      // Trigger if status changed to Actionable
+      if (
+          formData.status !== logData.status && 
+          (formData.status === 'Perlu Perbaikan' || formData.status === 'Perlu Perawatan')
+      ) {
+          try {
+             // 1. Get Creator Info
+             const { data: { user } } = await supabase.auth.getUser();
+             let creatorNip = null;
+             if (user) {
+                 const { data: userData } = await supabase.from('akun').select('nip').eq('email', user.email).single();
+                 creatorNip = userData?.nip;
+             }
 
-      if (updateError) throw updateError;
+             // 2. Check for EXISTING tasks (to prevent duplicates)
+             // Match by peralatan_id and check if description contains the date string
+             const searchDateString = `tanggal ${formData.tanggal}`;
+             const { data: existingTasks } = await supabase
+                .from('tugas')
+                .select('id')
+                .eq('peralatan_id', formData.peralatan_id)
+                .ilike('deskripsi', `%${searchDateString}%`)
+                .ilike('sumber', 'Log Otomatis%');
 
-      onSuccess();
+             if (existingTasks && existingTasks.length > 0) {
+                 // UPDATE existing tasks
+                 const taskIds = existingTasks.map(t => t.id);
+                 const { error: updateTaskError } = await supabase
+                    .from('tugas')
+                    .update({
+                        judul: `Tindak Lanjut: ${formData.status}`,
+                        deskripsi: `Dibuat otomatis dari Edit Log tanggal ${formData.tanggal}. Status berubah menjadi: ${formData.status}. Mohon segera diperiksa.`,
+                        status: 'PENDING', // Reset status provided it's a new issue/update
+                        sumber: 'Log Otomatis (Edit)',
+                        diupdate_kapan: new Date().toISOString()
+                    })
+                    .in('id', taskIds);
+
+                 if (updateTaskError) {
+                     console.error("Auto Task Update Error:", updateTaskError);
+                     successMessage += " Namun Gagal mengupdate tugas otomatis.";
+                 } else {
+                     successMessage = `Log diupdate & ${existingTasks.length} Tugas terkait diperbarui.`;
+                 }
+
+             } else {
+                // CREATE new tasks (Broadcast) - Logic from before
+                 // 3. Get All Technicians
+                 const { data: technicians } = await supabase
+                    .from('akun')
+                    .select('nip, nama')
+                    .eq('peran', 'TEKNISI_ELBAN');
+
+                 if (technicians && technicians.length > 0 && creatorNip) {
+                     const tasksToCreate = technicians.map(tech => ({
+                          peralatan_id: formData.peralatan_id,
+                          judul: `Tindak Lanjut: ${formData.status}`,
+                          deskripsi: `Dibuat otomatis dari Edit Log tanggal ${formData.tanggal}. Status berubah menjadi: ${formData.status}. Mohon segera diperiksa.`,
+                          status: 'PENDING',
+                          sumber: 'Log Otomatis (Edit)',
+                          dibuat_kapan: new Date().toISOString(),
+                          dibuat_oleh_nip: creatorNip,
+                          ditugaskan_ke_nip: tech.nip
+                     }));
+                     
+                     const { error: taskError } = await supabase.from('tugas').insert(tasksToCreate);
+                     if (taskError) {
+                         console.error("Auto Task Error:", taskError);
+                         successMessage += " Namun Gagal membuat tugas otomatis.";
+                     } else {
+                         successMessage = `Log diupdate & ${tasksToCreate.length} Tugas otomatis dibuat.`;
+                     }
+                 } else {
+                     console.warn("Cannot create tasks: No technicians or Creator NIP not found.");
+                 }
+             }
+
+          } catch (taskErr) {
+              console.error("Task Logic Error:", taskErr);
+          }
+      }
+
+      onSuccess(successMessage);
       onClose();
     } catch (err: any) {
       console.error(err);

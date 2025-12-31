@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/app/components/dashboard/Sidebar";
-import { Menu } from "lucide-react";
+import { Menu, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function DashboardLayoutClient({
   children,
@@ -10,19 +12,66 @@ export default function DashboardLayoutClient({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Fetch Role
+  useEffect(() => {
+    const fetchRole = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.replace("/");
+                return;
+            }
+            const { data: akun } = await supabase.from('akun').select('peran').eq('email', user.email!).single();
+            const r = (akun?.peran || user.user_metadata?.role || user.user_metadata?.peran || "").toUpperCase().replace(/ /g, '_');
+            setRole(r);
+        } catch (e) {
+            console.error("Layout role fetch error", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchRole();
+  }, []);
+
+  // Route Protection
+  useEffect(() => {
+    if (loading) return;
+    
+    const privilegedRoles = ['KANIT_ELBAN', 'TEKNISI_ELBAN'];
+    const isPrivileged = privilegedRoles.some(p => role.includes(p));
+    
+    // Redirect non-privileged users to pengaduan if they try to access other pages
+    if (!isPrivileged && !pathname.startsWith('/dashboard/pengaduan')) {
+        router.replace('/dashboard/pengaduan');
+    }
+  }, [loading, role, pathname, router]);
+
+  if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#030712] text-white">
+            <Loader2 className="animate-spin text-indigo-500" size={40} />
+        </div>
+      );
+  }
 
   return (
     <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black">
         {/* Sidebar */}
         <div className="print:hidden">
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} userRole={role} />
         </div>
 
         {/* Mobile Header Toggle */}
         <div className="fixed top-0 left-0 right-0 h-16 bg-[#030712]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 md:hidden z-30 print:hidden">
             <div className="flex items-center gap-3">
                 <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Logo_of_the_Ministry_of_Transportation_of_the_Republic_of_Indonesia.svg/1034px-Logo_of_the_Ministry_of_Transportation_of_the_Republic_of_Indonesia.svg.png" 
+                    src="/logo_kemenhub.png" 
                     alt="Logo" 
                     className="w-8 h-8 object-contain"
                 />

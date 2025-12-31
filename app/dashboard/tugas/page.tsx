@@ -1,39 +1,94 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Search, Plus, RefreshCw } from "lucide-react";
+import { Plus, Search, Filter, Calendar, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Tugas } from "@/lib/types";
-import AddTugasModal from "@/app/components/dashboard/AddTugasModal";
+import { Tugas, Akun, Peralatan } from "@/lib/types";
 import TugasTable from "@/app/components/dashboard/TugasTable";
+import TugasModal from "@/app/components/dashboard/TugasModal";
+import { motion } from "framer-motion";
 
 export default function TugasPage() {
-  const [data, setData] = useState<Tugas[]>([]);
+  const [tasks, setTasks] = useState<Tugas[]>([]);
+  const [teknisiList, setTeknisiList] = useState<Akun[]>([]);
+  const [peralatanList, setPeralatanList] = useState<Peralatan[]>([]);
+  
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tugas | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  
+  const [currentUser, setCurrentUser] = useState<{ nip?: string; role?: string } | null>(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { data: tugas, error } = await supabase
-        .from('tugas')
-        .select('*')
-        .order('tanggal', { ascending: true }); // By date ascending (nearest deadline first)
 
+      // 1. Get Current User (for Role & NIP Filtering)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return; // Should redirect to login if not handled by middleware
+
+      // Fetch Akun details for role and NIP
+      const { data: akun } = await supabase.from('akun').select('*').eq('email', user.email!).single();
+      const userRole = (akun?.peran || akun?.role || user.user_metadata?.role || user.user_metadata?.peran || "").toUpperCase().replace(/ /g, '_');
+      const userNip = akun?.nip || user.user_metadata?.nip || "";
+
+      setCurrentUser({ nip: userNip, role: userRole });
+
+      // 2. Fetch Teknisi List (for Dropdown)
+      const { data: teknisiData } = await supabase
+        .from('akun')
+        .select('*')
+        .select('*')
+        .in('status', ['AKTIF', 'approved']); 
+        
+      const filteredTeknisi = (teknisiData as Akun[] || []).filter(a => {
+           // Check 'peran' field first, fallback to 'role' helper or empty
+           const r = (a.peran || a.role || "").toUpperCase().replace(/ /g, '_'); 
+           return r.includes('TEKNISI'); 
+      });
+      setTeknisiList(filteredTeknisi);
+
+      // 3. Fetch Peralatan List
+      const { data: peralatanData } = await supabase
+        .from('peralatan')
+        .select('*')
+        .order('nama', { ascending: true });
+      setPeralatanList(peralatanData as Peralatan[] || []);
+
+      // 4. Fetch Tasks
+      let query = supabase
+        .from('tugas')
+        .select(`
+            *,
+            peralatan (*),
+            dibuat_oleh:akun!fk_tugas_pembuat (nama, nip),
+            ditugaskan_ke:akun!fk_tugas_teknisi (nama, nip)
+        `)
+        .order('status', { ascending: true }) // PENDING first
+        .order('dibuat_kapan', { ascending: false });
+
+      // If Technician, filter only their tasks? 
+      // PHP: if ($isTeknisi && $nipMe !== '') $where = "WHERE t.ditugaskan_ke_nip = ?";
+      // But Admin/Kanit sees all.
+      // Roles are KANIT_ELBAN, UNIT_ADMIN, TEKNISI_ELBAN.
+      
+      const isKanitOrAdmin = ['KANIT_ELBAN', 'UNIT_ADMIN', 'ADMIN'].includes(userRole);
+      
+      if (!isKanitOrAdmin && userRole.includes('TEKNISI')) {
+          if (userNip) {
+            query = query.eq('ditugaskan_ke_nip', userNip);
+          }
+      }
+
+      const { data: tasksData, error } = await query;
       if (error) throw error;
       
-      setData(tugas as Tugas[] || []);
-    } catch (error) {
-      console.error('Error fetching tugas:', error);
+      setTasks(tasksData as unknown as Tugas[] || []);
+
+    } catch (err) {
+      console.error("Error fetching tugas:", err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -41,147 +96,107 @@ export default function TugasPage() {
     fetchData();
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
-
-  const handleEdit = (item: Tugas) => {
-      setEditingItem(item);
-      setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
-        try {
-            const { error } = await supabase.from('tugas').delete().eq('id', id);
-            if (error) throw error;
-            fetchData();
-        } catch (error) {
-            console.error("Error deleting tugas:", error);
-            alert("Gagal menghapus tugas.");
-        }
+  const handleDelete = async (id: number | number[]) => {
+    const ids = Array.isArray(id) ? id : [id];
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${ids.length > 1 ? ids.length + ' ' : ''}tugas ini?`)) return;
+    
+    try {
+        const { error } = await supabase.from('tugas').delete().in('id', ids);
+        if (error) throw error;
+        // Refresh
+        setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+    } catch (err: any) {
+        alert("Gagal menghapus: " + err.message);
     }
   };
 
-  // Filter Data Logic
-  const filteredData = data.filter((item) => {
-    const query = searchQuery.toLowerCase();
-    
-    // Search Filter
-    const matchSearch = (
-      item.judul.toLowerCase().includes(query) ||
-      item.deskripsi?.toLowerCase().includes(query) ||
-      item.pic.toLowerCase().includes(query)
-    );
-    
-    // Status Filter
-    const matchStatus = statusFilter === "all" || item.status === statusFilter;
-    
-    // Priority Filter
-    const matchPriority = priorityFilter === "all" || item.prioritas === priorityFilter;
+  const handleStatusChange = async (id: number | number[], newStatus: 'PENDING' | 'PROSES' | 'SELESAI') => {
+    const ids = Array.isArray(id) ? id : [id];
+    try {
+        // Optimistic update
+        setTasks(prev => prev.map(t => ids.includes(t.id) ? { ...t, status: newStatus } : t));
 
-    return matchSearch && matchStatus && matchPriority;
-  });
+        const { error } = await supabase
+            .from('tugas')
+            .update({ status: newStatus, diupdate_kapan: new Date().toISOString() })
+            .in('id', ids);
+        
+        if (error) throw error;
+    } catch (err: any) {
+        alert("Gagal update status: " + err.message);
+        fetchData(); // Revert
+    }
+  };
+
+  const canManage = currentUser?.role === 'KANIT_ELBAN';
 
   return (
     <div className="space-y-6">
-        {/* Modal */}
-        <AddTugasModal 
-            isOpen={isModalOpen} 
-            onClose={() => {
-                setIsModalOpen(false);
-                setEditingItem(null);
-            }} 
-            onSuccess={fetchData} 
-            initialData={editingItem}
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 className="text-2xl font-bold text-white">
+                    Manajemen Tugas
+                </h1>
+                <p className="text-slate-400 text-sm mt-1">
+                    Kelola penugasan teknisi dan perbaikan peralatan.
+                </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+                {canManage && (
+                    <button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                    >
+                        <Plus size={16} />
+                        <span className="hidden md:inline">Tambah Tugas</span>
+                        <span className="md:hidden">Baru</span>
+                    </button>
+                )}
+
+                 <button 
+                    onClick={fetchData} 
+                    className="p-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors"
+                    title="Refresh Data"
+                >
+                    <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+                </button>
+            </div>
+        </div>
+
+        {/* Notifikasi / Stats Area (Optional - maybe later) */}
+
+        {/* Table */}
+        <TugasTable 
+            data={tasks} 
+            loading={loading}
+            onEdit={(item) => setEditingItem(item)}
+            onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
+            currentUserNip={currentUser?.nip}
+            isKanitOrAdmin={canManage}
         />
 
-      {/* Header & Actions */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Daftar Tugas
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Manajemen tugas dan monitoring pekerjaan tim.</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
-            >
-                <Plus size={16} />
-                Buat Tugas
-            </button>
-            <button 
-                onClick={handleRefresh}
-                className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
-                title="Refresh Data"
-            >
-                <RefreshCw size={18} />
-            </button>
-        </div>
-      </motion.div>
-
-      {/* Flters */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-3"
-      >
-        <div className="relative md:col-span-2 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
-            <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari tugas, deskripsi, atau PIC..." 
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-            />
-        </div>
+        {/* Modals */}
+        <TugasModal 
+            isOpen={isAddModalOpen} 
+            onClose={() => setIsAddModalOpen(false)} 
+            onSuccess={fetchData}
+            teknisiList={teknisiList}
+            peralatanList={peralatanList}
+        />
         
-        <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-        >
-            <option value="all">Semua Status</option>
-            <option value="Belum Dikerjakan">Belum Dikerjakan</option>
-            <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
-            <option value="Selesai">Selesai</option>
-        </select>
-
-        <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-        >
-            <option value="all">Semua Prioritas</option>
-            <option value="Tinggi">Tinggi</option>
-            <option value="Sedang">Sedang</option>
-            <option value="Rendah">Rendah</option>
-        </select>
-      </motion.div>
-
-      {/* Content Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-          <TugasTable 
-            data={filteredData}
-            loading={loading || refreshing}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-          />
-      </motion.div>
+        {editingItem && (
+            <TugasModal 
+                isOpen={!!editingItem} 
+                onClose={() => setEditingItem(null)} 
+                onSuccess={fetchData}
+                teknisiList={teknisiList}
+                peralatanList={peralatanList}
+                initialData={editingItem}
+            />
+        )}
     </div>
   );
 }

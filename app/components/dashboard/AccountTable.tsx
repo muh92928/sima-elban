@@ -80,7 +80,7 @@ export default function AccountTable({
         accessorKey: "nama",
         header: "Identitas",
         cell: (info) => (
-          <div className="flex flex-col text-left">
+          <div className="flex flex-col items-center text-center">
              <div className="flex items-center gap-2">
                 <span className="font-bold text-white text-sm">{info.getValue() as string}</span>
              </div>
@@ -113,7 +113,7 @@ export default function AccountTable({
       },
       {
         accessorKey: "role",
-        header: "Hak Akses",
+        header: "Peran",
         cell: (info) => (
           <div className="flex justify-center">
               <select 
@@ -229,9 +229,9 @@ export default function AccountTable({
                                  <p className="text-xs text-white">{item.unit_kerja || '-'}</p>
                              </div>
                              <div className="space-y-1">
-                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Role Access</p>
+                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Peran</p>
                                  <select 
-                                    title="Role Access"
+                                    title="Peran"
                                     value={item.role}
                                     onChange={(e) => onUpdateRole(item.id, e.target.value as any)}
                                     disabled={item.status !== 'approved'}
@@ -271,7 +271,7 @@ export default function AccountTable({
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative">
          <div className="hidden md:block overflow-x-auto custom-scrollbar">
-            <table className="w-full text-sm text-left relative z-10 min-w-[1000px]">
+            <table className="w-full text-sm text-center relative z-10 min-w-[1000px]">
                 <thead className="text-xs uppercase bg-white/5 text-slate-300 font-bold tracking-wider">
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
