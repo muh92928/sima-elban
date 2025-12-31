@@ -159,23 +159,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
             );
           })}
+          
+          {/* Logout Button (Moved up) */}
+          <div className="pt-4 mt-2 border-t border-white/5">
+              <button 
+                onClick={handleLogout}
+                className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/20 hover:border-red-500/30 transition-all duration-300"
+              >
+                <div className="p-1.5 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+                  <LogOut size={16} className="text-red-400" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-bold text-red-200 group-hover:text-red-100 transition-colors">Keluar</span>
+                  <span className="text-[9px] text-red-400/60 font-medium tracking-wide">Akhiri Sesi</span>
+                </div>
+              </button>
+          </div>
         </nav>
-  
-        {/* Footer Profile & Logout */}
-        <div className="p-4 border-t border-white/5 backdrop-blur-md bg-black/20">
-          <button 
-            onClick={handleLogout}
-            className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 hover:border-red-500/30 transition-all duration-300"
-          >
-            <div className="p-1.5 rounded-lg bg-red-500/20 group-hover:bg-red-500/30 transition-colors">
-              <LogOut size={16} className="text-red-400" />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-xs font-bold text-red-200 group-hover:text-red-100 transition-colors">Keluar</span>
-              <span className="text-[9px] text-red-400/60 font-medium tracking-wide">Akhiri Sesi</span>
-            </div>
-          </button>
-        </div>
       </motion.aside>
     </>
   );

@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Plus, Printer, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { LogPeralatan } from "@/lib/types";
+import { LogPeralatan, Peralatan } from "@/lib/types";
 import AddLogModal from "@/app/components/dashboard/AddLogModal";
+import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
 
 export default function LogPeralatanPage() {
   const [data, setData] = useState<LogPeralatan[]>([]);
+  const [peralatanList, setPeralatanList] = useState<Peralatan[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LogPeralatan | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [reportDate, setReportDate] = useState(new Date());
@@ -20,18 +23,28 @@ export default function LogPeralatanPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch logs joined with peralatan
-      const { data: logs, error } = await supabase
-        .from('log_peralatan')
-        .select('*, peralatan(nama)')
-        .order('tanggal', { ascending: false })
-        .order('jam', { ascending: false });
+      
+      // 1. Fetch Peralatan List for Modals
+      const { data: peralatanData, error: peralatanError } = await supabase
+        .from('peralatan')
+        .select('*')
+        .order('nama', { ascending: true });
+        
+      if (peralatanError) throw peralatanError;
+      setPeralatanList(peralatanData as Peralatan[] || []);
 
-      if (error) throw error;
+      // 2. Fetch Logs
+      const { data: logs, error: logsError } = await supabase
+        .from('log_peralatan')
+        .select('*, peralatan(*)') // Select all log columns and joined peralatan
+        .order('tanggal', { ascending: false })
+        .order('id', { ascending: false });
+
+      if (logsError) throw logsError;
       
       setData(logs as unknown as LogPeralatan[] || []);
     } catch (error) {
-      console.error('Error fetching logs:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -53,7 +66,7 @@ export default function LogPeralatanPage() {
 
   const handleEdit = (item: LogPeralatan) => {
       setEditingItem(item);
-      setIsModalOpen(true);
+      setIsEditModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -76,11 +89,15 @@ export default function LogPeralatanPage() {
     // Search Filter
     const matchSearch = (
       (item.peralatan?.nama && item.peralatan.nama.toLowerCase().includes(query)) ||
-      item.kegiatan.toLowerCase().includes(query) ||
-      (item.pic && item.pic.toLowerCase().includes(query))
+      (item.peralatan?.jenis && item.peralatan.jenis.toLowerCase().includes(query)) ||
+      (item.status && item.status.toLowerCase().includes(query))
     );
     
-    // Date Filter (Year & Month)
+    // Date Filter (Year & Month) - Can normally filter by exact date or month.
+    // PHP implementation filtered by EXACT date or if empty ALL.
+    // The previous code filtered by Month. Let's stick to Month for better overview, 
+    // or we can add a specific date picker if the user prefers exact date like PHP.
+    // For now, let's keep Month filter as it handles "ALL" better visually than single day.
     const itemDate = new Date(item.tanggal);
     const matchDate = 
         itemDate.getFullYear() === reportDate.getFullYear() &&
@@ -91,15 +108,23 @@ export default function LogPeralatanPage() {
 
   return (
     <div className="space-y-6 print:space-y-4">
-        {/* Modal */}
+        {/* Modals */}
         <AddLogModal 
-            isOpen={isModalOpen} 
-            onClose={() => {
-                setIsModalOpen(false);
-                setEditingItem(null);
-            }} 
+            isOpen={isAddModalOpen} 
+            onClose={() => setIsAddModalOpen(false)} 
             onSuccess={fetchData} 
-            initialData={editingItem}
+            peralatanList={peralatanList}
+        />
+
+        <EditLogModal 
+            isOpen={isEditModalOpen}
+            onClose={() => {
+                setIsEditModalOpen(false);
+                setEditingItem(null);
+            }}
+            onSuccess={fetchData}
+            logData={editingItem}
+            peralatanList={peralatanList}
         />
 
       <style type="text/css" media="print">
@@ -136,7 +161,7 @@ export default function LogPeralatanPage() {
 
         <div className="flex items-center gap-3">
             <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setIsAddModalOpen(true)}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
             >
                 <Plus size={16} />
@@ -180,7 +205,7 @@ export default function LogPeralatanPage() {
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari alat, kegiatan, atau PIC..." 
+                placeholder="Cari alat (nama/jenis) atau status..." 
                 className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
             />
         </div>
