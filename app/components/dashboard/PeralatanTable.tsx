@@ -181,10 +181,10 @@ export default function PeralatanTable({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Mobile Card Render
-  if (isMobile) {
-    return (
-        <div className="flex flex-col gap-4 p-4">
+  return (
+    <>
+      {/* Mobile Card Render (Visible < MD, Hidden >= MD, Hidden on Print) */}
+      <div className="flex flex-col gap-4 p-4 md:hidden print:hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
@@ -302,13 +302,10 @@ export default function PeralatanTable({
                     );
                 })
             )}
-        </div>
-    );
-  }
+      </div>
 
-  // Desktop Table Render
-  return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:shadow-none print:border-none print:bg-transparent print:overflow-visible">
+      {/* Desktop Table Render (Hidden < MD, Visible >= MD, Visible on Print) */}
+      <div className="hidden md:block print:block rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl md:overflow-hidden shadow-2xl relative print:shadow-none print:border-none print:bg-transparent print:overflow-visible">
          {/* Glass Gradient Overlay (Hidden on Print & Mobile) */}
          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-blue-500/5 pointer-events-none print:hidden hidden md:block" />
 
@@ -388,6 +385,7 @@ export default function PeralatanTable({
             </table>
          </div>
          <div className="h-2 bg-gradient-to-t from-black/20 to-transparent print:hidden" />
-    </div>
+      </div>
+    </>
   );
 }

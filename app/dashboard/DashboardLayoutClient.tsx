@@ -12,7 +12,7 @@ export default function DashboardLayoutClient({
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:bg-white print:text-black">
+    <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black">
         {/* Sidebar */}
         <div className="print:hidden">
             <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -37,7 +37,7 @@ export default function DashboardLayoutClient({
         </div>
 
         {/* Main Content Area */}
-        <main className="flex-1 ml-0 md:ml-[220px] print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:p-0 print:overflow-visible">
+        <main className="flex-1 ml-0 md:ml-[220px] print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible">
             {/* Background Atmosphere */}
             <div className="fixed top-0 left-0 md:left-[220px] right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden" />
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
