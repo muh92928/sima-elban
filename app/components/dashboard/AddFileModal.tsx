@@ -21,7 +21,7 @@ export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }
   // Form State
   const [formData, setFormData] = useState({
       nama: "",
-      kategori: "Dokumen Umum",
+      kategori: "Dokumentasi",
       catatan: "",
       url: "" as string,
       tipe: "" as string,
@@ -43,7 +43,7 @@ export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }
         // Reset if adding new
         setFormData({
             nama: "",
-            kategori: "Dokumen Umum",
+            kategori: "Dokumentasi",
             catatan: "",
             url: "",
             tipe: "",
@@ -52,6 +52,8 @@ export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }
         setFile(null);
       }
   }, [initialData, isOpen]);
+
+  // ... (keeping other functions same, just skipping to categories definition)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -162,7 +164,7 @@ export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }
   };
 
   const categories = [
-      "Dokumen Umum", "Laporan", "Manual Book", "Sertifikat", "Surat Masuk", "Surat Keluar", "Lainnya"
+      "Dokumentasi", "Laporan", "Regulasi", "SOP", "File Pendukung Lainnya"
   ];
 
   return (

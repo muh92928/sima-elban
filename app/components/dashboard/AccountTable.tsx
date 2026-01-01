@@ -46,18 +46,19 @@ export default function AccountTable({
 
   const getStatusColor = (status: string) => {
       switch(status) {
-          case 'approved': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20';
+          case 'approved': 
+          case 'AKTIF':
+            return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20';
           case 'rejected': return 'bg-red-500/20 text-red-400 border-red-500/20';
           default: return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
       }
   };
 
   const getRoleColor = (role: string) => {
-      switch(role) {
-          case 'admin': return 'text-purple-400';
-          case 'teknisi': return 'text-blue-400';
-          default: return 'text-slate-400';
-      }
+      const r = (role || "").toUpperCase();
+      if (r.includes('ADMIN') || r.includes('KANIT')) return 'text-purple-400';
+      if (r.includes('TEKNISI')) return 'text-blue-400';
+      return 'text-slate-400';
   };
 
   // Columns Definitions
@@ -105,23 +106,36 @@ export default function AccountTable({
         ),
       },
       {
-        accessorKey: "role",
+        accessorKey: "peran",
         header: "Peran",
-        cell: (info) => (
-          <div className="flex justify-center">
-              <select 
-                title="hak akses"
-                value={info.getValue() as string}
-                onChange={(e) => onUpdateRole(info.row.original.id, e.target.value as any)}
-                disabled={info.row.original.status !== 'approved'}
-                className={`bg-slate-900 border border-white/10 rounded-lg text-xs py-1 px-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer ${getRoleColor(info.getValue() as string)} font-semibold uppercase disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                  <option value="user">User</option>
-                  <option value="teknisi">Teknisi</option>
-                  <option value="admin">Admin</option>
-              </select>
-          </div>
-        ),
+        cell: (info) => {
+            const rawValue = (info.getValue() as string || "");
+            const getNormalizedRole = (val: string) => {
+                const v = val.toUpperCase();
+                if (v.includes("KANIT")) return "Kanit Elban";
+                if (v.includes("TEKNISI")) return "Teknisi Elban";
+                if (v.includes("ADMIN")) return "Admin";
+                return "user";
+            };
+            const displayValue = getNormalizedRole(rawValue);
+
+            return (
+              <div className="flex justify-center">
+                  <select 
+                    title="hak akses"
+                    value={displayValue}
+                    onChange={(e) => onUpdateRole(info.row.original.id, e.target.value as any)}
+                    disabled={info.row.original.status !== 'approved'}
+                    className={`bg-slate-900 border border-white/10 rounded-lg text-xs py-1 px-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer ${getRoleColor(displayValue)} font-semibold uppercase disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                      <option value="user">User</option>
+                      <option value="Teknisi Elban">Teknisi Elban</option>
+                      <option value="Kanit Elban">Kanit Elban</option>
+                      <option value="Admin">Admin</option>
+                  </select>
+              </div>
+            );
+        },
       },
       {
         accessorKey: "status",

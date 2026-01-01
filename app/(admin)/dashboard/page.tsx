@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { Activity, AlertTriangle, CheckCircle, Database, User } from "lucide-rea
 import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
 import { CARD_STYLES } from "@/lib/cardStyles";
+import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -50,6 +52,14 @@ export default function DashboardPage() {
 
         fetchStats();
     }, []);
+
+    if (loading) {
+        return (
+            <div className="w-full h-[calc(100vh-100px)] flex items-center justify-center">
+                <LoadingSpinner label="Memuat dashboard..." />
+            </div>
+        );
+    }
 
     const statCards = [
         { 

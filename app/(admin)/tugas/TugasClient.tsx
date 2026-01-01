@@ -6,56 +6,36 @@ import { supabase } from "@/lib/supabase";
 import { Tugas, Akun, Peralatan } from "@/lib/types";
 import TugasTable from "@/app/components/dashboard/TugasTable";
 import TugasModal from "@/app/components/dashboard/TugasModal";
-import { motion } from "framer-motion";
 
-export default function TugasPage() {
-  const [tasks, setTasks] = useState<Tugas[]>([]);
-  const [teknisiList, setTeknisiList] = useState<Akun[]>([]);
-  const [peralatanList, setPeralatanList] = useState<Peralatan[]>([]);
+interface TugasClientProps {
+  initialTasks: Tugas[];
+  initialTeknisiList: Akun[];
+  initialPeralatanList: Peralatan[];
+  currentUser: { nip?: string; role?: string } | null;
+}
+
+export default function TugasClient({ 
+  initialTasks, 
+  initialTeknisiList, 
+  initialPeralatanList,
+  currentUser 
+}: TugasClientProps) {
+  const [tasks, setTasks] = useState<Tugas[]>(initialTasks);
+  const [teknisiList, setTeknisiList] = useState<Akun[]>(initialTeknisiList);
+  const [peralatanList, setPeralatanList] = useState<Peralatan[]>(initialPeralatanList);
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tugas | null>(null);
   
-  const [currentUser, setCurrentUser] = useState<{ nip?: string; role?: string } | null>(null);
-
-  const fetchData = async () => {
+  const refreshData = async () => {
     try {
       setLoading(true);
 
-      // 1. Get Current User (for Role & NIP Filtering)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return; // Should redirect to login if not handled by middleware
-
-      // Fetch Akun details for role and NIP
-      const { data: akun } = await supabase.from('akun').select('*').eq('email', user.email!).single();
-      const userRole = (akun?.peran || akun?.role || user.user_metadata?.role || user.user_metadata?.peran || "").toUpperCase().replace(/ /g, '_');
-      const userNip = akun?.nip || user.user_metadata?.nip || "";
-
-      setCurrentUser({ nip: userNip, role: userRole });
-
-      // 2. Fetch Teknisi List (for Dropdown)
-      const { data: teknisiData } = await supabase
-        .from('akun')
-        .select('*')
-        .select('*')
-        .in('status', ['AKTIF', 'approved']); 
-        
-      const filteredTeknisi = (teknisiData as Akun[] || []).filter(a => {
-           // Check 'peran' field first, fallback to 'role' helper or empty
-           const r = (a.peran || a.role || "").toUpperCase().replace(/ /g, '_'); 
-           return r.includes('TEKNISI'); 
-      });
-      setTeknisiList(filteredTeknisi);
-
-      // 3. Fetch Peralatan List
-      const { data: peralatanData } = await supabase
-        .from('peralatan')
-        .select('*')
-        .order('nama', { ascending: true });
-      setPeralatanList(peralatanData as Peralatan[] || []);
-
-      // 4. Fetch Tasks
+      // Re-fetch everything to be safe, or just tasks? Just tasks usually.
+      // But let's re-fetch lists too if they might change.
+      // For now, focusing on tasks is enough for "Refresh Data".
+      
       let query = supabase
         .from('tugas')
         .select(`
@@ -67,11 +47,10 @@ export default function TugasPage() {
         .order('status', { ascending: true }) // PENDING first
         .order('dibuat_kapan', { ascending: false });
 
-      // If Technician, filter only their tasks? 
-      // PHP: if ($isTeknisi && $nipMe !== '') $where = "WHERE t.ditugaskan_ke_nip = ?";
-      // But Admin/Kanit sees all.
-      // Roles are KANIT_ELBAN, UNIT_ADMIN, TEKNISI_ELBAN.
-      
+      // Apply same filtering logic as server
+      const userRole = currentUser?.role || "";
+      const userNip = currentUser?.nip || "";
+      const canManage = userRole === 'KANIT_ELBAN';
       const isKanitOrAdmin = ['KANIT_ELBAN', 'UNIT_ADMIN', 'ADMIN'].includes(userRole);
       
       if (!isKanitOrAdmin && userRole.includes('TEKNISI')) {
@@ -92,9 +71,9 @@ export default function TugasPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleRefresh = () => {
+    refreshData();
+  };
 
   const handleDelete = async (id: number | number[]) => {
     const ids = Array.isArray(id) ? id : [id];
@@ -103,7 +82,7 @@ export default function TugasPage() {
     try {
         const { error } = await supabase.from('tugas').delete().in('id', ids);
         if (error) throw error;
-        // Refresh
+        // Refresh locally or refetch
         setTasks(prev => prev.filter(t => !ids.includes(t.id)));
     } catch (err: any) {
         alert("Gagal menghapus: " + err.message);
@@ -124,14 +103,28 @@ export default function TugasPage() {
         if (error) throw error;
     } catch (err: any) {
         alert("Gagal update status: " + err.message);
-        fetchData(); // Revert
+        refreshData(); // Revert
     }
   };
 
   const canManage = currentUser?.role === 'KANIT_ELBAN';
+  
+  // Robust filtering: Check 'sumber' OR 'deskripsi' for various log-generated patterns
+  const isLogTask = (t: Tugas) => {
+      const isAutoSource = t.sumber && t.sumber.startsWith('Log Otomatis');
+      const isAutoDesc = t.deskripsi && (
+          t.deskripsi.includes('Dibuat otomatis dari Log Harian') || 
+          t.deskripsi.includes('Dibuat otomatis dari Edit Log') ||
+          t.deskripsi.startsWith('Log ') // Catch new format "Log 31 Dec..."
+      );
+      return isAutoSource || isAutoDesc;
+  };
+
+  const manualTasks = tasks.filter(t => !isLogTask(t));
+  const logTasks = tasks.filter(t => isLogTask(t));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -156,7 +149,7 @@ export default function TugasPage() {
                 )}
 
                  <button 
-                    onClick={fetchData} 
+                    onClick={handleRefresh} 
                     className="p-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors"
                     title="Refresh Data"
                 >
@@ -165,24 +158,39 @@ export default function TugasPage() {
             </div>
         </div>
 
-        {/* Notifikasi / Stats Area (Optional - maybe later) */}
+        {/* Manual Tasks Table (Kanit Only) */}
+        <div className="space-y-4">
+            <TugasTable 
+                title="Tugas Kanit Elban"
+                data={manualTasks} 
+                loading={loading}
+                onEdit={(item) => setEditingItem(item)}
+                onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
+                currentUserNip={currentUser?.nip}
+                isKanitOrAdmin={canManage}
+            />
+        </div>
 
-        {/* Table */}
-        <TugasTable 
-            data={tasks} 
-            loading={loading}
-            onEdit={(item) => setEditingItem(item)}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
-            currentUserNip={currentUser?.nip}
-            isKanitOrAdmin={canManage}
-        />
+        {/* Log Generated Tasks Table */}
+        <div className="space-y-4">
+             <TugasTable 
+                title="Tugas dari Log Peralatan"
+                data={logTasks} 
+                loading={loading}
+                onEdit={(item) => setEditingItem(item)}
+                onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
+                currentUserNip={currentUser?.nip}
+                isKanitOrAdmin={canManage}
+            />
+        </div>
 
         {/* Modals */}
         <TugasModal 
             isOpen={isAddModalOpen} 
             onClose={() => setIsAddModalOpen(false)} 
-            onSuccess={fetchData}
+            onSuccess={refreshData}
             teknisiList={teknisiList}
             peralatanList={peralatanList}
         />
@@ -191,7 +199,7 @@ export default function TugasPage() {
             <TugasModal 
                 isOpen={!!editingItem} 
                 onClose={() => setEditingItem(null)} 
-                onSuccess={fetchData}
+                onSuccess={refreshData}
                 teknisiList={teknisiList}
                 peralatanList={peralatanList}
                 initialData={editingItem}

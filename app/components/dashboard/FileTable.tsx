@@ -186,25 +186,25 @@ export default function FileTable({
                              </div>
                         )}
 
-                        <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-end gap-2">
+                        <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end gap-2">
                              <a 
                                 href={item.url} 
                                 target="_blank"
-                                className="p-2 text-green-400 bg-green-500/10 rounded-lg"
+                                className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg transition-colors"
                             >
-                                <Download size={16} />
+                                <Download size={14} />
                             </a>
                             <button 
                                 onClick={() => onEdit(item)}
-                                className="p-2 text-indigo-400 bg-indigo-500/10 rounded-lg"
+                                className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
                             >
-                                <Pencil size={16} />
+                                <Pencil size={14} />
                             </button>
                             <button 
                                 onClick={() => onDelete(item.id)} 
-                                className="p-2 text-red-400 bg-red-500/10 rounded-lg"
+                                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                             >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     </motion.div>

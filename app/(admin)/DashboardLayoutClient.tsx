@@ -6,12 +6,15 @@ import { Menu, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePathname, useRouter } from "next/navigation";
 
+import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+
 export default function DashboardLayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
   
@@ -43,19 +46,32 @@ export default function DashboardLayoutClient({
   useEffect(() => {
     if (loading) return;
     
-    const privilegedRoles = ['KANIT_ELBAN', 'TEKNISI_ELBAN'];
+    const privilegedRoles = ['KANIT_ELBAN', 'TEKNISI_ELBAN', 'TEKNISI', 'ADMIN'];
     const isPrivileged = privilegedRoles.some(p => role.includes(p));
     
     // Redirect non-privileged users to pengaduan if they try to access other pages
-    if (!isPrivileged && !pathname.startsWith('/dashboard/pengaduan')) {
-        router.replace('/dashboard/pengaduan');
+    if (!isPrivileged && !pathname.startsWith('/pengaduan')) {
+        router.replace('/pengaduan');
     }
   }, [loading, role, pathname, router]);
+
+  // Helper to determine loading label
+  const getLoadingLabel = () => {
+    if (pathname === '/dashboard' || pathname === '/') return "Memuat Dashboard...";
+    if (pathname.includes('/peralatan')) return "Memuat Data Peralatan...";
+    if (pathname.includes('/log-peralatan')) return "Memuat Log Peralatan...";
+    if (pathname.includes('/tugas')) return "Memuat Data Tugas...";
+    if (pathname.includes('/jadwal')) return "Memuat Jadwal...";
+    if (pathname.includes('/files')) return "Memuat File...";
+    if (pathname.includes('/konfirmasi-akun')) return "Memuat Konfirmasi Akun...";
+    if (pathname.includes('/pengaduan')) return "Memuat Pengaduan...";
+    return "Memuat Halaman...";
+  };
 
   if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#030712] text-white">
-            <Loader2 className="animate-spin text-indigo-500" size={40} />
+            <LoadingSpinner label={getLoadingLabel()} />
         </div>
       );
   }
@@ -64,7 +80,13 @@ export default function DashboardLayoutClient({
     <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black">
         {/* Sidebar */}
         <div className="print:hidden">
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} userRole={role} />
+            <Sidebar 
+                isOpen={isSidebarOpen} 
+                onClose={() => setSidebarOpen(false)} 
+                userRole={role}
+                isCollapsed={isSidebarCollapsed}
+                onToggleCollapse={() => setSidebarCollapsed(!isSidebarCollapsed)}
+            />
         </div>
 
         {/* Mobile Header Toggle */}
@@ -86,9 +108,13 @@ export default function DashboardLayoutClient({
         </div>
 
         {/* Main Content Area */}
-        <main className="flex-1 ml-0 md:ml-[220px] print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible">
+        <main 
+            className={`flex-1 transition-all duration-300 ease-in-out
+                ml-0 ${isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[220px]'} 
+                print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
+        >
             {/* Background Atmosphere */}
-            <div className="fixed top-0 left-0 md:left-[220px] right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden" />
+            <div className={`fixed top-0 transition-all duration-300 left-0 ${isSidebarCollapsed ? 'md:left-[80px]' : 'md:left-[220px]'} right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden`} />
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
             
             {/* Scrollable Content */}

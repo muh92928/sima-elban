@@ -19,7 +19,9 @@ import {
   RefreshCw,
   Pencil,
   Image as ImageIcon,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  MapPin
 } from "lucide-react";
 import { LogPeralatan } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
@@ -183,63 +185,62 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
                             animate={{ opacity: 1, y: 0 }}
                             className={TABLE_STYLES.MOBILE_CARD}
                         >
-                            {/* Status Indicator Line based on status */}
-                            <div className={`absolute top-0 left-0 w-1.5 h-full ${getStatusColor(item.status).replace('bg-', 'bg-').split(' ')[0] || 'bg-slate-500'}`} />
-                            
                             <div className={TABLE_STYLES.MOBILE_CARD_HEADER}>
                                 <div>
-                                    <h3 className="font-bold text-white leading-tight">
+                                    <h3 className="font-bold text-white text-sm line-clamp-1">
                                         {item.peralatan?.nama || `Peralatan #${item.peralatan_id}`}
                                     </h3>
-                                    <div className="text-xs text-slate-400 mt-1">
-                                        {new Date(item.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })} • <span className={getStatusColor(item.status).replace('bg-', 'text-').split(' ')[1]}>{item.status}</span>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                                        <Calendar size={12} className="text-indigo-400" />
+                                        <span>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                                     </div>
                                 </div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(item.status)}`}>
+                                    {item.status}
+                                </span>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-2 text-xs bg-black/10 p-2.5 rounded-xl border border-white/5">
-                                <div className="space-y-1">
-                                    <span className="block text-[10px] uppercase text-slate-500 font-bold tracking-wider">Waktu Operasi Aktual</span>
-                                    <span className="block text-white font-mono">{item.waktu_operasi_aktual}</span>
+                            <div className="py-2 border-t border-white/5 border-dashed grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Operasi Aktual</p>
+                                    <p className="text-xs text-slate-300 font-mono">{item.waktu_operasi_aktual}</p>
                                 </div>
-                                <div className="space-y-1">
-                                    <span className="block text-[10px] uppercase text-slate-500 font-bold tracking-wider">Waktu Operasi Diterapkan</span>
-                                    <span className="block text-white font-mono">{item.waktu_operasi_diterapkan}</span>
+                                <div>
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Operasi Diterapkan</p>
+                                    <p className="text-xs text-slate-300 font-mono">{item.waktu_operasi_diterapkan}</p>
                                 </div>
-                                <div className="space-y-1 pt-2 border-t border-white/5">
-                                    <span className="block text-[10px] uppercase text-slate-500 font-bold tracking-wider">Periode Mematikan</span>
-                                    <span className="block text-white font-mono">{item.mematikan_terjadwal}</span>
+                                <div>
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Mematikan</p>
+                                    <p className="text-xs text-slate-300 font-mono">{item.mematikan_terjadwal}</p>
                                 </div>
-                                <div className="space-y-1 pt-2 border-t border-white/5">
-                                    <span className="block text-[10px] uppercase text-slate-500 font-bold tracking-wider">Periode Kegagalan</span>
-                                    <span className="block text-white font-mono">{item.periode_kegagalan}</span>
+                                <div>
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Kegagalan</p>
+                                    <p className="text-xs text-slate-300 font-mono">{item.periode_kegagalan}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-2 border-t border-white/5 border-dashed">
-                                <div>
+                            <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end gap-3">
+                                <div className="mr-auto">
                                     {item.dokumentasi ? (
-                                        <a href={item.dokumentasi} target="_blank" className="text-xs font-bold text-indigo-400 hover:underline flex items-center gap-1">
-                                            <ImageIcon size={12} /> Lihat Bukti
+                                        <a href={item.dokumentasi} target="_blank" className="text-xs font-bold text-indigo-400 hover:text-white hover:underline flex items-center gap-1.5 transition-colors">
+                                            <ImageIcon size={14} /> Bukti
                                         </a>
                                     ) : (
-                                        <span className="text-xs text-slate-600 font-bold">-</span>
+                                        <span className="text-xs text-slate-600 font-medium">-</span>
                                     )}
                                 </div>
-                                <div className="flex gap-2">
-                                     <button 
-                                        onClick={() => onEdit(item)}
-                                        className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-500/20"
-                                     >
-                                        Edit
-                                     </button>
-                                     <button 
-                                        onClick={() => onDelete(item.id)}
-                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg text-xs font-bold hover:bg-red-500/20"
-                                     >
-                                        Hapus
-                                     </button>
-                                </div>
+                                <button 
+                                    onClick={() => onEdit(item)}
+                                    className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
+                                >
+                                    <Pencil size={14} />
+                                </button>
+                                <button 
+                                    onClick={() => onDelete(item.id)}
+                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
                             </div>
                         </motion.article>
                     ))}

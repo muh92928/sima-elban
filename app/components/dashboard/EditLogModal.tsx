@@ -157,8 +157,8 @@ export default function EditLogModal({ isOpen, onClose, onSuccess, logData, pera
                  const { error: updateTaskError } = await supabase
                     .from('tugas')
                     .update({
-                        judul: `Tindak Lanjut: ${formData.status}`,
-                        deskripsi: `Dibuat otomatis dari Edit Log tanggal ${formData.tanggal}. Status berubah menjadi: ${formData.status}. Mohon segera diperiksa.`,
+                        judul: `${formData.status}`,
+                        deskripsi: '-',
                         status: 'PENDING', // Reset status provided it's a new issue/update
                         sumber: 'Log Otomatis (Edit)',
                         diupdate_kapan: new Date().toISOString()
@@ -183,8 +183,8 @@ export default function EditLogModal({ isOpen, onClose, onSuccess, logData, pera
                  if (technicians && technicians.length > 0 && creatorNip) {
                      const tasksToCreate = technicians.map(tech => ({
                           peralatan_id: formData.peralatan_id,
-                          judul: `Tindak Lanjut: ${formData.status}`,
-                          deskripsi: `Dibuat otomatis dari Edit Log tanggal ${formData.tanggal}. Status berubah menjadi: ${formData.status}. Mohon segera diperiksa.`,
+                          judul: `${formData.status}`,
+                          deskripsi: '-',
                           status: 'PENDING',
                           sumber: 'Log Otomatis (Edit)',
                           dibuat_kapan: new Date().toISOString(),

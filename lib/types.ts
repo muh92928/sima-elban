@@ -88,11 +88,14 @@ export interface Akun {
 
 export interface Pengaduan {
   id: number;
-  judul: string;
+  peralatan_id: number | null;
+  peralatan?: { nama: string };
+  akun_id: string | null; // UUID from public.akun
+  akun?: { nama: string; peran: string };
   deskripsi: string;
-  pelapor: string;
-  lokasi: string;
+  pelapor?: string; // Legacy text support
   status: 'Baru' | 'Diproses' | 'Selesai';
   dokumentasi: string | null;
+  bukti_petugas?: string | null;
   created_at: string;
 }

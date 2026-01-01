@@ -26,14 +26,12 @@ import { TABLE_STYLES } from "@/lib/tableStyles";
 
 interface PengaduanTableProps {
   data: Pengaduan[];
-  loading: boolean;
   onDelete: (id: number) => void;
   onEdit: (item: Pengaduan) => void;
 }
 
 export default function PengaduanTable({ 
   data, 
-  loading, 
   onDelete,
   onEdit 
 }: PengaduanTableProps) {
@@ -59,30 +57,24 @@ export default function PengaduanTable({
         enableSorting: false,
       },
       {
-        accessorKey: "judul",
-        header: "Pengaduan",
+        accessorKey: "peralatan.nama", // Access nested data
+        header: "Peralatan",
         cell: (info) => (
           <div className="flex flex-col text-left">
-              <span className="font-bold text-white text-sm line-clamp-2">{info.getValue() as string}</span>
-              <span className="text-xs text-slate-500 mt-1">{new Date(info.row.original.created_at).toLocaleDateString("id-ID")}</span>
+              <span className="font-bold text-white text-sm line-clamp-2">
+                  {info.getValue() as string || "Peralatan Tidak Diketahui"}
+              </span>
           </div>
         ),
       },
       {
-        accessorKey: "pelapor",
-        header: "Pelapor",
+        header: "Nama Pengadu",
+        id: "pengadu", // Custom ID since we access multiple fields
+        accessorFn: (row) => row.akun?.nama || row.pelapor || "Unknown",
         cell: (info) => (
-            <span className="text-slate-300 text-xs">{info.getValue() as string}</span>
-        ),
-      },
-      {
-        accessorKey: "lokasi",
-        header: "Lokasi",
-        cell: (info) => (
-             <div className="flex items-center gap-1.5 justify-center text-slate-400 text-xs">
-                 <MapPin size={12} />
-                 <span>{info.getValue() as string}</span>
-             </div>
+            <div className="flex flex-col">
+              <span className="text-slate-300 text-xs font-semibold text-left">{info.getValue() as string}</span>
+            </div>
         ),
       },
       {
@@ -98,7 +90,7 @@ export default function PengaduanTable({
       },
       {
         accessorKey: "dokumentasi",
-        header: "Bukti",
+        header: "Bukti Pengadu",
         cell: (info) => {
             const url = info.getValue() as string;
             return url ? (
@@ -116,6 +108,38 @@ export default function PengaduanTable({
         },
       },
       {
+        accessorKey: "bukti_petugas", // New Column
+        header: "Bukti Petugas",
+        cell: (info) => {
+            const url = info.getValue() as string;
+            return url ? (
+                <div className="flex justify-center">
+                    <a 
+                        href={url} 
+                        target="_blank" 
+                        className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800 text-emerald-400 hover:text-white hover:bg-slate-700 transition-colors text-xs border border-white/5"
+                    >
+                        <ImageIcon size={14} /> Lihat
+                        <ExternalLink size={10} />
+                    </a>
+                </div>
+            ) : <span className="text-slate-600 text-xs italic">Belum ada</span>;
+        },
+      },
+      {
+        accessorKey: "created_at",
+        header: "Tanggal",
+        cell: (info) => (
+             <span className="text-slate-400 text-xs text-center block">
+                 {new Date(info.getValue() as string).toLocaleDateString("id-ID", {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                 })}
+             </span>
+        ),
+      },
+      {
         id: "aksi",
         header: "Aksi",
         enableSorting: false,
@@ -124,7 +148,7 @@ export default function PengaduanTable({
                 <button 
                     onClick={() => onEdit(info.row.original)}
                     className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
-                    title="Update Status / Edit"
+                    title="Proses / Edit"
                 >
                     <Pencil size={16} />
                 </button>
@@ -155,12 +179,7 @@ export default function PengaduanTable({
     <>
       {/* Mobile Card Render */}
       <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
-            {loading ? (
-                <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
-                    <RefreshCw className="animate-spin text-indigo-500" size={24} />
-                    <span>Memuat pengaduan...</span>
-                </div>
-            ) : data.length === 0 ? (
+            {data.length === 0 ? (
                 <div className="text-center py-8 text-slate-500 italic">
                     Belum ada pengaduan.
                 </div>
@@ -174,7 +193,7 @@ export default function PengaduanTable({
                     >   
                         <div className={TABLE_STYLES.MOBILE_CARD_HEADER}>
                             <div>
-                                <h3 className="font-bold text-white text-sm line-clamp-1">{item.judul}</h3>
+                                <h3 className="font-bold text-white text-sm line-clamp-1">{item.peralatan?.nama || "Peralatan Tidak Diketahui"}</h3>
                                 <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
                                     <span className="text-indigo-300 font-medium">{item.pelapor}</span>
                                     <span>•</span>
@@ -188,33 +207,29 @@ export default function PengaduanTable({
                         
                         <div className="py-2 border-t border-white/5 border-dashed space-y-2">
                              <p className="text-xs text-slate-300 line-clamp-3">{item.deskripsi}</p>
-                             <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                 <MapPin size={12} />
-                                 <span>{item.lokasi}</span>
-                             </div>
                         </div>
 
-                        <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
+                        <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
                             {item.dokumentasi ? (
-                                <a href={item.dokumentasi} target="_blank" className="text-xs text-indigo-400 hover:text-white flex items-center gap-1">
+                                <a href={item.dokumentasi} target="_blank" className="text-xs text-indigo-400 hover:text-white flex items-center gap-1.5 transition-colors font-medium">
                                     <ImageIcon size={14} /> Lihat Bukti
                                 </a>
                             ) : (
-                                <span className="text-xs text-slate-600">Tanpa Bukti</span>
+                                <span className="text-xs text-slate-600 font-medium">-</span>
                             )}
 
                             <div className="flex items-center gap-2">
                                 <button 
                                     onClick={() => onEdit(item)}
-                                    className="p-2 text-indigo-400 bg-indigo-500/10 rounded-lg"
+                                    className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
                                 >
-                                    <Pencil size={16} />
+                                    <Pencil size={14} />
                                 </button>
                                 <button 
                                     onClick={() => onDelete(item.id)} 
-                                    className="p-2 text-red-400 bg-red-500/10 rounded-lg"
+                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         </div>
@@ -244,16 +259,7 @@ export default function PengaduanTable({
                     ))}
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                    {loading ? (
-                        <tr>
-                            <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400">
-                                <div className="flex flex-col items-center gap-3">
-                                    <RefreshCw className="animate-spin text-indigo-500" size={24} />
-                                    <span>Memuat pengaduan...</span>
-                                </div>
-                            </td>
-                        </tr>
-                    ) : table.getRowModel().rows.length === 0 ? (
+                    {table.getRowModel().rows.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500 italic">
                                 Belum ada pengaduan.

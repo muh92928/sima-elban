@@ -7,27 +7,93 @@ import { supabase } from "@/lib/supabase";
 import { Pengaduan } from "@/lib/types";
 import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
 import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
+import ProcessPengaduanModalHelpers from "@/app/components/dashboard/ProcessPengaduanModal";
 
-export default function PengaduanPage() {
-  const [data, setData] = useState<Pengaduan[]>([]);
-  const [loading, setLoading] = useState(true);
+interface PengaduanClientProps {
+  initialData: Pengaduan[];
+}
+
+export default function PengaduanClient({ initialData }: PengaduanClientProps) {
+  const [data, setData] = useState<Pengaduan[]>(initialData);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Pengaduan | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [processingItem, setProcessingItem] = useState<Pengaduan | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  // Fetch Role Client Side
+  useEffect(() => {
+      const fetchRole = async () => {
+          try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                  setCurrentUserEmail(user.email || "");
+                  const { data: akun } = await supabase.from('akun').select('id, peran').eq('email', user.email!).single();
+                  
+                  if (akun) {
+                      const r = (akun.peran || "").toUpperCase().replace(/ /g, '_');
+                      setRole(r);
+                      setCurrentUserId(akun.id);
+                  } else {
+                      // Fallback
+                      setRole(user.user_metadata?.role || ""); 
+                  }
+              } else {
+                  setRole(""); // Guest?
+              }
+          } catch (e) {
+              console.error("Client role fetch error", e);
+              setRole("");
+          }
+      };
+      
+      fetchRole();
+  }, []);
+
+  const isTechnician = role ? (role.includes("KANIT") || role.includes("TEKNISI")) : false;
+  const canCreate = role && !isTechnician;
+
+  const [peralatanMap, setPeralatanMap] = useState<Record<number, string>>({});
+
+  // ... (existing useEffects)
+
+  const refreshData = async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
+      
+      // 1. Fetch Pengaduan with Akun relation
       const { data: pengaduan, error } = await supabase
         .from('pengaduan')
-        .select('*')
+        .select('*, akun(nama, peran)') 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      setData(pengaduan as Pengaduan[] || []);
+      // 2. Fetch Peralatan (Lookup Map) - Robust fallback for joins
+      const { data: peralatanList } = await supabase
+        .from('peralatan')
+        .select('id, nama');
+      
+      const pMap: Record<number, string> = {};
+      if (peralatanList) {
+          peralatanList.forEach(p => {
+              pMap[p.id] = p.nama;
+          });
+          setPeralatanMap(pMap);
+      }
+      
+      // Enrich data locally
+      const enrichedData = (pengaduan || []).map((p: any) => ({
+          ...p,
+          peralatan: { nama: pMap[p.peralatan_id] || "Tidak Diketahui" }
+      }));
+
+      setData(enrichedData as Pengaduan[]);
     } catch (error) {
       console.error('Error fetching pengaduan:', error);
     } finally {
@@ -37,25 +103,42 @@ export default function PengaduanPage() {
   };
 
   useEffect(() => {
-    fetchData();
+      // Only refresh if no initial data
+      if (!initialData || initialData.length === 0) {
+          refreshData();
+      }
+      // Always fetch role
   }, []);
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
+    refreshData();
   };
 
   const handleEdit = (item: Pengaduan) => {
-      setEditingItem(item);
-      setIsModalOpen(true);
+      if (isTechnician) {
+          setProcessingItem(item);
+      } else {
+          // User: Only allow editing if they reported it? Or general edit? 
+          // For now allow editing if it matches name (imperfect) or just open modal and let them see.
+          // Better: Only allow editing if status is "Baru".
+          if (item.status !== "Baru") {
+              alert("Pengaduan yang sedang diproses tidak dapat diedit.");
+              return;
+          }
+          setEditingItem(item);
+          setIsModalOpen(true);
+      }
   };
 
   const handleDelete = async (id: number) => {
+    if (!isTechnician) {
+       // Optional: Check ownership logic if needed, but for now simple confirmation
+    }
     if (confirm("Apakah Anda yakin ingin menghapus data pengaduan ini?")) {
         try {
             const { error } = await supabase.from('pengaduan').delete().eq('id', id);
             if (error) throw error;
-            fetchData();
+            refreshData();
         } catch (error) {
             console.error("Error deleting pengaduan:", error);
             alert("Gagal menghapus pengaduan.");
@@ -69,9 +152,9 @@ export default function PengaduanPage() {
     
     // Search Filter
     const matchSearch = (
-      item.judul.toLowerCase().includes(query) ||
+      (item.peralatan?.nama || "").toLowerCase().includes(query) ||
       item.deskripsi.toLowerCase().includes(query) ||
-      item.pelapor.toLowerCase().includes(query)
+      (item.akun?.nama || item.pelapor || "").toLowerCase().includes(query)
     );
     
     // Status Filter
@@ -82,15 +165,24 @@ export default function PengaduanPage() {
 
   return (
     <div className="space-y-6">
-        {/* Modal */}
+        {/* Modal User (Add/Edit) */}
         <AddPengaduanModal 
             isOpen={isModalOpen} 
             onClose={() => {
                 setIsModalOpen(false);
                 setEditingItem(null);
             }} 
-            onSuccess={fetchData} 
+            onSuccess={refreshData} 
             initialData={editingItem}
+            currentUserId={currentUserId}
+        />
+
+        {/* Modal Technician (Process) */}
+        <ProcessPengaduanModalHelpers
+            isOpen={!!processingItem}
+            onClose={() => setProcessingItem(null)}
+            onSuccess={refreshData}
+            data={processingItem}
         />
 
       {/* Header & Actions */}
@@ -107,13 +199,15 @@ export default function PengaduanPage() {
         </div>
 
         <div className="flex items-center gap-3">
-            <button 
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
-            >
-                <Plus size={16} />
-                Buat Pengaduan
-            </button>
+            {canCreate && (
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                >
+                    <Plus size={16} />
+                    Buat Pengaduan
+                </button>
+            )}
             <button 
                 onClick={handleRefresh}
                 className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
@@ -164,7 +258,6 @@ export default function PengaduanPage() {
       >
           <PengaduanTable 
             data={filteredData}
-            loading={loading || refreshing}
             onDelete={handleDelete}
             onEdit={handleEdit}
           />
@@ -172,3 +265,6 @@ export default function PengaduanPage() {
     </div>
   );
 }
+
+// Lazy import or simple wrapper to avoid circular dependency issues if any
+

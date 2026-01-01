@@ -8,18 +8,26 @@ import { FileItem } from "@/lib/types";
 import AddFileModal from "@/app/components/dashboard/AddFileModal";
 import FileTable from "@/app/components/dashboard/FileTable";
 
-export default function FilesPage() {
-  const [data, setData] = useState<FileItem[]>([]);
-  const [loading, setLoading] = useState(true);
+interface FilesClientProps {
+  initialData: FileItem[];
+}
+
+export default function FilesClient({ initialData }: FilesClientProps) {
+  const [data, setData] = useState<FileItem[]>(initialData);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<FileItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const fetchData = async () => {
+  const categories = [
+    "Dokumentasi", "Laporan", "Regulasi", "SOP", "File Pendukung Lainnya"
+ ];
+
+  const refreshData = async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
       const { data: files, error } = await supabase
         .from('files')
         .select('*')
@@ -36,13 +44,8 @@ export default function FilesPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
+    refreshData();
   };
 
   const handleEdit = (item: FileItem) => {
@@ -55,7 +58,7 @@ export default function FilesPage() {
         try {
             const { error } = await supabase.from('files').delete().eq('id', id);
             if (error) throw error;
-            fetchData();
+            refreshData();
         } catch (error) {
             console.error("Error deleting file:", error);
             alert("Gagal menghapus file.");
@@ -79,10 +82,6 @@ export default function FilesPage() {
     return matchSearch && matchCategory;
   });
 
-  const categories = [
-    "Dokumen Umum", "Laporan", "Manual Book", "Sertifikat", "Surat Masuk", "Surat Keluar", "Lainnya"
- ];
-
   return (
     <div className="space-y-6">
         {/* Modal */}
@@ -92,7 +91,7 @@ export default function FilesPage() {
                 setIsModalOpen(false);
                 setEditingItem(null);
             }} 
-            onSuccess={fetchData} 
+            onSuccess={refreshData} 
             initialData={editingItem}
         />
 

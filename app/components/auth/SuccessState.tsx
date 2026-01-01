@@ -8,22 +8,23 @@ import { useRouter } from "next/navigation";
 interface SuccessStateProps {
   mode: "login" | "register";
   onRegisterSuccess: () => void;
+  targetPath?: string;
 }
 
-export default function SuccessState({ mode, onRegisterSuccess }: SuccessStateProps) {
+export default function SuccessState({ mode, onRegisterSuccess, targetPath }: SuccessStateProps) {
   const router = useRouter();
 
   // Auto redirect after animation
   useEffect(() => {
     const timer = setTimeout(() => {
         if (mode === "login") {
-            router.push("/dashboard");
+            router.push(targetPath || "/dashboard");
         } else {
             onRegisterSuccess();
         }
     }, 2500);
     return () => clearTimeout(timer);
-  }, [router, mode, onRegisterSuccess]);
+  }, [router, mode, onRegisterSuccess, targetPath]);
 
   return (
     <motion.div
@@ -72,7 +73,7 @@ export default function SuccessState({ mode, onRegisterSuccess }: SuccessStatePr
             />
           </div>
           <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest animate-pulse">
-            {mode === "login" ? "MENGALIHKAN KE DASHBOARD" : "MEMBUKA HALAMAN LOGIN"}
+            {mode === "login" ? `MENGALIHKAN KE ${targetPath?.includes('pengaduan') ? 'LAYANAN PENGADUAN' : 'DASHBOARD'}` : "MEMBUKA HALAMAN LOGIN"}
           </span>
         </div>
       </div>

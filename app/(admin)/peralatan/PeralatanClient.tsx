@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Plus, Printer, RefreshCw, Pencil, Trash2 } from "lucide-react";
+import { Search, Filter, Plus, Printer, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Peralatan } from "@/lib/types";
 import AddPeralatanModal from "@/app/components/dashboard/AddPeralatanModal";
 import PeralatanTable from "@/app/components/dashboard/PeralatanTable";
 
-export default function PeralatanPage() {
-  const [data, setData] = useState<Peralatan[]>([]);
-  const [loading, setLoading] = useState(true);
+interface PeralatanClientProps {
+  initialData: Peralatan[];
+}
+
+export default function PeralatanClient({ initialData }: PeralatanClientProps) {
+  const [data, setData] = useState<Peralatan[]>(initialData);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Peralatan | null>(null);
@@ -18,9 +22,11 @@ export default function PeralatanPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [reportDate, setReportDate] = useState(new Date());
 
-  const fetchData = async () => {
+  // Function to re-fetch data (used for Refresh button & after mutations)
+  const refreshData = async () => {
     try {
-      setLoading(true);
+      // Only set loading if it's a full refresh, otherwise just refreshing identifier
+      setRefreshing(true);
       const { data: peralatanData, error } = await supabase
         .from('peralatan')
         .select('*')
@@ -34,15 +40,6 @@ export default function PeralatanPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
   };
 
   const handlePrint = () => {
@@ -59,7 +56,7 @@ export default function PeralatanPage() {
         try {
             const { error } = await supabase.from('peralatan').delete().eq('id', id);
             if (error) throw error;
-            fetchData();
+            refreshData();
         } catch (error) {
             console.error("Error deleting item:", error);
             alert("Gagal menghapus data.");
@@ -91,7 +88,7 @@ export default function PeralatanPage() {
                 setIsModalOpen(false);
                 setEditingItem(null);
             }} 
-            onSuccess={fetchData} 
+            onSuccess={refreshData} 
             initialData={editingItem}
         />
 
@@ -161,7 +158,7 @@ export default function PeralatanPage() {
                 Tambah Alat
             </button>
             <button 
-                onClick={handleRefresh}
+                onClick={refreshData}
                 className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
                 title="Refresh Data"
             >

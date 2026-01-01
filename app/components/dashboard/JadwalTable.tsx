@@ -147,36 +147,38 @@ export default function JadwalTable({
                     >   
                         <div className={TABLE_STYLES.MOBILE_CARD_HEADER}>
                             <div className="space-y-1">
-                                <h3 className="font-bold text-indigo-300 text-sm">{item.nama_kegiatan}</h3>
-                                <p className="text-xs text-slate-400 flex items-center gap-1">
-                                    <Clock size={12} />
-                                    {new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} • {item.waktu}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => onEdit(item)}
-                                    className="p-2 text-indigo-400 bg-indigo-500/10 rounded-lg"
-                                >
-                                    <Pencil size={16} />
-                                </button>
-                                <button 
-                                    onClick={() => onDelete(item.id)} 
-                                    className="p-2 text-red-400 bg-red-500/10 rounded-lg"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                <h3 className="font-bold text-white text-sm">{item.nama_kegiatan}</h3>
+                                <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                                    <Clock size={12} className="text-indigo-400" />
+                                    <span>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })} • {item.waktu?.slice(0, 5)} WIB</span>
+                                </div>
                             </div>
                         </div>
                         
                         <div className="py-2 border-t border-white/5 border-dashed space-y-2">
-                             <div className="flex items-center gap-2 text-xs text-slate-300">
-                                <MapPin size={14} className="text-indigo-400" />
-                                {item.lokasi}
+                             <div className="flex items-start gap-2">
+                                <MapPin size={14} className="text-slate-500 mt-0.5 shrink-0" />
+                                <span className="text-xs text-slate-300">{item.lokasi}</span>
                              </div>
                              {item.keterangan && (
-                                 <p className="text-xs text-slate-400 italic mt-1">{item.keterangan}</p>
+                                 <p className="text-xs text-slate-400 italic pl-5 line-clamp-2">"{item.keterangan}"</p>
                              )}
+                        </div>
+
+                        {/* Actions Mobile */}
+                        <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end gap-2">
+                             <button 
+                                onClick={() => onEdit(item)}
+                                className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
+                            >
+                                <Pencil size={14} />
+                            </button>
+                             <button 
+                                onClick={() => onDelete(item.id)}
+                                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                            >
+                                <Trash2 size={14} />
+                            </button>
                         </div>
                     </motion.div>
                 ))

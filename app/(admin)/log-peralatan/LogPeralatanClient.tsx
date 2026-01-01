@@ -10,10 +10,15 @@ import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
 import Toast, { ToastType } from "@/app/components/Toast";
 
-export default function LogPeralatanPage() {
-  const [data, setData] = useState<LogPeralatan[]>([]);
-  const [peralatanList, setPeralatanList] = useState<Peralatan[]>([]);
-  const [loading, setLoading] = useState(true);
+interface LogPeralatanClientProps {
+  initialData: LogPeralatan[];
+  initialPeralatanList: Peralatan[];
+}
+
+export default function LogPeralatanClient({ initialData, initialPeralatanList }: LogPeralatanClientProps) {
+  const [data, setData] = useState<LogPeralatan[]>(initialData);
+  const [peralatanList, setPeralatanList] = useState<Peralatan[]>(initialPeralatanList);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,9 +37,9 @@ export default function LogPeralatanPage() {
       setToast({ show: true, message, type });
   };
 
-  const fetchData = async () => {
+  const refreshData = async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
       
       // 1. Fetch Peralatan List for Modals
       const { data: peralatanData, error: peralatanError } = await supabase
@@ -64,13 +69,8 @@ export default function LogPeralatanPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
+    refreshData();
   };
 
   const handlePrint = () => {
@@ -87,7 +87,7 @@ export default function LogPeralatanPage() {
         try {
             const { error } = await supabase.from('log_peralatan').delete().eq('id', id);
             if (error) throw error;
-            fetchData();
+            refreshData();
             showToast("Log berhasil dihapus.");
         } catch (error) {
             console.error("Error deleting log:", error);
@@ -107,11 +107,7 @@ export default function LogPeralatanPage() {
       (item.status && item.status.toLowerCase().includes(query))
     );
     
-    // Date Filter (Year & Month) - Can normally filter by exact date or month.
-    // PHP implementation filtered by EXACT date or if empty ALL.
-    // The previous code filtered by Month. Let's stick to Month for better overview, 
-    // or we can add a specific date picker if the user prefers exact date like PHP.
-    // For now, let's keep Month filter as it handles "ALL" better visually than single day.
+    // Date Filter (Year & Month)
     const itemDate = new Date(item.tanggal);
     const matchDate = 
         itemDate.getFullYear() === reportDate.getFullYear() &&
@@ -134,7 +130,7 @@ export default function LogPeralatanPage() {
             isOpen={isAddModalOpen} 
             onClose={() => setIsAddModalOpen(false)} 
             onSuccess={(msg?: string) => {
-                fetchData();
+                refreshData();
                 if (msg) showToast(msg, 'success');
             }} 
             peralatanList={peralatanList}
@@ -147,7 +143,7 @@ export default function LogPeralatanPage() {
                 setEditingItem(null);
             }}
             onSuccess={(msg?: string) => {
-                fetchData();
+                refreshData();
                 if (msg) showToast(msg, 'success');
             }}
             logData={editingItem}

@@ -10,6 +10,7 @@ import SuccessState from "./components/auth/SuccessState";
 export default function LoginPage() {
   const [view, setView] = useState<"login" | "register" | "success">("login");
   const [successMode, setSuccessMode] = useState<"login" | "register">("login");
+  const [redirectPath, setRedirectPath] = useState("/dashboard"); // Default
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function LoginPage() {
             <SuccessState 
                 key="success" 
                 mode={successMode}
+                targetPath={redirectPath}
                 onRegisterSuccess={() => setView("login")}
             />
             ) : (
@@ -54,7 +56,8 @@ export default function LoginPage() {
             >
                 {view === "login" ? (
                 <LoginForm 
-                    onSuccess={() => {
+                    onSuccess={(path) => {
+                        if (path) setRedirectPath(path);
                         setSuccessMode("login");
                         setView("success");
                     }} 

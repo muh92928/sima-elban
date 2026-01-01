@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 interface LoginFormProps {
-  onSuccess: () => void;
+  onSuccess: (path?: string) => void;
   onRegisterClick: () => void;
 }
 
@@ -29,7 +29,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
       // We assume NIP is stored in 'akun' table and acts as the username
       const { data: userData, error: userError } = await supabase
         .from('akun')
-        .select('email, status, nama')
+        .select('email, status, nama, peran') // Added 'peran'
         .eq('nip', nip.trim())
         .single();
 
@@ -37,7 +37,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
         throw new Error("NIP tidak ditemukan. Silakan NIP yang benar atau daftar akun baru.");
       }
       
-      const user = userData as { email: string; status: string; nama: string };
+      const user = userData as { email: string; status: string; nama: string, peran?: string };
 
       if (user.status === 'pending') {
          throw new Error(`Halo ${user.nama}, akun Anda masih menunggu persetujuan Admin.`);
@@ -63,7 +63,20 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
         throw authError; // Usually "Invalid login credentials"
       }
 
-      onSuccess();
+      // Determine Redirect Path
+      let targetPath = "/dashboard";
+      const role = (user.peran || "").toUpperCase().replace(/ /g, '_');
+      
+      // If NOT Technician/Kanit, go to Pengaduan
+      // User request: Only "teknisi elban" and "kanit elban" go to Dashboard.
+      
+      const isDashboardUser = role.includes("KANIT_ELBAN") || role.includes("TEKNISI_ELBAN");
+      
+      if (!isDashboardUser) {
+          targetPath = "/pengaduan";
+      }
+
+      onSuccess(targetPath);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Gagal masuk. Periksa kembali NIP dan sandi Anda.");

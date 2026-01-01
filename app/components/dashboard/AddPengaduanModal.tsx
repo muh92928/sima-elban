@@ -11,9 +11,10 @@ interface AddPengaduanModalProps {
   onClose: () => void;
   onSuccess: () => void;
   initialData?: Pengaduan | null;
+  currentUserId?: string | null;
 }
 
-export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialData }: AddPengaduanModalProps) {
+export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialData, currentUserId }: AddPengaduanModalProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -21,22 +22,24 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
 
   // Form State
   const [formData, setFormData] = useState({
-      judul: "",
+      peralatan_id: "" as string | number, // Store ID
       deskripsi: "",
-      pelapor: "",
-      lokasi: "",
+      akun_id: "" as string,
       status: "Baru",
       dokumentasi: "" as string | null
   });
+
+  const [peralatanList, setPeralatanList] = useState<{id: number, nama: string}[]>([]);
+
+  // ... (fetchPeralatan)
 
   // Populate Form if Editing
   useEffect(() => {
       if (initialData && isOpen) {
           setFormData({
-              judul: initialData.judul,
+              peralatan_id: initialData.peralatan_id || "",
               deskripsi: initialData.deskripsi,
-              pelapor: initialData.pelapor,
-              lokasi: initialData.lokasi,
+              akun_id: initialData.akun_id || "",
               status: initialData.status,
               dokumentasi: initialData.dokumentasi
           });
@@ -44,17 +47,17 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
       } else if (isOpen) {
         // Reset
         setFormData({
-            judul: "",
+            peralatan_id: "",
             deskripsi: "",
-            pelapor: "",
-            lokasi: "",
+            akun_id: currentUserId || "", // Auto-fill ID
             status: "Baru",
             dokumentasi: null
         });
         setFile(null);
         setPreviewUrl(null);
       }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, currentUserId]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -99,8 +102,8 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.judul || !formData.deskripsi || !formData.pelapor) {
-        alert("Mohon lengkapi Judul, Deskripsi, dan Pelapor");
+    if (!formData.peralatan_id || !formData.deskripsi) {
+        alert("Mohon lengkapi Data Peralatan dan Deskripsi");
         return;
     }
 
@@ -119,8 +122,11 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
       }
 
       const payload = {
-          ...formData,
-          dokumentasi: finalUrl
+          peralatan_id: formData.peralatan_id,
+          deskripsi: formData.deskripsi,
+          status: formData.status,
+          dokumentasi: finalUrl,
+          akun_id: formData.akun_id // Send ID
       };
 
       let error;
@@ -190,18 +196,27 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
                   {initialData ? 'Edit Pengaduan' : 'Buat Pengaduan Baru'}
                 </Dialog.Title>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Judul */}
+                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Peralatan Selection */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Judul Pengaduan</label>
-                    <input 
-                        type="text"
-                        required
-                        value={formData.judul}
-                        onChange={e => setFormData({...formData, judul: e.target.value})}
-                        placeholder="Contoh: AC Ruang Server Mati total"
-                        className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                    />
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Peralatan (Sesuai Data Aset)</label>
+                    <div className="relative group">
+                        <select
+                             required
+                             value={formData.peralatan_id}
+                             onChange={e => setFormData({...formData, peralatan_id: e.target.value})}
+                             className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
+                        >
+                            <option value="">-- Pilih Peralatan --</option>
+                            <option value="99999" className="text-yellow-400 font-bold">Lainnya / Tidak Terdaftar</option>
+                            {peralatanList.map((item) => (
+                                <option key={item.id} value={item.id}>{item.nama}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                             <AlignLeft size={16} /> {/* Generic icon */}
+                        </div>
+                    </div>
                   </div>
 
                   {/* Deskripsi */}
@@ -220,36 +235,7 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
                     </div>
                   </div>
 
-                   {/* Pelapor & Lokasi Row */}
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Pelapor</label>
-                        <div className="relative group">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="text"
-                                required
-                                value={formData.pelapor}
-                                onChange={e => setFormData({...formData, pelapor: e.target.value})}
-                                placeholder="Nama Anda"
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Lokasi Kejadian</label>
-                        <div className="relative group">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="text"
-                                required
-                                value={formData.lokasi}
-                                onChange={e => setFormData({...formData, lokasi: e.target.value})}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                      </div>
-                   </div>
+                   {/* Pelapor Removed - Auto handled */ }
 
                    {/* Status (Only show if editing) */}
                    {initialData && (

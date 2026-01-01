@@ -289,8 +289,8 @@ export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList 
               const tasksToCreate = logsNeedingAction.flatMap(log => 
                   technicians.map(tech => ({
                       peralatan_id: log.peralatan_id,
-                      judul: `Tindak Lanjut: ${log.status}`,
-                      deskripsi: `Dibuat otomatis dari Log Harian tanggal ${log.tanggal}. Status peralatan: ${log.status}. Mohon segera diperiksa.`,
+                      judul: `${log.status}`,
+                      deskripsi: '-',
                       status: 'PENDING',
                       sumber: 'Log Otomatis',
                       dibuat_kapan: new Date().toISOString(),

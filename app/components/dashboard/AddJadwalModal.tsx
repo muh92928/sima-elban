@@ -2,7 +2,7 @@
 
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { X, Calendar, Clock, MapPin, AlignLeft, Info, Save, Loader2 } from "lucide-react";
+import { X, Calendar, AlignLeft, Save, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Jadwal } from "@/lib/types";
 
@@ -11,69 +11,110 @@ interface AddJadwalModalProps {
   onClose: () => void;
   onSuccess: () => void;
   initialData?: Jadwal | null;
+  defaultDate?: string;
 }
 
-export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData }: AddJadwalModalProps) {
+export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData, defaultDate }: AddJadwalModalProps) {
   const [loading, setLoading] = useState(false);
+  const [technicians, setTechnicians] = useState<{nip: string, nama: string}[]>([]);
+  
+  // Personnel specific state
+  const [selectedTech, setSelectedTech] = useState("");
+  const [personelStatus, setPersonelStatus] = useState("Dinas Pagi");
+
+  const PERSONNEL_STATUSES = [
+      "Dinas Pagi",
+      "Dinas Elban",
+      "Dinas Luar",
+      "Izin",
+      "Cuti",
+      "Sakit",
+      "Tugas Belajar"
+  ];
   
   // Form State
   const [formData, setFormData] = useState({
-      nama_kegiatan: "",
-      tanggal: new Date().toISOString().split('T')[0],
+      tanggal: defaultDate || new Date().toISOString().split('T')[0],
       waktu: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      lokasi: "",
       keterangan: "",
   });
+
+  // Fetch Technicians on mount
+  useEffect(() => {
+      const fetchTechs = async () => {
+          const { data } = await supabase
+              .from('akun')
+              .select('nip, nama')
+              .eq('peran', 'TEKNISI_ELBAN')
+              .order('nama');
+          if (data) {
+              setTechnicians(data);
+          }
+      };
+      
+      if (isOpen) fetchTechs();
+  }, [isOpen]);
 
   // Populate Form if Editing
   useEffect(() => {
       if (initialData && isOpen) {
+          // Parse "Status - Name" content
+          const match = initialData.nama_kegiatan.match(/^(.+)\s-\s(.+)$/);
+          if (match) {
+             setPersonelStatus(match[1]);
+          } else {
+             setPersonelStatus("Dinas Pagi");
+          }
+
           setFormData({
-              nama_kegiatan: initialData.nama_kegiatan,
               tanggal: initialData.tanggal,
-              waktu: initialData.waktu,
-              lokasi: initialData.lokasi,
+              waktu: initialData.waktu || "",
               keterangan: initialData.keterangan || "",
           });
       } else if (isOpen) {
-        // Reset if adding new
+        // Reset
         setFormData({
-            nama_kegiatan: "",
-            tanggal: new Date().toISOString().split('T')[0],
+            tanggal: defaultDate || new Date().toISOString().split('T')[0],
             waktu: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-            lokasi: "",
             keterangan: "",
         });
+        setSelectedTech("");
+        setPersonelStatus("Dinas Pagi");
       }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, defaultDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nama_kegiatan || !formData.lokasi) {
-        alert("Mohon lengkapi Nama Kegiatan dan Lokasi");
+    
+    // Validate
+    if (!selectedTech && !initialData) {
+        alert("Mohon pilih teknisi");
         return;
     }
+    
+    // Find tech name
+    const tech = technicians.find(t => t.nip === selectedTech);
+    const techName = tech?.nama || selectedTech;
+    
+    const finalName = `${personelStatus} - ${techName}`;
 
     setLoading(true);
     try {
-      const payload = { ...formData };
+      const payload = { 
+          ...formData, 
+          nama_kegiatan: finalName,
+          lokasi: "-" 
+      };
+      
       let error;
-
       if (initialData?.id) {
-          // UPDATE
-          const { error: updateError } = await supabase
-              .from("jadwal")
-              .update(payload)
-              .eq('id', initialData.id);
+          const { error: updateError } = await supabase.from("jadwal").update(payload).eq('id', initialData.id);
           error = updateError;
       } else {
-          // INSERT
           const { error: insertError } = await supabase.from("jadwal").insert([payload]);
           error = insertError;
       }
-
       if (error) throw error;
-      
       onSuccess();
       onClose();
     } catch (error) {
@@ -122,83 +163,70 @@ export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData
                   <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
                     <Calendar size={24} />
                   </div>
-                  {initialData ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}
+                  {initialData ? 'Edit Status Personel' : 'Tambah Status Personel'}
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Nama Kegiatan */}
+                  
+                      {/* PERSONNEL FORM INPUTS */}
+                      <div className="space-y-4">
+                           {/* Select Technician */}
+                           <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Nama Teknisi</label>
+                                <select
+                                    required
+                                    value={selectedTech}
+                                    onChange={(e) => setSelectedTech(e.target.value)}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="" disabled hidden>Pilih Teknisi...</option>
+                                    {technicians.map(tech => (
+                                        <option key={tech.nip} value={tech.nip}>{tech.nama} ({tech.nip})</option>
+                                    ))}
+                                </select>
+                           </div>
+
+                           {/* Select Status */}
+                           <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Status Kehadiran</label>
+                                <select
+                                    required
+                                    value={personelStatus}
+                                    onChange={(e) => setPersonelStatus(e.target.value)}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
+                                >
+                                    {PERSONNEL_STATUSES.map(status => (
+                                        <option key={status} value={status}>{status}</option>
+                                    ))}
+                                </select>
+                           </div>
+                      </div>
+
+                  {/* Date Only (Full Width) */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Nama Kegiatan</label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Tanggal</label>
                     <div className="relative group">
-                        <Info className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
                         <input 
-                            type="text"
+                            type="date"
                             required
-                            value={formData.nama_kegiatan}
-                            onChange={e => setFormData({...formData, nama_kegiatan: e.target.value})}
-                            placeholder="Contoh: Rapat Koordinasi"
+                            value={formData.tanggal}
+                            onChange={e => setFormData({...formData, tanggal: e.target.value})}
                             className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
                         />
                     </div>
                   </div>
 
-                  {/* Date & Time Row */}
-                  <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Tanggal</label>
-                        <div className="relative group">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="date"
-                                required
-                                value={formData.tanggal}
-                                onChange={e => setFormData({...formData, tanggal: e.target.value})}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Waktu</label>
-                        <div className="relative group">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input 
-                                type="time"
-                                required
-                                value={formData.waktu}
-                                onChange={e => setFormData({...formData, waktu: e.target.value})}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                      </div>
-                  </div>
-
-                  {/* Lokasi */}
+                  {/* Keterangan (Shared) */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Lokasi</label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Keterangan Tambahan</label>
                     <div className="relative group">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                        <input 
-                            type="text"
-                            required
-                            value={formData.lokasi}
-                            onChange={e => setFormData({...formData, lokasi: e.target.value})}
-                            placeholder="Contoh: Ruang Rapat Utama"
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
-                        />
-                    </div>
-                  </div>
-
-                  {/* Keterangan */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Keterangan</label>
-                    <div className="relative group">
-                        <AlignLeft className="absolute left-3 top-3 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={16} />
                         <textarea 
-                            rows={3}
+                            rows={2}
                             value={formData.keterangan}
                             onChange={e => setFormData({...formData, keterangan: e.target.value})}
-                            placeholder="Detail tambahan..."
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600 resize-none"
+                            placeholder="Opsional..."
+                            className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-4 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600 resize-none"
                         />
                     </div>
                   </div>
@@ -225,7 +253,7 @@ export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData
                       ) : (
                           <>
                             <Save size={18} /> 
-                            Simpan Jadwal
+                            Simpan
                           </>
                       )}
                     </button>

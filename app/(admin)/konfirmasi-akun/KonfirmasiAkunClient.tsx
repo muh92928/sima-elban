@@ -2,20 +2,69 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { UserCheck, RefreshCw, ShieldCheck } from "lucide-react";
+import { RefreshCw, ShieldAlert } from "lucide-react";
+
 import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
 import AccountTable from "@/app/components/dashboard/AccountTable";
 
-export default function KonfirmasiAkunPage() {
-  const [data, setData] = useState<Akun[]>([]);
-  const [loading, setLoading] = useState(true);
+interface KonfirmasiAkunClientProps {
+  initialData: Akun[];
+  currentUserRole: string;
+}
+
+export default function KonfirmasiAkunClient({ initialData, currentUserRole: initialRole }: KonfirmasiAkunClientProps) {
+  const [data, setData] = useState<Akun[]>(initialData);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  
+  const [role, setRole] = useState(initialRole || "");
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  const fetchData = async () => {
+  // Fetch Role Client Side (Backup/Consistency)
+  useEffect(() => {
+      const fetchRole = async () => {
+          try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                  const { data: akun } = await supabase.from('akun').select('peran').eq('email', user.email!).single();
+                  const r = (akun?.peran || user.user_metadata?.role || user.user_metadata?.peran || "").toUpperCase().replace(/ /g, '_');
+                  setRole(r);
+
+                  // Validate Access after fetching
+                  const allowed = r.includes("KANIT_ELBAN") || r.includes("TEKNISI_ELBAN") || r.includes("TEKNISI") || r.includes("ADMIN");
+                  if (!allowed) {
+                      setAccessDenied(true);
+                  }
+              }
+          } catch (e) {
+              console.error("Client role fetch error", e);
+          }
+      };
+      
+      // Always fetch on mount to ensure consistency
+      fetchRole();
+  }, []);
+
+  // Use accessDenied state instead of calculating derived hasAccess on every render
+  if (accessDenied) {
+      return (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+              <div className="p-4 bg-red-500/10 rounded-full text-red-400">
+                  <ShieldAlert size={48} />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Akses Ditolak</h2>
+              <p className="text-slate-400 max-w-md">
+                  Anda tidak memiliki izin untuk mengakses halaman ini. Halaman ini hanya untuk Kanit Elban dan Teknisi Elban.
+              </p>
+          </div>
+      );
+  }
+
+  const refreshData = async () => {
     try {
-      setLoading(true);
+      setRefreshing(true);
       const { data: accounts, error } = await supabase
         .from('akun')
         .select('*')
@@ -32,16 +81,13 @@ export default function KonfirmasiAkunPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
+    refreshData();
   };
 
-  const handleStatusUpdate = async (id: string, newStatus: 'approved' | 'rejected') => {
+  const handleStatusUpdate = async (id: string, action: 'approve' | 'reject') => {
+      const newStatus = action === 'approve' ? 'AKTIF' : 'rejected';
+      
       try {
           const { error } = await supabase
             .from('akun')
@@ -52,10 +98,10 @@ export default function KonfirmasiAkunPage() {
           
           // Refresh local state without refetching all
           setData(prev => prev.map(item => 
-              item.id === id ? { ...item, status: newStatus } : item
+              item.id === id ? { ...item, status: newStatus as any } : item
           ));
 
-          alert(newStatus === 'approved' ? "Akun berhasil disetujui." : "Akun telah ditolak.");
+          alert(action === 'approve' ? "Akun berhasil disetujui (AKTIF)." : "Akun telah ditolak.");
 
       } catch (error) {
           console.error("Error updating status:", error);
@@ -63,17 +109,17 @@ export default function KonfirmasiAkunPage() {
       }
   };
 
-  const handleRoleUpdate = async (id: string, newRole: 'admin' | 'user' | 'teknisi') => {
+  const handleRoleUpdate = async (id: string, newRole: string) => {
       try {
           const { error } = await supabase
             .from('akun')
-            .update({ role: newRole })
+            .update({ peran: newRole }) // Updated to use correct DB column 'peran'
             .eq('id', id);
 
           if (error) throw error;
 
           setData(prev => prev.map(item => 
-              item.id === id ? { ...item, role: newRole } : item
+              item.id === id ? { ...item, peran: newRole } : item
           ));
           
       } catch (error) {
@@ -83,7 +129,12 @@ export default function KonfirmasiAkunPage() {
   };
 
   // Filter Data Match Tab
-  const filteredData = data.filter((item) => item.status === activeTab);
+  const filteredData = data.filter((item) => {
+      if (activeTab === 'pending') return item.status === 'pending';
+      if (activeTab === 'approved') return item.status === 'AKTIF' || item.status === 'approved'; // Handle both for backward compat
+      if (activeTab === 'rejected') return item.status === 'rejected';
+      return false;
+  });
 
   return (
     <div className="space-y-6">
@@ -155,8 +206,8 @@ export default function KonfirmasiAkunPage() {
           <AccountTable 
             data={filteredData}
             loading={loading || refreshing}
-            onApprove={(id) => handleStatusUpdate(id, 'approved')}
-            onReject={(id) => handleStatusUpdate(id, 'rejected')}
+            onApprove={(id) => handleStatusUpdate(id, 'approve')}
+            onReject={(id) => handleStatusUpdate(id, 'reject')}
             onUpdateRole={handleRoleUpdate}
           />
       </motion.div>
