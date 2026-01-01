@@ -31,7 +31,26 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
 
   const [peralatanList, setPeralatanList] = useState<{id: number, nama: string}[]>([]);
 
-  // ... (fetchPeralatan)
+  // Fetch Peralatan List
+  useEffect(() => {
+      const fetchPeralatan = async () => {
+          try {
+              const { data, error } = await supabase
+                .from('peralatan')
+                .select('id, nama')
+                .order('nama', { ascending: true });
+              
+              if (error) throw error;
+              if (data) setPeralatanList(data);
+          } catch (error) {
+              console.error("Error fetching peralatan:", error);
+          }
+      };
+
+      if (isOpen) {
+          fetchPeralatan();
+      }
+  }, [isOpen]);
 
   // Populate Form if Editing
   useEffect(() => {
@@ -102,8 +121,8 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.peralatan_id || !formData.deskripsi) {
-        alert("Mohon lengkapi Data Peralatan dan Deskripsi");
+    if (!formData.deskripsi) {
+        alert("Mohon lengkapi Deskripsi Permasalahan");
         return;
     }
 
@@ -122,7 +141,7 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
       }
 
       const payload = {
-          peralatan_id: formData.peralatan_id,
+          peralatan_id: formData.peralatan_id || null, // Allow null
           deskripsi: formData.deskripsi,
           status: formData.status,
           dokumentasi: finalUrl,
@@ -199,16 +218,14 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
                  <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Peralatan Selection */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Peralatan (Sesuai Data Aset)</label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide ml-1">Peralatan</label>
                     <div className="relative group">
                         <select
-                             required
                              value={formData.peralatan_id}
                              onChange={e => setFormData({...formData, peralatan_id: e.target.value})}
                              className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
                         >
                             <option value="">-- Pilih Peralatan --</option>
-                            <option value="99999" className="text-yellow-400 font-bold">Lainnya / Tidak Terdaftar</option>
                             {peralatanList.map((item) => (
                                 <option key={item.id} value={item.id}>{item.nama}</option>
                             ))}

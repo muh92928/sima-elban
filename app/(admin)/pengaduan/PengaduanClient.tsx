@@ -8,6 +8,7 @@ import { Pengaduan } from "@/lib/types";
 import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
 import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
 import ProcessPengaduanModalHelpers from "@/app/components/dashboard/ProcessPengaduanModal";
+import Toast, { ToastType } from "@/app/components/Toast";
 
 interface PengaduanClientProps {
   initialData: Pengaduan[];
@@ -25,6 +26,11 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   const [role, setRole] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: ToastType }>({
+      show: false,
+      message: "",
+      type: "success"
+  });
 
   // Fetch Role Client Side
   useEffect(() => {
@@ -121,8 +127,21 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
           // User: Only allow editing if they reported it? Or general edit? 
           // For now allow editing if it matches name (imperfect) or just open modal and let them see.
           // Better: Only allow editing if status is "Baru".
-          if (item.status !== "Baru") {
-              alert("Pengaduan yang sedang diproses tidak dapat diedit.");
+          if (item.status === "Selesai") {
+              setToast({
+                  show: true,
+                  message: "Pengaduan telah selesai ditangani. Data tersimpan sebagai arsip.",
+                  type: "success"
+              });
+              return;
+          }
+
+          if (item.status === "Diproses") {
+              setToast({
+                  show: true,
+                  message: "Pengaduan sedang ditangani oleh teknisi. Data dikunci sementara.",
+                  type: "warning"
+              });
               return;
           }
           setEditingItem(item);
@@ -262,6 +281,14 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             onEdit={handleEdit}
           />
       </motion.div>
+
+      {/* Toast Notification */}
+      <Toast
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }
