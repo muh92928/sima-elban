@@ -120,32 +120,32 @@ export default function JadwalCalendar({
   return (
     <div className="flex flex-col gap-6">
         {/* Calendar Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-md">
-            <div className="flex items-center gap-4">
-                 <h2 className="text-2xl font-bold text-white capitalize flex items-center gap-2">
-                    <CalendarIcon className="text-indigo-400" size={24} />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+                 <h2 className="text-lg font-bold text-white capitalize flex items-center gap-2">
+                    <CalendarIcon className="text-indigo-400" size={20} />
                     {monthName}
                  </h2>
                  <button 
                     onClick={toToday}
-                    className="text-xs px-3 py-1 rounded-full border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    className="text-[10px] px-2.5 py-0.5 rounded-full border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
                  >
                     Hari Ini
                  </button>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
                 <button 
                     onClick={prevMonth}
-                    className="p-2 rounded-xl bg-slate-800 border border-white/5 hover:bg-slate-700 text-white transition-all active:scale-95"
+                    className="p-1.5 rounded-lg bg-slate-800 border border-white/5 hover:bg-slate-700 text-white transition-all active:scale-95"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={16} />
                 </button>
                 <button 
                     onClick={nextMonth}
-                    className="p-2 rounded-xl bg-slate-800 border border-white/5 hover:bg-slate-700 text-white transition-all active:scale-95"
+                    className="p-1.5 rounded-lg bg-slate-800 border border-white/5 hover:bg-slate-700 text-white transition-all active:scale-95"
                 >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={16} />
                 </button>
             </div>
         </div>

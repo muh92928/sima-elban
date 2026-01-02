@@ -99,3 +99,19 @@ export interface Pengaduan {
   bukti_petugas?: string | null;
   created_at: string;
 }
+
+export interface Personel {
+  id: string; // UUID
+  nama: string;
+  nip: string | null;
+  tempatLahir: string | null;
+  tanggalLahir: string | null;
+  jabatan: string | null;
+  formasiPendidikan: string | null;
+  kompetensiPendidikan: string | null;
+  noSertifikat: string | null;
+  jenisSertifikat: string | null;
+  keterangan: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

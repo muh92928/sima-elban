@@ -1,16 +1,10 @@
-import { createClient } from "@/utils/supabase/server";
-import { FileItem } from "@/lib/types";
+import { getFiles } from "./actions";
 import FilesClient from "./FilesClient";
 
 export default async function FilesPage() {
-  const supabase = await createClient();
-
-  const { data: files } = await supabase
-    .from('files')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const files = await getFiles();
 
   return (
-    <FilesClient initialData={files as FileItem[] || []} />
+    <FilesClient initialData={files} />
   );
 }

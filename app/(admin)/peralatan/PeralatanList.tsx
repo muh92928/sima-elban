@@ -1,11 +1,19 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Plus, Printer, RefreshCw } from "lucide-react";
+import { Plus, 
+  Search, 
+  Filter, 
+  Printer, 
+  Wrench
+} from "lucide-react";
 import { Peralatan } from "@/lib/types";
 import AddPeralatanModal from "@/app/components/dashboard/AddPeralatanModal";
 import PeralatanTable from "@/app/components/dashboard/PeralatanTable";
+import PeralatanStats from "@/app/components/dashboard/PeralatanStats";
+import PeralatanDetailModal from "@/app/components/dashboard/PeralatanDetailModal";
 import { useRouter } from "next/navigation";
 import { deletePeralatan } from "./actions";
 import { toast } from "react-hot-toast";
@@ -19,8 +27,14 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
   const [data, setData] = useState<any[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  
   const [editingItem, setEditingItem] = useState<Peralatan | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Peralatan | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [reportDate, setReportDate] = useState<Date | null>(null);
@@ -48,6 +62,11 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
   const handleEdit = (item: Peralatan) => {
     setEditingItem(item);
     setIsModalOpen(true);
+  };
+
+  const handleView = (item: Peralatan) => {
+      setSelectedItem(item);
+      setIsDetailModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -94,7 +113,7 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
             font-family: 'Times New Roman', Times, serif;
             background-color: white !important;
           }
-          .print-hidden { display: none !important; }
+          .no-print { display: none !important; }
           .print-block { display: block !important; }
           .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
           .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: black !important; }
@@ -106,38 +125,36 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
         `}
       </style>
 
+
+
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Data Peralatan</h1>
-          <p className="text-slate-400 mt-1">Manajemen inventaris dan status peralatan fasilitas bandara</p>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden"
+      >
+        <div className="flex flex-col gap-2">
+           <div className="flex items-center gap-4">
+              <motion.div 
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
+              >
+                 <Wrench className="text-blue-400" size={26} />
+              </motion.div>
+              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
+                Data Peralatan
+              </h1>
+           </div>
+           <p className="text-slate-400 font-medium text-base">Manajemen inventaris dan status peralatan Unit Elektronika Bandara</p>
         </div>
 
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={handleAdd}
-                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
-            >
-                <Plus size={16} />
-                <span className="hidden lg:inline">Tambah Peralatan</span>
-                <span className="lg:hidden">Baru</span>
-            </button>
-            <button 
-                onClick={refreshData} 
-                disabled={refreshing}
-                className={`p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all active:scale-95 disabled:opacity-50 ${refreshing ? "animate-spin" : ""}`}
-                title="Refresh Data"
-            >
-                <RefreshCw size={18} />
-            </button>
-            <button 
-                onClick={handlePrint}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
-                title="Cetak Laporan"
-            >
-                <Printer size={18} />
-            </button>
-        </div>
+      </motion.div>
+
+      {/* Stats Widget */}
+      <div className="print:hidden">
+         <PeralatanStats data={data} />
       </div>
 
        {/* Print Only Header (Official Format) */}
@@ -234,6 +251,25 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
                  />
              </div>
          </div>
+
+         {/* Action Buttons moved here */}
+        <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+            <button 
+                onClick={handleAdd}
+                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
+            >
+                <Plus size={16} />
+                <span className="hidden lg:inline">Tambah Peralatan</span>
+                <span className="lg:hidden">Baru</span>
+            </button>
+            <button 
+                onClick={handlePrint}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
+                title="Cetak Laporan"
+            >
+                <Printer size={18} />
+            </button>
+        </div>
       </motion.div>
 
       {/* Table Section */}
@@ -247,6 +283,7 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
             loading={loading} 
             onEdit={handleEdit} 
             onDelete={handleDelete} 
+            onView={handleView}
         />
       </motion.div>
 
@@ -285,6 +322,12 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
         onClose={() => setIsModalOpen(false)}
         onSuccess={refreshData}
         initialData={editingItem}
+      />
+      
+      <PeralatanDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          data={selectedItem}
       />
     </div>
   );

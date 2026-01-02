@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useEffect } from "react";
 import {
-  useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   flexRender,
   ColumnDef,
   SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import { 
@@ -21,10 +22,11 @@ import {
   ShieldAlert,
   Briefcase,
   Mail,
-  BadgeCheck
+  BadgeCheck 
 } from "lucide-react";
 import { Akun } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
+import TablePagination from "./TablePagination";
 
 interface AccountTableProps {
   data: Akun[];
@@ -189,6 +191,10 @@ export default function AccountTable({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+        pagination: { pageSize: 10 }
+    }
   });
 
   return (
@@ -327,6 +333,8 @@ export default function AccountTable({
                   </tbody>
               </table>
            </div>
+           
+           <TablePagination table={table} />
       </div>
     </>
   );

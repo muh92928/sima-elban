@@ -1,27 +1,16 @@
-import { createClient } from "@/utils/supabase/server";
-import { LogPeralatan, Peralatan } from "@/lib/types";
+import { getLogPeralatan, getPeralatanList } from "./actions";
 import LogPeralatanClient from "./LogPeralatanClient";
 
 export default async function LogPeralatanPage() {
-  const supabase = await createClient();
-
-  // 1. Fetch Peralatan List for Modals
-  const { data: peralatanData } = await supabase
-    .from('peralatan')
-    .select('*')
-    .order('nama', { ascending: true });
-
-  // 2. Fetch Logs
-  const { data: logs } = await supabase
-    .from('log_peralatan')
-    .select('*, peralatan(*)') // Select all log columns and joined peralatan
-    .order('tanggal', { ascending: false })
-    .order('id', { ascending: false });
+  const [logs, peralatanList] = await Promise.all([
+    getLogPeralatan(),
+    getPeralatanList()
+  ]);
 
   return (
     <LogPeralatanClient 
-        initialData={logs as unknown as LogPeralatan[] || []} 
-        initialPeralatanList={peralatanData as Peralatan[] || []} 
+        initialData={logs} 
+        initialPeralatanList={peralatanList} 
     />
   );
 }

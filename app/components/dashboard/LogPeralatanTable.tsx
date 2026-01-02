@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { LogPeralatan } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
+import TablePagination from "./TablePagination";
 
 interface LogPeralatanTableProps {
   data: LogPeralatan[];
@@ -304,28 +305,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
               </table>
           </div>
           
-          {/* Pagination Controls */}
-          <div className="flex items-center justify-between p-4 border-t border-white/10 bg-black/20 print:hidden">
-              <div className="text-xs text-slate-400">
-                  Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
-              </div>
-              <div className="flex gap-2">
-                  <button
-                      onClick={() => table.previousPage()}
-                      disabled={!table.getCanPreviousPage()}
-                      className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
-                  >
-                      Prev
-                  </button>
-                  <button
-                      onClick={() => table.nextPage()}
-                      disabled={!table.getCanNextPage()}
-                      className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
-                  >
-                      Next
-                  </button>
-              </div>
-          </div>
+          <TablePagination table={table} />
       </div>
     </>
   );

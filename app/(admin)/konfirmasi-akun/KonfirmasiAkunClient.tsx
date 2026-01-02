@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, ShieldAlert } from "lucide-react";
+import { 
+  Search, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Filter, 
+  UserCheck
+} from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
 import AccountTable from "@/app/components/dashboard/AccountTable";
+import KonfirmasiAkunStats from "@/app/components/dashboard/KonfirmasiAkunStats";
 
 interface KonfirmasiAkunClientProps {
   initialData: Akun[];
@@ -16,76 +24,17 @@ interface KonfirmasiAkunClientProps {
 export default function KonfirmasiAkunClient({ initialData, currentUserRole: initialRole }: KonfirmasiAkunClientProps) {
   const [data, setData] = useState<Akun[]>(initialData);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   
-  const [role, setRole] = useState(initialRole || "");
-  const [accessDenied, setAccessDenied] = useState(false);
-
-  // Fetch Role Client Side (Backup/Consistency)
-  useEffect(() => {
-      const fetchRole = async () => {
-          try {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (user) {
-                  const { data: akun } = await supabase.from('akun').select('peran').eq('email', user.email!).single();
-                  const r = (akun?.peran || user.user_metadata?.role || user.user_metadata?.peran || "").toUpperCase().replace(/ /g, '_');
-                  setRole(r);
-
-                  // Validate Access after fetching
-                  const allowed = r.includes("KANIT_ELBAN") || r.includes("TEKNISI_ELBAN") || r.includes("TEKNISI") || r.includes("ADMIN");
-                  if (!allowed) {
-                      setAccessDenied(true);
-                  }
-              }
-          } catch (e) {
-              console.error("Client role fetch error", e);
-          }
-      };
-      
-      // Always fetch on mount to ensure consistency
-      fetchRole();
-  }, []);
-
-  // Use accessDenied state instead of calculating derived hasAccess on every render
-  if (accessDenied) {
-      return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-              <div className="p-4 bg-red-500/10 rounded-full text-red-400">
-                  <ShieldAlert size={48} />
-              </div>
-              <h2 className="text-2xl font-bold text-white">Akses Ditolak</h2>
-              <p className="text-slate-400 max-w-md">
-                  Anda tidak memiliki izin untuk mengakses halaman ini. Halaman ini hanya untuk Kanit Elban dan Teknisi Elban.
-              </p>
-          </div>
-      );
-  }
-
-  const refreshData = async () => {
-    try {
-      setRefreshing(true);
-      const { data: accounts, error } = await supabase
-        .from('akun')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      setData(accounts as Akun[] || []);
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    refreshData();
-  };
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState<Date | null>(new Date());
+  
+  // Tab handling
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
 
   const handleStatusUpdate = async (id: string, action: 'approve' | 'reject') => {
+      setLoading(true);
       const newStatus = action === 'approve' ? 'AKTIF' : 'rejected';
       
       try {
@@ -96,7 +45,6 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
           
           if (error) throw error;
           
-          // Refresh local state without refetching all
           setData(prev => prev.map(item => 
               item.id === id ? { ...item, status: newStatus as any } : item
           ));
@@ -106,6 +54,8 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       } catch (error) {
           console.error("Error updating status:", error);
           alert("Gagal memperbarui status akun.");
+      } finally {
+          setLoading(false);
       }
   };
 
@@ -113,7 +63,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       try {
           const { error } = await supabase
             .from('akun')
-            .update({ peran: newRole }) // Updated to use correct DB column 'peran'
+            .update({ peran: newRole })
             .eq('id', id);
 
           if (error) throw error;
@@ -128,73 +78,153 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       }
   };
 
-  // Filter Data Match Tab
+  // Filter Data Match Tab + Search + Filter
   const filteredData = data.filter((item) => {
-      if (activeTab === 'pending') return item.status === 'pending';
-      if (activeTab === 'approved') return item.status === 'AKTIF' || item.status === 'approved'; // Handle both for backward compat
-      if (activeTab === 'rejected') return item.status === 'rejected';
-      return false;
+      // Tab Filter
+      let matchTab = false;
+      if (activeTab === 'pending') matchTab = item.status === 'pending';
+      else if (activeTab === 'approved') matchTab = item.status === 'AKTIF' || item.status === 'approved';
+      else if (activeTab === 'rejected') matchTab = item.status === 'rejected';
+      
+      // Search
+      const query = searchQuery.toLowerCase();
+      const matchSearch = (
+          item.nama.toLowerCase().includes(query) ||
+          item.email.toLowerCase().includes(query) ||
+          (item.nip && item.nip.toLowerCase().includes(query))
+      );
+      
+      // Role Filter
+      const matchRole = roleFilter === "all" || item.peran === roleFilter || (roleFilter === "UNASSIGNED" && !item.peran);
+      
+      // Date Filter matches *Month Created*
+      const itemDate = new Date(item.created_at);
+      const matchDate = dateFilter 
+        ? itemDate.getFullYear() === dateFilter.getFullYear() && itemDate.getMonth() === dateFilter.getMonth()
+        : true;
+      
+      return matchTab && matchSearch && matchRole && matchDate;
   });
+
+  const uniqueRoles = Array.from(new Set(data.map(i => i.peran).filter(Boolean)));
+  
+  // Count
+  const pendingCount = data.filter(i => i.status === 'pending').length;
+  const approvedCount = data.filter(i => i.status === 'AKTIF' || i.status === 'approved').length;
 
   return (
     <div className="space-y-6">
-      {/* Header & Actions */}
+      {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-            Konfirmasi Akun
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Kelola persetujuan pendaftaran dan hak akses pengguna.</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={handleRefresh}
-                className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
-                title="Refresh Data"
-            >
-                <RefreshCw size={18} />
-            </button>
+        <div className="flex flex-col gap-2">
+           <div className="flex items-center gap-4">
+              <motion.div 
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
+              >
+                 <UserCheck className="text-blue-400" size={26} />
+              </motion.div>
+              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
+                 Konfirmasi Akun
+              </h1>
+           </div>
+           <p className="text-slate-400 font-medium text-base">
+               Persetujuan dan manajemen akun pengguna baru.
+           </p>
         </div>
       </motion.div>
 
+      <KonfirmasiAkunStats data={data} />
+      
       {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-slate-900/50 border border-white/10 rounded-xl w-fit">
-          <button
-            onClick={() => setActiveTab('pending')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === 'pending' 
-                ? 'bg-indigo-600 text-white shadow-lg' 
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Menunggu ({data.filter(d => d.status === 'pending').length})
-          </button>
-          <button
-            onClick={() => setActiveTab('approved')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                activeTab === 'approved' 
-                ? 'bg-emerald-600 text-white shadow-lg' 
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Disetujui
-          </button>
-          <button
-             onClick={() => setActiveTab('rejected')}
-             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                 activeTab === 'rejected' 
-                 ? 'bg-red-600 text-white shadow-lg' 
-                 : 'text-slate-400 hover:text-white hover:bg-white/5'
-             }`}
-           >
-             Ditolak
-           </button>
-      </div>
+        <div className="flex gap-4 border-b border-white/10 pb-4">
+            <button
+                onClick={() => setActiveTab('pending')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    activeTab === 'pending' ? 'text-blue-400 bg-blue-400/10' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+                <Clock size={16} />
+                Menunggu
+                {pendingCount > 0 && <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
+                {activeTab === 'pending' && <motion.div layoutId="tab-underline" className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-blue-400" />}
+            </button>
+            <button
+                onClick={() => setActiveTab('approved')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    activeTab === 'approved' ? 'text-emerald-400 bg-emerald-400/10' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+                <CheckCircle size={16} />
+                Disetujui
+                {approvedCount > 0 && <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{approvedCount}</span>}
+                {activeTab === 'approved' && <motion.div layoutId="tab-underline" className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-emerald-400" />}
+            </button>
+            <button
+                onClick={() => setActiveTab('rejected')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    activeTab === 'rejected' ? 'text-red-400 bg-red-400/10' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+                <XCircle size={16} />
+                Ditolak
+                {activeTab === 'rejected' && <motion.div layoutId="tab-underline" className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-red-400" />}
+            </button>
+        </div>
+
+      {/* Search & Filter */}
+      <motion.div 
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ delay: 0.1 }}
+         className="flex flex-col md:flex-row gap-3"
+      >
+        <div className="relative w-full md:flex-1 md:max-w-sm group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
+          <input
+            type="text"
+            placeholder="Cari Nama, NIP, Email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+          />
+        </div>
+        
+        <div className="w-full md:w-48 relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <select 
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
+            >
+                <option value="all">Semua Peran</option>
+                {uniqueRoles.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                ))}
+            </select>
+        </div>
+
+        <div className="flex gap-3 w-full md:w-auto">
+             <div className="relative group flex-1 md:flex-none">
+                 <input 
+                     type="month"
+                     value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
+                     onChange={(e) => {
+                         if (e.target.value) {
+                             setDateFilter(new Date(e.target.value + "-01"));
+                         }
+                     }}
+                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                 />
+             </div>
+         </div>
+      </motion.div>
 
       {/* Content Section */}
       <motion.div
@@ -205,7 +235,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       >
           <AccountTable 
             data={filteredData}
-            loading={loading || refreshing}
+            loading={loading}
             onApprove={(id) => handleStatusUpdate(id, 'approve')}
             onReject={(id) => handleStatusUpdate(id, 'reject')}
             onUpdateRole={handleRoleUpdate}

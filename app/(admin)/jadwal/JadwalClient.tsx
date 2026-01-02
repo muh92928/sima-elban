@@ -1,13 +1,23 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Plus, RefreshCw } from "lucide-react";
+import {  Plus, 
+  Search, 
+  Filter, 
+  Calendar,
+  Clock,
+  MapPin,
+  MoreVertical,
+  CalendarDays
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Jadwal } from "@/lib/types";
 import AddJadwalModal from "@/app/components/dashboard/AddJadwalModal";
 import DayDetailsModal from "@/app/components/dashboard/DayDetailsModal";
 import JadwalCalendar from "@/app/components/dashboard/JadwalCalendar";
+import JadwalStats from "@/app/components/dashboard/JadwalStats";
 
 interface JadwalClientProps {
   initialData: Jadwal[];
@@ -67,19 +77,39 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
     }
   };
 
-  // Filter Data Logic (Search Only)
+  // Filter Logic
+  const [filterType, setFilterType] = useState("all");
+  const [dateFilter, setDateFilter] = useState<Date | null>(new Date());
+
   const filteredData = data.filter((item) => {
     const query = searchQuery.toLowerCase();
     
-    return (
+    // Search
+    const matchSearch = (
       item.nama_kegiatan.toLowerCase().includes(query) ||
       item.lokasi.toLowerCase().includes(query) ||
       (item.keterangan && item.keterangan.toLowerCase().includes(query))
     );
+
+    // Location Filter (Example)
+    const matchFilter = filterType === "all" || item.lokasi === filterType;
+
+    // Date Filter matches *Month*
+    const itemDate = new Date(item.tanggal);
+    const matchDate = dateFilter 
+        ? itemDate.getFullYear() === dateFilter.getFullYear() && itemDate.getMonth() === dateFilter.getMonth()
+        : true;
+    
+    return matchSearch && matchFilter && matchDate;
   });
 
-  // Events for selected date
-  const selectedDateEvents = selectedDetailDate ? data.filter(item => {
+  const uniqueLocations = Array.from(new Set(data.map(i => i.lokasi).filter(Boolean)));
+  
+  // Events for selected date (derived from filteredData or original data? Usually filtered to match view)
+  // But if we filtering by Month, we should use filteredData for consistency?
+  // Actually, standard behavior is calendar shows what fits filter.
+  // The 'selectedDateEvents' depends on 'selectedDetailDate'.
+  const selectedDateEvents = selectedDetailDate ? data.filter(item => { // Keeping original data for details to avoid confusing misses if filter is active
       const d = new Date(item.tanggal);
       return d.toDateString() === selectedDetailDate.toDateString();
   }) : [];
@@ -95,8 +125,6 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             }} 
             onSuccess={() => {
                 refreshData();
-                // If we authorized from detail view, maybe reopen it? 
-                // Creating new usually ends flow, so just refresh is fine.
             }} 
             initialData={editingItem}
             defaultDate={selectedDetailDate ? selectedDetailDate.toLocaleDateString('en-CA') : undefined}
@@ -111,9 +139,8 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAdd={() => {
-                // Open Add Modal, keep date selected
                 setIsModalOpen(true);
-                setSelectedDetailDate(null); // Close detail view to switch to Add
+                setSelectedDetailDate(null); 
             }}
         />
 
@@ -123,51 +150,87 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Jadwal Kegiatan
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Agenda dan rencana aktivitas tim.</p>
+        <div className="flex flex-col gap-2">
+           <div className="flex items-center gap-4">
+              <motion.div 
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
+              >
+                 <CalendarDays className="text-blue-400" size={26} />
+              </motion.div>
+              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
+                Jadwal Kegiatan
+              </h1>
+           </div>
+           <p className="text-slate-400 font-medium text-base">Agenda dan rencana aktivitas tim.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+      </motion.div>
+      
+      <JadwalStats data={data} />
+
+      {/* Search & Filter */}
+      <motion.div 
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ delay: 0.1 }}
+         className="flex flex-col md:flex-row gap-3"
+      >
+        <div className="relative w-full md:flex-1 md:max-w-sm group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
+          <input
+            type="text"
+            placeholder="Cari kegiatan..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+          />
+        </div>
+        
+        <div className="w-full md:w-48 relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <select 
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
+            >
+                <option value="all">Semua Lokasi</option>
+                {uniqueLocations.map(l => (
+                    <option key={l} value={l}>{l}</option>
+                ))}
+            </select>
+        </div>
+
+        <div className="flex gap-3 w-full md:w-auto">
+             <div className="relative group flex-1 md:flex-none">
+                 <input 
+                     type="month"
+                     value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
+                     onChange={(e) => {
+                         if (e.target.value) {
+                             setDateFilter(new Date(e.target.value + "-01"));
+                         }
+                     }}
+                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                 />
+             </div>
+         </div>
+
+         <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
             <button 
                 onClick={() => {
                     setEditingItem(null);
                     setSelectedDetailDate(null);
                     setIsModalOpen(true);
                 }}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap"
             >
                 <Plus size={16} />
-                Tambah Jadwal
+                <span className="hidden lg:inline">Tambah Jadwal</span>
+                <span className="lg:hidden">Baru</span>
             </button>
-            <button 
-                onClick={handleRefresh}
-                className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
-                title="Refresh Data"
-            >
-                <RefreshCw size={18} />
-            </button>
-        </div>
-      </motion.div>
-
-      {/* Filters */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="flex flex-col md:flex-row gap-3"
-      >
-        <div className="relative w-full md:max-w-md group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
-            <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari kegiatan atau lokasi..." 
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-            />
         </div>
       </motion.div>
 

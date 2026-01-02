@@ -27,6 +27,7 @@ import {
 import { Tugas, Akun, Peralatan } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import TablePagination from "./TablePagination";
 
 interface TugasTableProps {
   data: Tugas[];
@@ -298,22 +299,7 @@ export default function TugasTable({
 
   return (
     <div className="space-y-4">
-        {/* Toolbar */}
-        <div className="flex min-[820px]:items-center justify-between gap-4 flex-col min-[820px]:flex-row">
-            <div className="relative flex-1 max-w-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-slate-400" />
-                </div>
-                <input
-                    type="text"
-                    value={globalFilter ?? ""}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-white/10 rounded-xl leading-5 bg-white/5 text-slate-300 placeholder-slate-500 focus:outline-none focus:bg-white/10 focus:ring-0 sm:text-sm transition-colors"
-                    placeholder="Cari tugas..."
-                />
-            </div>
-            {/* Additional filters can go here */}
-        </div>
+
         
         {/* Mobile View (Cards) */}
         <div className="min-[820px]:hidden grid grid-cols-1 gap-4">
@@ -477,6 +463,7 @@ export default function TugasTable({
                      </tbody>
                 </table>
               </div>
+              <TablePagination table={table} />
         </div>
     </div>
   );

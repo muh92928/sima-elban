@@ -201,7 +201,15 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs font-medium text-slate-400">Kondisi (%)</label>
-                    <input type="number" min="0" max="100" name="kondisi_persen" value={formData.kondisi_persen} onChange={handleChange} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500/50 outline-none" />
+                    <input 
+                        type="number" 
+                        min="0" 
+                        max="100" 
+                        name="kondisi_persen" 
+                        value={formData.kondisi_persen} 
+                        readOnly
+                        className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-4 py-2.5 text-slate-400 focus:outline-none cursor-not-allowed" 
+                    />
                 </div>
                 {/* Status Input Removed (Automatic) */}
                 <div className="col-span-1 md:col-span-2 space-y-2">

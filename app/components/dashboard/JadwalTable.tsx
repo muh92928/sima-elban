@@ -5,6 +5,7 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   flexRender,
   ColumnDef,
   SortingState,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { Jadwal } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
+import TablePagination from "./TablePagination";
 
 interface JadwalTableProps {
   data: Jadwal[];
@@ -122,6 +124,10 @@ export default function JadwalTable({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+        pagination: { pageSize: 10 }
+    }
   });
 
   return (
@@ -240,6 +246,7 @@ export default function JadwalTable({
                 </tbody>
             </table>
          </div>
+         <TablePagination table={table} />
     </div>
     </>
   );

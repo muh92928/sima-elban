@@ -1,13 +1,22 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Plus, Printer, RefreshCw } from "lucide-react";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Printer, 
+  Calendar,
+  ClipboardList
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LogPeralatan, Peralatan } from "@/lib/types";
 import AddLogModal from "@/app/components/dashboard/AddLogModal";
 import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
+import LogPeralatanStats from "@/app/components/dashboard/LogPeralatanStats";
 import Toast, { ToastType } from "@/app/components/Toast";
 
 interface LogPeralatanClientProps {
@@ -19,7 +28,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
   const [data, setData] = useState<LogPeralatan[]>(initialData);
   const [peralatanList, setPeralatanList] = useState<Peralatan[]>(initialPeralatanList);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LogPeralatan | null>(null);
@@ -40,7 +49,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
   const refreshData = async () => {
     try {
-      setRefreshing(true);
+
       
       // 1. Fetch Peralatan List for Modals
       const { data: peralatanData, error: peralatanError } = await supabase
@@ -66,12 +75,8 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       showToast("Gagal memuat data log.", 'error');
     } finally {
       setLoading(false);
-      setRefreshing(false);
-    }
-  };
 
-  const handleRefresh = () => {
-    refreshData();
+    }
   };
 
   const handlePrint = () => {
@@ -181,36 +186,28 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Log Peralatan</h1>
-          <p className="text-slate-400 text-sm mt-1">Catatan kegiatan, perbaikan, dan pemeliharaan.</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
-            >
-                <Plus size={16} />
-                <span className="hidden lg:inline">Tambah Log</span>
-                <span className="lg:hidden">Baru</span>
-            </button>
-            <button 
-                onClick={handleRefresh}
-                className={`p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors ${refreshing ? "animate-spin" : ""}`}
-                title="Refresh Log"
-            >
-                <RefreshCw size={18} />
-            </button>
-            <button 
-                onClick={handlePrint}
-                className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors"
-                title="Cetak Log"
-            >
-                <Printer size={18} />
-            </button>
+        <div className="flex flex-col gap-2">
+           <div className="flex items-center gap-4">
+              <motion.div 
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
+              >
+                 <ClipboardList className="text-blue-400" size={26} />
+              </motion.div>
+              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
+                Log Peralatan
+              </h1>
+           </div>
+          <p className="text-slate-400 font-medium text-base">Catatan kegiatan, perbaikan, dan pemeliharaan.</p>
         </div>
       </motion.div>
+
+      {/* Stats Widget */}
+      <div className="print:hidden">
+          <LogPeralatanStats data={data} />
+      </div>
 
        {/* Print Only Header (Official Format) */}
        <div className="hidden print-block text-black mb-4 print-container">
@@ -309,6 +306,26 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
                 />
             </div>
         </div>
+
+        {/* Action Buttons moved here */}
+        <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+            <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
+            >
+                <Plus size={16} />
+                <span className="hidden lg:inline">Tambah Log</span>
+                <span className="lg:hidden">Baru</span>
+            </button>
+
+            <button 
+                onClick={handlePrint}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
+                title="Cetak Log"
+            >
+                <Printer size={18} />
+            </button>
+        </div>
       </motion.div>
 
       {/* Content Section */}
@@ -319,7 +336,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       >
           <LogPeralatanTable 
             data={filteredData}
-            loading={loading || refreshing}
+            loading={loading}
             onDelete={handleDelete}
             onEdit={handleEdit}
           />

@@ -19,24 +19,28 @@ import {
   ChevronUp, 
   ChevronsUpDown,
   RefreshCw,
-  Search
+  Search,
+  Info
 } from "lucide-react";
 import { Peralatan } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import TablePagination from "./TablePagination";
 
 interface PeralatanTableProps {
   data: Peralatan[];
   loading: boolean;
   onEdit: (item: Peralatan) => void;
   onDelete: (id: number) => void;
+  onView: (item: Peralatan) => void;
 }
 
 export default function PeralatanTable({ 
   data, 
   loading, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onView 
 }: PeralatanTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isMobile, setIsMobile] = useState(false);
@@ -154,6 +158,13 @@ export default function PeralatanTable({
         cell: (info) => (
             <div className="flex items-center justify-center gap-2">
                 <button 
+                    onClick={() => onView(info.row.original)}
+                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-colors"
+                    title="Lihat Detail"
+                >
+                    <Info size={16} />
+                </button>
+                <button 
                     onClick={() => onEdit(info.row.original)}
                     className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
                 >
@@ -260,6 +271,12 @@ export default function PeralatanTable({
 
                             <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end gap-2">
                                 <button 
+                                    onClick={() => onView(item)}
+                                    className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors"
+                                >
+                                    <Info size={14} />
+                                </button>
+                                <button 
                                     onClick={() => onEdit(item)}
                                     className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
                                 >
@@ -346,28 +363,7 @@ export default function PeralatanTable({
             </table>
          </div>
          
-         {/* Pagination Controls */}
-         <div className="flex items-center justify-between p-4 border-t border-white/10 bg-black/20 print:hidden">
-             <div className="text-xs text-slate-400">
-                 Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
-             </div>
-             <div className="flex gap-2">
-                 <button
-                     onClick={() => table.previousPage()}
-                     disabled={!table.getCanPreviousPage()}
-                     className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
-                 >
-                     Prev
-                 </button>
-                 <button
-                     onClick={() => table.nextPage()}
-                     disabled={!table.getCanNextPage()}
-                     className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
-                 >
-                     Next
-                 </button>
-             </div>
-         </div>
+         <TablePagination table={table} />
       </div>
     </>
   );

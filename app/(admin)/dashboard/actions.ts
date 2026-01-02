@@ -32,6 +32,8 @@ export async function getDashboardStats() {
         const [logCount] = await db.select({ count: sql<number>`count(*)` }).from(logPeralatan);
         const [filesCount] = await db.select({ count: sql<number>`count(*)` }).from(files);
         const [akunPendingData] = await db.select({ count: sql<number>`count(*)` }).from(akun).where(eq(akun.status, 'pending'));
+        const [personelCount] = await db.select({ count: sql<number>`count(*)` }).from(personel);
+
         // PROCESSING DATA
         const peralatanTotal = peralatanData.length;
         const peralatanLaik = peralatanData.filter(p => p.statusLaik === 'LAIK OPERASI').length;
@@ -60,7 +62,8 @@ export async function getDashboardStats() {
             jadwalDinas,
             logTotal: Number(logCount.count),
             filesTotal: Number(filesCount.count),
-            akunPending: Number(akunPendingData.count)
+            akunPending: Number(akunPendingData.count),
+            personelTotal: Number(personelCount.count)
         };
 
     } catch (error) {

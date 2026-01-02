@@ -165,7 +165,7 @@ export default function Sidebar({
                         router.push(item.href);
                         if (isMobile) onClose();
                       }}
-                      className={`relative flex items-center ${effectiveCollapsed ? 'justify-center px-0' : 'justify-start px-4'} gap-3 py-3.5 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden ${
+                      className={`relative flex items-center ${effectiveCollapsed ? 'justify-center px-0 gap-0' : 'justify-start px-4 gap-3'} py-3.5 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden ${
                           isActive 
                           ? "bg-gradient-to-r from-blue-600/20 to-indigo-600/10 border border-blue-500/30 shadow-[0_4px_20px_-8px_rgba(0,51,153,0.5)]" 
                           : "hover:bg-white/5 border border-transparent hover:border-white/5"
@@ -205,7 +205,7 @@ export default function Sidebar({
           <div className="pt-4 mt-2 border-t border-white/5">
               <button 
                 onClick={handleLogout}
-                className={`group w-full flex items-center ${effectiveCollapsed ? 'justify-center px-0' : 'justify-start px-4'} gap-3 py-3.5 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden hover:bg-red-500/10 border border-transparent hover:border-red-500/10`}
+                className={`group w-full flex items-center ${effectiveCollapsed ? 'justify-center px-0 gap-0' : 'justify-start px-4 gap-3'} py-3.5 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden hover:bg-red-500/10 border border-transparent hover:border-red-500/10`}
                 title={effectiveCollapsed ? "Keluar" : undefined}
               >
                   <LogOut 

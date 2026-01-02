@@ -109,12 +109,13 @@ export default function DashboardLayoutClient({
 
         {/* Main Content Area */}
         <main 
-            className={`flex-1 transition-all duration-300 ease-in-out
-                ml-0 ${isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[220px]'} 
+            style={{ '--sidebar-margin': isSidebarCollapsed ? '5rem' : '13.75rem' } as React.CSSProperties}
+            className={`flex-1 transition-[margin] duration-300 ease-in-out
+                ml-0 md:ml-[var(--sidebar-margin)] 
                 print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
         >
             {/* Background Atmosphere */}
-            <div className={`fixed top-0 transition-all duration-300 left-0 ${isSidebarCollapsed ? 'md:left-[80px]' : 'md:left-[220px]'} right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden`} />
+            <div className="fixed top-0 transition-[left] duration-300 left-0 md:left-[var(--sidebar-margin)] right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden" />
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
             
             {/* Scrollable Content */}

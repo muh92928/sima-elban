@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useEffect } from "react";
 import {
-  useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   flexRender,
   ColumnDef,
   SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import { 
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { Pengaduan } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
+import TablePagination from "./TablePagination";
 
 interface PengaduanTableProps {
   data: Pengaduan[];
@@ -173,6 +175,10 @@ export default function PengaduanTable({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+        pagination: { pageSize: 10 }
+    }
   });
 
   return (
@@ -284,6 +290,7 @@ export default function PengaduanTable({
                 </tbody>
             </table>
          </div>
+         <TablePagination table={table} />
     </div>
     </>
   );

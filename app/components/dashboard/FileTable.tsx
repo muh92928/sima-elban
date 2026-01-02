@@ -5,6 +5,7 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getPaginationRowModel,
   flexRender,
   ColumnDef,
   SortingState,
@@ -24,6 +25,8 @@ import {
 } from "lucide-react";
 import { FileItem } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
+import TablePagination from "./TablePagination";
+
 
 interface FileTableProps {
   data: FileItem[];
@@ -138,6 +141,10 @@ export default function FileTable({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+        pagination: { pageSize: 10 }
+    }
   });
 
   return (
