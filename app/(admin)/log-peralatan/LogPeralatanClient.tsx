@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Plus, Printer, RefreshCw } from "lucide-react";
+import { Search, Filter, Plus, Printer, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LogPeralatan, Peralatan } from "@/lib/types";
 import AddLogModal from "@/app/components/dashboard/AddLogModal";
@@ -24,6 +24,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LogPeralatan | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [reportDate, setReportDate] = useState(new Date());
   
   // Toast State
@@ -107,13 +108,16 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       (item.status && item.status.toLowerCase().includes(query))
     );
     
+    // Status Filter
+    const matchStatus = statusFilter === "all" || item.status === statusFilter;
+    
     // Date Filter (Year & Month)
     const itemDate = new Date(item.tanggal);
     const matchDate = 
         itemDate.getFullYear() === reportDate.getFullYear() &&
         itemDate.getMonth() === reportDate.getMonth();
 
-    return matchSearch && matchDate;
+    return matchSearch && matchStatus && matchDate;
   });
 
   return (
@@ -185,10 +189,11 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
         <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
             >
                 <Plus size={16} />
-                Tambah Log
+                <span className="hidden lg:inline">Tambah Log</span>
+                <span className="lg:hidden">Baru</span>
             </button>
             <button 
                 onClick={handleRefresh}
@@ -275,6 +280,19 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
                 placeholder="Cari alat (nama/jenis) atau status..." 
                 className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
             />
+        </div>
+        <div className="w-full md:w-48 relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
+            >
+                <option value="all">Semua Status</option>
+                <option value="Normal Ops">Normal Ops</option>
+                <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                <option value="Perlu Perawatan">Perlu Perawatan</option>
+            </select>
         </div>
         
         <div className="flex gap-3 w-full md:w-auto">

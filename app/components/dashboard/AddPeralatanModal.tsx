@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, Save } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { Peralatan } from "@/lib/types";
+import { createPeralatan, updatePeralatan } from "@/app/(admin)/peralatan/actions";
+import { toast } from "react-hot-toast";
 
 interface AddPeralatanModalProps {
   isOpen: boolean;
@@ -43,6 +44,8 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
                 nama: initialData.nama,
                 jenis: initialData.jenis,
                 merk: initialData.merk || "",
+                 // initialData comes from actions.ts which maps to snake_case, but also has original camelCase properties from helper types
+                 // We prioritize snake_case as it is what we mapped in actions.ts
                 no_sertifikat: initialData.no_sertifikat || "-",
                 tahun_instalasi: initialData.tahun_instalasi || new Date().getFullYear(),
                 kondisi_persen: initialData.kondisi_persen || 100,
@@ -126,25 +129,22 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
 
       if (initialData?.id) {
         // UPDATE existing record
-        const { error } = await supabase
-            .from('peralatan')
-            .update(payload)
-            .eq('id', initialData.id);
-
-        if (error) throw error;
+        const res = await updatePeralatan(initialData.id, payload);
+        if (!res.success) throw new Error(res.error);
+        toast.success("Data berhasil diperbarui");
       } else {
         // INSERT new record
-        const { error } = await supabase.from('peralatan').insert([payload]);
-
-        if (error) throw error;
+        const res = await createPeralatan(payload);
+        if (!res.success) throw new Error(res.error);
+        toast.success("Data berhasil ditambahkan");
       }
       
       onSuccess();
       onClose();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving peralatan:", error);
-      alert("Gagal menyimpan data peralatan. Cek konsol untuk detail.");
+      toast.error(error.message || "Gagal menyimpan data.");
     } finally {
       setLoading(false);
     }

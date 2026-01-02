@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
 import { CARD_STYLES } from "@/lib/cardStyles";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import { getDashboardStats } from "./actions";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -51,7 +52,7 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // Get User
+                // Get User (Auth still client side for now context)
                 const { data: { user } } = await supabase.auth.getUser();
                 setUser(user);
 
@@ -60,52 +61,12 @@ export default function DashboardPage() {
                     if (akun) setProfile(akun);
                 }
 
-                const today = new Date().toISOString().split('T')[0];
-
-                // Parallel Fetching
-                const [
-                    peralatanRes,
-                    tugasRes,
-                    pengaduanRes,
-                    jadwalRes,
-                    logRes,
-                    filesRes,
-                    akunRes
-                ] = await Promise.all([
-                    supabase.from('peralatan').select('status_laik'),
-                    supabase.from('tugas').select('status'),
-                    supabase.from('pengaduan').select('status'),
-                    supabase.from('jadwal').select('nama_kegiatan').eq('tanggal', today),
-                    supabase.from('log_peralatan').select('id', { count: 'exact', head: true }),
-                    supabase.from('files').select('id', { count: 'exact', head: true }),
-                    supabase.from('akun').select('status')
-                ]);
-
-                // Process Results
-                const peralatanData = peralatanRes.data || [];
-                const tugasData = tugasRes.data || [];
-                const pengaduanData = pengaduanRes.data || [];
-                const jadwalData = jadwalRes.data || [];
-                const akunData = akunRes.data || [];
-
-                setStats({
-                    peralatanTotal: peralatanData.length,
-                    peralatanLaik: peralatanData.filter(p => p.status_laik === 'LAIK OPERASI').length,
-                    peralatanRusak: peralatanData.filter(p => p.status_laik === 'TIDAK LAIK OPERASI').length,
-
-                    tugasTotal: tugasData.length,
-                    tugasPending: tugasData.filter(t => t.status !== 'SELESAI').length,
-                    tugasSelesai: tugasData.filter(t => t.status === 'SELESAI').length,
-
-                    pengaduanBaru: pengaduanData.filter(p => p.status === 'Baru').length,
-                    pengaduanDiproses: pengaduanData.filter(p => p.status === 'Diproses').length,
-
-                    jadwalDinas: jadwalData.filter(j => j.nama_kegiatan === 'DINAS' || j.nama_kegiatan === 'Dinas').length + jadwalData.length,
-                    
-                    logTotal: logRes.count || 0,
-                    filesTotal: filesRes.count || 0,
-                    akunPending: akunData.filter(a => a.status === 'pending').length
-                });
+                // Call Server Action
+                const data = await getDashboardStats();
+                
+                if (data) {
+                    setStats(data);
+                }
 
             } catch (error) {
                 console.error("Error fetching stats:", error);
@@ -427,7 +388,7 @@ export default function DashboardPage() {
                              </div>
                          </div>
                          <div className="hidden md:block">
-                             <span className="px-6 py-3 bg-white text-orange-600 font-bold text-sm rounded-xl shadow-lg">Lihat Detail</span>
+                             <button className="btn bg-white text-orange-600 hover:bg-orange-50 border-none font-bold shadow-lg">Lihat Detail</button>
                          </div>
                      </motion.div>
                 )}

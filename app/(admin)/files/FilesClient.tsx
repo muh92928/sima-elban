@@ -111,10 +111,11 @@ export default function FilesClient({ initialData }: FilesClientProps) {
         <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
             >
                 <Plus size={16} />
-                Upload File
+                <span className="hidden lg:inline">Upload File</span>
+                <span className="lg:hidden">Upload</span>
             </button>
             <button 
                 onClick={handleRefresh}

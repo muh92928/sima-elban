@@ -15,7 +15,8 @@ import {
   LogOut,
   ChevronRight,
   X,
-  PanelLeft // Added icon
+  PanelLeft,
+  Users // Added icon
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -23,6 +24,7 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Peralatan", icon: Wrench, href: "/peralatan" },
   { name: "Log Peralatan", icon: ClipboardList, href: "/log-peralatan" },
+  { name: "Personel", icon: Users, href: "/personel" },
   { name: "Tugas", icon: ListTodo, href: "/tugas" },
   { name: "Jadwal", icon: CalendarDays, href: "/jadwal" },
   { name: "File", icon: FolderOpen, href: "/files" },

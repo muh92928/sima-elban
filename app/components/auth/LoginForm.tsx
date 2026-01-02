@@ -53,6 +53,12 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
         throw new Error("Data login korup. Silakan hubungi admin.");
       }
 
+      console.log("🔍 DEBUG LOGIN ATTEMPT:", { 
+          nipInput: nip, 
+          fetchingEmail: userEmail,
+          userStatus: user.status 
+      });
+
       // 2. Login using the retrieved Email
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: userEmail,

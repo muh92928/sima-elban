@@ -1,0 +1,1133 @@
+{
+  "id": "d1cd1828-34cc-4ce0-8acb-c7e9b5682478",
+  "prevId": "73029028-9ece-4a1e-af2d-e1395975c3c4",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.akun": {
+      "name": "akun",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nip": {
+          "name": "nip",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nama": {
+          "name": "nama",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peran": {
+          "name": "peran",
+          "type": "user_peran_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pending'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "akun_id_fkey": {
+          "name": "akun_id_fkey",
+          "tableFrom": "akun",
+          "tableTo": "users",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "akun_nip_key": {
+          "name": "akun_nip_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nip"
+          ]
+        }
+      },
+      "policies": {
+        "Data akun bisa dilihat publik": {
+          "name": "Data akun bisa dilihat publik",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "true"
+        },
+        "User bisa buat akun sendiri": {
+          "name": "User bisa buat akun sendiri",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "public"
+          ]
+        },
+        "User bisa update akun sendiri": {
+          "name": "User bisa update akun sendiri",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "checkConstraints": {
+        "akun_status_check": {
+          "name": "akun_status_check",
+          "value": "status = ANY (ARRAY['AKTIF'::text, 'NONAKTIF'::text, 'pending'::text, 'approved'::text, 'rejected'::text])"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.files": {
+      "name": "files",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "files_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "nama": {
+          "name": "nama",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kategori": {
+          "name": "kategori",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "catatan": {
+          "name": "catatan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipe": {
+          "name": "tipe",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ukuran": {
+          "name": "ukuran",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.jadwal": {
+      "name": "jadwal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "jadwal_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "nama_kegiatan": {
+          "name": "nama_kegiatan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tanggal": {
+          "name": "tanggal",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "waktu": {
+          "name": "waktu",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lokasi": {
+          "name": "lokasi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.log_peralatan": {
+      "name": "log_peralatan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "log_peralatan_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "tanggal": {
+          "name": "tanggal",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jam": {
+          "name": "jam",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "peralatan_id": {
+          "name": "peralatan_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kegiatan": {
+          "name": "kegiatan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pic": {
+          "name": "pic",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dokumentasi": {
+          "name": "dokumentasi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "waktu_operasi_aktual": {
+          "name": "waktu_operasi_aktual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "waktu_operasi_diterapkan": {
+          "name": "waktu_operasi_diterapkan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "mematikan_terjadwal": {
+          "name": "mematikan_terjadwal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "periode_kegagalan": {
+          "name": "periode_kegagalan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Normal Ops'"
+        },
+        "diupdate_kapan": {
+          "name": "diupdate_kapan",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "log_peralatan_peralatan_id_fkey": {
+          "name": "log_peralatan_peralatan_id_fkey",
+          "tableFrom": "log_peralatan",
+          "tableTo": "peralatan",
+          "columnsFrom": [
+            "peralatan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "log_peralatan_status_check": {
+          "name": "log_peralatan_status_check",
+          "value": "status = ANY (ARRAY['Normal Ops'::text, 'Perlu Perbaikan'::text, 'Perlu Perawatan'::text])"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.notes": {
+      "name": "notes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "notes_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "tittle": {
+          "name": "tittle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pengaduan": {
+      "name": "pengaduan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "pengaduan_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "deskripsi": {
+          "name": "deskripsi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Baru'"
+        },
+        "dokumentasi": {
+          "name": "dokumentasi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bukti_petugas": {
+          "name": "bukti_petugas",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peralatan_id": {
+          "name": "peralatan_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "akun_id": {
+          "name": "akun_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fk_pengaduan_peralatan": {
+          "name": "fk_pengaduan_peralatan",
+          "tableFrom": "pengaduan",
+          "tableTo": "peralatan",
+          "columnsFrom": [
+            "peralatan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "pengaduan_akun_id_fkey": {
+          "name": "pengaduan_akun_id_fkey",
+          "tableFrom": "pengaduan",
+          "tableTo": "akun",
+          "columnsFrom": [
+            "akun_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "pengaduan_peralatan_id_fkey": {
+          "name": "pengaduan_peralatan_id_fkey",
+          "tableFrom": "pengaduan",
+          "tableTo": "peralatan",
+          "columnsFrom": [
+            "peralatan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Enable delete access for all users": {
+          "name": "Enable delete access for all users",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "public"
+          ],
+          "using": "true"
+        },
+        "Enable insert access for all users": {
+          "name": "Enable insert access for all users",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "public"
+          ]
+        },
+        "Enable insert for authenticated users": {
+          "name": "Enable insert for authenticated users",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "public"
+          ]
+        },
+        "Enable read access for all": {
+          "name": "Enable read access for all",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ]
+        },
+        "Enable read access for all users": {
+          "name": "Enable read access for all users",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ]
+        },
+        "Enable read access for authenticated users": {
+          "name": "Enable read access for authenticated users",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ]
+        },
+        "Enable update access for all users": {
+          "name": "Enable update access for all users",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "public"
+          ]
+        },
+        "Enable update for technicians and admins": {
+          "name": "Enable update for technicians and admins",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "checkConstraints": {
+        "pengaduan_status_check": {
+          "name": "pengaduan_status_check",
+          "value": "status = ANY (ARRAY['Baru'::text, 'Diproses'::text, 'Selesai'::text])"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.peralatan": {
+      "name": "peralatan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "peralatan_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "nama": {
+          "name": "nama",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jenis": {
+          "name": "jenis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "merk": {
+          "name": "merk",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_sertifikat": {
+          "name": "no_sertifikat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'-'"
+        },
+        "tahun_instalasi": {
+          "name": "tahun_instalasi",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kondisi_persen": {
+          "name": "kondisi_persen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status_laik": {
+          "name": "status_laik",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "peralatan_status_laik_check": {
+          "name": "peralatan_status_laik_check",
+          "value": "status_laik = ANY (ARRAY['LAIK OPERASI'::text, 'TIDAK LAIK OPERASI'::text])"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.personel": {
+      "name": "personel",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "timezone('utc'::text, now())"
+        },
+        "nama": {
+          "name": "nama",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nip": {
+          "name": "nip",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tempat_lahir": {
+          "name": "tempat_lahir",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_lahir": {
+          "name": "tanggal_lahir",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jabatan": {
+          "name": "jabatan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formasi_pendidikan": {
+          "name": "formasi_pendidikan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kompetensi_pendidikan": {
+          "name": "kompetensi_pendidikan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_sertifikat": {
+          "name": "no_sertifikat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jenis_sertifikat": {
+          "name": "jenis_sertifikat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Enable read access for authenticated users": {
+          "name": "Enable read access for authenticated users",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "(auth.role() = 'authenticated'::text)"
+        },
+        "Enable write access for authenticated users": {
+          "name": "Enable write access for authenticated users",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.posts": {
+      "name": "posts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "posts_author_id_users_id_fk": {
+          "name": "posts_author_id_users_id_fk",
+          "tableFrom": "posts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tugas": {
+      "name": "tugas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "tugas_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854776000",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "peralatan_id": {
+          "name": "peralatan_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "judul": {
+          "name": "judul",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deskripsi": {
+          "name": "deskripsi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'PENDING'"
+        },
+        "sumber": {
+          "name": "sumber",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'KANIT'"
+        },
+        "dibuat_oleh_nip": {
+          "name": "dibuat_oleh_nip",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ditugaskan_ke_nip": {
+          "name": "ditugaskan_ke_nip",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dibuat_kapan": {
+          "name": "dibuat_kapan",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "diupdate_kapan": {
+          "name": "diupdate_kapan",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_tugas_ditugaskan_ke": {
+          "name": "idx_tugas_ditugaskan_ke",
+          "columns": [
+            {
+              "expression": "ditugaskan_ke_nip",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_tugas_status": {
+          "name": "idx_tugas_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "fk_tugas_pembuat": {
+          "name": "fk_tugas_pembuat",
+          "tableFrom": "tugas",
+          "tableTo": "akun",
+          "columnsFrom": [
+            "dibuat_oleh_nip"
+          ],
+          "columnsTo": [
+            "nip"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "fk_tugas_teknisi": {
+          "name": "fk_tugas_teknisi",
+          "tableFrom": "tugas",
+          "tableTo": "akun",
+          "columnsFrom": [
+            "ditugaskan_ke_nip"
+          ],
+          "columnsTo": [
+            "nip"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "tugas_peralatan_id_fkey": {
+          "name": "tugas_peralatan_id_fkey",
+          "tableFrom": "tugas",
+          "tableTo": "peralatan",
+          "columnsFrom": [
+            "peralatan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "tugas_status_check": {
+          "name": "tugas_status_check",
+          "value": "(status)::text = ANY ((ARRAY['PENDING'::character varying, 'PROSES'::character varying, 'SELESAI'::character varying])::text[])"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.user_peran_enum": {
+      "name": "user_peran_enum",
+      "schema": "public",
+      "values": [
+        "KEPALA_BANDARA",
+        "KASI_TOKPD",
+        "KASI_JASA",
+        "KASUBAG_TU",
+        "KANIT_ELBAN",
+        "TEKNISI_ELBAN",
+        "UNIT_BANGLAN",
+        "UNIT_HUMAS",
+        "UNIT_LISTRIK",
+        "UNIT_ADMIN",
+        "UNIT_A2B",
+        "UNIT_PK",
+        "UNIT_AVSEC",
+        "UNIT_INFORMASI",
+        "UNIT_TATA_TERMINAL"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

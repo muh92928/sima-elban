@@ -140,11 +140,11 @@ export default function TugasClient({
                 {canManage && (
                     <button 
                         onClick={() => setIsAddModalOpen(true)}
-                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                        className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
                     >
                         <Plus size={16} />
-                        <span className="hidden md:inline">Tambah Tugas</span>
-                        <span className="md:hidden">Baru</span>
+                        <span className="hidden lg:inline">Tambah Tugas</span>
+                        <span className="lg:hidden">Baru</span>
                     </button>
                 )}
 

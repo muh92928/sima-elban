@@ -181,6 +181,10 @@ export default function PeralatanTable({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+        pagination: { pageSize: 50 } 
+    }
   });
 
   return (
@@ -296,7 +300,7 @@ export default function PeralatanTable({
                                         header.id === 'status_laik' ? 'min-w-[160px]' :
                                         header.id === 'keterangan' ? 'min-w-[150px]' :
                                         ''
-                                    }`}
+                                    } ${header.id === 'aksi' ? 'print:hidden' : ''}`}
                                  >
                                     <div className={`flex items-center gap-1 justify-center ${header.column.getCanSort() ? 'cursor-pointer select-none hover:text-white' : ''}`}>
                                         {flexRender(
@@ -331,7 +335,7 @@ export default function PeralatanTable({
                                 className="hover:bg-white/5 transition-colors group print:text-black print:bg-white"
                             >
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className={TABLE_STYLES.TD}>
+                                    <td key={cell.id} className={`${TABLE_STYLES.TD} ${cell.column.id === 'aksi' ? 'print:hidden' : ''}`}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}
@@ -341,7 +345,29 @@ export default function PeralatanTable({
                 </tbody>
             </table>
          </div>
-         <div className="h-2 bg-gradient-to-t from-black/20 to-transparent print:hidden" />
+         
+         {/* Pagination Controls */}
+         <div className="flex items-center justify-between p-4 border-t border-white/10 bg-black/20 print:hidden">
+             <div className="text-xs text-slate-400">
+                 Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
+             </div>
+             <div className="flex gap-2">
+                 <button
+                     onClick={() => table.previousPage()}
+                     disabled={!table.getCanPreviousPage()}
+                     className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
+                 >
+                     Prev
+                 </button>
+                 <button
+                     onClick={() => table.nextPage()}
+                     disabled={!table.getCanNextPage()}
+                     className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 text-xs font-bold text-white transition-colors"
+                 >
+                     Next
+                 </button>
+             </div>
+         </div>
       </div>
     </>
   );
