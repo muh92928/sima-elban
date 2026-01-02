@@ -7,7 +7,7 @@ export async function GET() {
     const tableCheck = await db.execute(sql`SELECT 1 as connected`);
 
     // Check columns
-    const columnsCheck = []; // skip for now
+    const columnsCheck: any[] = []; // skip for now
 
     return NextResponse.json({
       tableExists: tableCheck,
