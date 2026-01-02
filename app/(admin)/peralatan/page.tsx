@@ -34,6 +34,14 @@ export default async function PeralatanPage() {
   if (errorMsg) {
     return (
         <div className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">
+                        Data Peralatan <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 align-middle ml-2">Debug v1.1</span>
+                    </h1>
+                    <p className="text-slate-400 mt-1">Manajemen inventaris dan status peralatan fasilitas bandara</p>
+                </div>
+            </div>
             <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-6 max-w-2xl mx-auto text-center">
                 <h2 className="text-xl font-bold text-red-500 mb-4">Gagal Mengambil Data</h2>
                 <div className="bg-slate-950 p-4 rounded-lg text-left overflow-auto mb-4 border border-red-500/20">
