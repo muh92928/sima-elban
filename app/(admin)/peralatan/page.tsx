@@ -37,7 +37,7 @@ export default async function PeralatanPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">
-                        Data Peralatan <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 align-middle ml-2">Debug v1.2</span>
+                        Data Peralatan
                     </h1>
                     <p className="text-slate-400 mt-1">Manajemen inventaris dan status peralatan fasilitas bandara</p>
                 </div>
