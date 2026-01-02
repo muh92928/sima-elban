@@ -8,10 +8,13 @@ import { Peralatan } from "@/lib/types";
 
 export async function getPeralatan(): Promise<Peralatan[]> {
     try {
+        console.log('[getPeralatan] Starting fetch...');
         const data = await db.select().from(peralatan).orderBy(desc(peralatan.createdAt));
+        console.log('[getPeralatan] Raw data from DB:', data.length, 'items');
+        console.log('[getPeralatan] First item:', data[0]);
         
         // Map Drizzle camelCase to snake_case for frontend compatibility
-        return data.map((item: any) => ({
+        const mapped = data.map((item: any) => ({
             id: item.id,
             nama: item.nama,
             jenis: item.jenis,
@@ -23,8 +26,11 @@ export async function getPeralatan(): Promise<Peralatan[]> {
             keterangan: item.keterangan,
             created_at: item.createdAt
         }));
+        console.log('[getPeralatan] Mapped data:', mapped.length, 'items');
+        console.log('[getPeralatan] First mapped item:', mapped[0]);
+        return mapped;
     } catch (error) {
-        console.error('Error fetching peralatan:', error);
+        console.error('[getPeralatan] Error fetching peralatan:', error);
         return [];
     }
 }
