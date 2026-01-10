@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { usePathname, useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
+import ComplaintNotification from "@/app/components/ComplaintNotification";
 
 export default function DashboardLayoutClient({
   children,
@@ -78,6 +79,10 @@ export default function DashboardLayoutClient({
 
   return (
     <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black">
+        {/* Notification Popup */}
+        <ComplaintNotification userRole={role} />
+
+        {/* Sidebar css removed for succinctness in replacement, keeping original structure imply */}
         {/* Sidebar */}
         <div className="print:hidden">
             <Sidebar 
