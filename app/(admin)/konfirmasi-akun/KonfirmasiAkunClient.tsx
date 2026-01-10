@@ -29,12 +29,6 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState<Date | null>(null);
-  
-  // Set default date filter to current month on mount
-  useEffect(() => {
-    setDateFilter(new Date());
-  }, []);
   
   // Tab handling
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -103,13 +97,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       // Role Filter
       const matchRole = roleFilter === "all" || item.peran === roleFilter || (roleFilter === "UNASSIGNED" && !item.peran);
       
-      // Date Filter matches *Month Created*
-      const itemDate = new Date(item.created_at);
-      const matchDate = dateFilter 
-        ? itemDate.getFullYear() === dateFilter.getFullYear() && itemDate.getMonth() === dateFilter.getMonth()
-        : true;
-      
-      return matchTab && matchSearch && matchRole && matchDate;
+      return matchTab && matchSearch && matchRole;
   });
 
   const uniqueRoles = Array.from(new Set(data.map(i => i.peran).filter(Boolean)));
@@ -216,22 +204,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
             </select>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
-                 <input 
-                     type="month"
-                     value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
-                     onChange={(e) => {
-                         if (e.target.value) {
-                             setDateFilter(new Date(e.target.value + "-01"));
-                         } else {
-                             setDateFilter(null);
-                         }
-                     }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-                 />
-             </div>
-         </div>
+
       </motion.div>
 
       {/* Content Section */}
