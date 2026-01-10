@@ -18,6 +18,7 @@ import AddJadwalModal from "@/app/components/dashboard/AddJadwalModal";
 import DayDetailsModal from "@/app/components/dashboard/DayDetailsModal";
 import JadwalCalendar from "@/app/components/dashboard/JadwalCalendar";
 import JadwalStats from "@/app/components/dashboard/JadwalStats";
+import { notify } from "@/lib/notify";
 
 interface JadwalClientProps {
   initialData: Jadwal[];
@@ -70,9 +71,10 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             const { error } = await supabase.from('jadwal').delete().eq('id', id);
             if (error) throw error;
             refreshData();
+            notify.success("Jadwal berhasil dihapus");
         } catch (error) {
             console.error("Error deleting jadwal:", error);
-            alert("Gagal menghapus jadwal.");
+            notify.error("Gagal menghapus jadwal.");
         }
     }
   };

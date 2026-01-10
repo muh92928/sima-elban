@@ -17,7 +17,8 @@ import AddLogModal from "@/app/components/dashboard/AddLogModal";
 import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
 import LogPeralatanStats from "@/app/components/dashboard/LogPeralatanStats";
-import Toast, { ToastType } from "@/app/components/Toast";
+
+import { notify } from "@/lib/notify";
 
 interface LogPeralatanClientProps {
   initialData: LogPeralatan[];
@@ -41,16 +42,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
     setReportDate(new Date());
   }, []);
   
-  // Toast State
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: ToastType }>({
-      show: false,
-      message: '',
-      type: 'success'
-  });
 
-  const showToast = (message: string, type: ToastType = 'success') => {
-      setToast({ show: true, message, type });
-  };
 
   const refreshData = async () => {
     try {
@@ -77,7 +69,8 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       setData(logs as unknown as LogPeralatan[] || []);
     } catch (error) {
       console.error('Error fetching data:', error);
-      showToast("Gagal memuat data log.", 'error');
+      console.error('Error fetching data:', error);
+      notify.error("Gagal memuat data log.");
     } finally {
       setLoading(false);
 
@@ -99,10 +92,10 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             const { error } = await supabase.from('log_peralatan').delete().eq('id', id);
             if (error) throw error;
             refreshData();
-            showToast("Log berhasil dihapus.");
+            notify.success("Log berhasil dihapus.");
         } catch (error) {
             console.error("Error deleting log:", error);
-            showToast("Gagal menghapus log.", 'error');
+            notify.error("Gagal menghapus log.");
         }
     }
   };
@@ -133,12 +126,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
   return (
     <div className="space-y-6 print:space-y-4">
-        <Toast 
-            show={toast.show} 
-            message={toast.message} 
-            type={toast.type} 
-            onClose={() => setToast(prev => ({ ...prev, show: false }))} 
-        />
+
 
         {/* Modals */}
         <AddLogModal 
@@ -146,7 +134,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             onClose={() => setIsAddModalOpen(false)} 
             onSuccess={(msg?: string) => {
                 refreshData();
-                if (msg) showToast(msg, 'success');
+                if (msg) notify.success(msg);
             }} 
             peralatanList={peralatanList}
         />
@@ -159,7 +147,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             }}
             onSuccess={(msg?: string) => {
                 refreshData();
-                if (msg) showToast(msg, 'success');
+                if (msg) notify.success(msg);
             }}
             logData={editingItem}
             peralatanList={peralatanList}

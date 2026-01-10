@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 
 interface ComplaintNotificationProps {
   userRole: string;
+  onVisibilityChange?: (visible: boolean) => void;
 }
 
-export default function ComplaintNotification({ userRole }: ComplaintNotificationProps) {
+export default function ComplaintNotification({ userRole, onVisibilityChange }: ComplaintNotificationProps) {
   const [newCount, setNewCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
@@ -39,7 +40,8 @@ export default function ComplaintNotification({ userRole }: ComplaintNotificatio
                 setNewCount(count);
                 // Check if we haven't dismissed it in this session?
                 // For now, let's show it every time page refreshes/loads as requested "ketika baru saja login"
-                setIsVisible(true); 
+                setIsVisible(true);
+                onVisibilityChange?.(true);
             }
         } catch (err) {
             console.error("Error checking new complaints:", err);
@@ -51,11 +53,13 @@ export default function ComplaintNotification({ userRole }: ComplaintNotificatio
 
   const handleDismiss = () => {
       setIsVisible(false);
+      onVisibilityChange?.(false);
   };
 
   const handleNavigate = () => {
       router.push("/pengaduan");
       setIsVisible(false);
+      onVisibilityChange?.(false);
   };
 
   return (

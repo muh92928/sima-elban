@@ -5,6 +5,7 @@ import Sidebar from "@/app/components/dashboard/Sidebar";
 import { Menu, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePathname, useRouter } from "next/navigation";
+import { Toaster, useToaster } from "react-hot-toast";
 
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import ComplaintNotification from "@/app/components/ComplaintNotification";
@@ -21,6 +22,13 @@ export default function DashboardLayoutClient({
   
   const pathname = usePathname();
   const router = useRouter();
+
+  // Toast Visibility Check
+  const { toasts } = useToaster();
+  const isToastActive = toasts.some(t => t.visible);
+  
+  // Complaint Notification Visibility Check
+  const [isComplaintVisible, setIsComplaintVisible] = useState(false);
 
   // Fetch Role
   useEffect(() => {
@@ -85,7 +93,7 @@ export default function DashboardLayoutClient({
         {/* Notification Wrapper - Fixed & Centered relative to Content */}
         <div className="fixed top-6 left-0 right-0 md:left-[var(--sidebar-margin)] z-50 flex justify-center pointer-events-none transition-[left] duration-300 px-4 md:px-8 print:hidden">
              <div className="pointer-events-auto w-full max-w-7xl">
-                <ComplaintNotification userRole={role} />
+                <ComplaintNotification userRole={role} onVisibilityChange={setIsComplaintVisible} />
              </div>
         </div>
 
@@ -120,19 +128,39 @@ export default function DashboardLayoutClient({
 
         {/* Main Content Area */}
         <main 
-            className={`flex-1 transition-[margin] duration-300 ease-in-out
+            className={`flex-1 transition-[padding] duration-300 ease-in-out
                 ml-0 md:ml-[var(--sidebar-margin)] 
-                print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
+                ${(isToastActive || isComplaintVisible) ? 'pt-48 md:pt-32' : 'pt-20 md:pt-8'}
+                print:ml-0 p-4 md:p-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
         >
             {/* Background Atmosphere */}
             <div className="fixed top-0 transition-[left] duration-300 left-0 md:left-[var(--sidebar-margin)] right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden" />
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
             
-            {/* Scrollable Content */}
             <div className="relative z-10 max-w-7xl mx-auto print:max-w-none">
                 {children}
             </div>
         </main>
+
+        <Toaster 
+            position="top-center"
+            containerStyle={{
+                top: 24,
+                left: 'var(--sidebar-margin)', 
+                right: 0,
+                bottom: 'auto',
+            }}
+            toastOptions={{
+                className: '',
+                style: {
+                    background: 'transparent',
+                    boxShadow: 'none',
+                    padding: 0,
+                    maxWidth: '100%',
+                    width: '100%',
+                },
+            }}
+        />
     </div>
   );
 }

@@ -16,7 +16,7 @@ import PeralatanStats from "@/app/components/dashboard/PeralatanStats";
 import PeralatanDetailModal from "@/app/components/dashboard/PeralatanDetailModal";
 import { useRouter } from "next/navigation";
 import { deletePeralatan } from "./actions";
-import { toast } from "react-hot-toast";
+import { notify } from "@/lib/notify";
 
 interface PeralatanListProps {
   initialData: any[];
@@ -74,10 +74,10 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
         setLoading(true);
         const res = await deletePeralatan(id);
         if (res.success) {
-            toast.success("Data berhasil dihapus");
+            notify.success("Data berhasil dihapus");
             refreshData();
         } else {
-            toast.error("Gagal menghapus: " + res.error);
+            notify.error("Gagal menghapus: " + res.error);
         }
         setLoading(false);
     }

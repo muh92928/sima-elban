@@ -9,7 +9,7 @@ import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
 import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
 import ProcessPengaduanModal from "@/app/components/dashboard/ProcessPengaduanModal";
 import PengaduanStats from "@/app/components/dashboard/PengaduanStats";
-import Toast, { ToastType } from "@/app/components/Toast";
+import { notify } from "@/lib/notify";
 
 interface PengaduanClientProps {
   initialData: Pengaduan[];
@@ -35,11 +35,6 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   const [role, setRole] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: ToastType }>({
-      show: false,
-      message: "",
-      type: "success"
-  });
 
   // Fetch Role Client Side
   useEffect(() => {
@@ -122,23 +117,15 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
       if (isTechnician) {
           setProcessingItem(item);
       } else {
-          if (item.status === "Selesai") {
-              setToast({
-                  show: true,
-                  message: "Pengaduan telah selesai ditangani. Data tersimpan sebagai arsip.",
-                  type: "success"
-              });
-              return;
-          }
+      if (item.status === "Selesai") {
+          notify.success("Pengaduan telah selesai ditangani. Data tersimpan sebagai arsip.");
+          return;
+      }
 
-          if (item.status === "Diproses") {
-              setToast({
-                  show: true,
-                  message: "Pengaduan sedang ditangani oleh teknisi. Data dikunci sementara.",
-                  type: "warning"
-              });
-              return;
-          }
+      if (item.status === "Diproses") {
+          notify.warning("Pengaduan sedang ditangani oleh teknisi. Data dikunci sementara.");
+          return;
+      }
           setEditingItem(item);
           setIsModalOpen(true);
       }
@@ -152,7 +139,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             refreshData();
         } catch (error) {
             console.error("Error deleting pengaduan:", error);
-            alert("Gagal menghapus pengaduan.");
+            notify.error("Gagal menghapus pengaduan.");
         }
     }
   };
@@ -309,13 +296,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
           />
       </motion.div>
 
-      {/* Toast Notification */}
-      <Toast
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(prev => ({ ...prev, show: false }))}
-      />
+
     </div>
   );
 }

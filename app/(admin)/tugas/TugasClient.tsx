@@ -19,6 +19,7 @@ import { Tugas, Akun, Peralatan } from "@/lib/types";
 import TugasTable from "@/app/components/dashboard/TugasTable";
 import TugasModal from "@/app/components/dashboard/TugasModal";
 import TugasStats from "@/app/components/dashboard/TugasStats";
+import { notify } from "@/lib/notify";
 
 interface TugasClientProps {
   initialTasks: Tugas[];
@@ -97,8 +98,9 @@ export default function TugasClient({
         if (error) throw error;
         // Refresh locally or refetch
         setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+        notify.success("Tugas berhasil dihapus");
     } catch (err: any) {
-        alert("Gagal menghapus: " + err.message);
+        notify.error("Gagal menghapus: " + err.message);
     }
   };
 
@@ -114,8 +116,11 @@ export default function TugasClient({
             .in('id', ids);
         
         if (error) throw error;
+        // notify.success("Status diperbarui"); // Optional: clean UI means maybe no toast for quick status updates? Or yes? User wants standardization.
+        // Let's add success toast for clarity since it's an important action.
+        notify.success("Status tugas diperbarui");
     } catch (err: any) {
-        alert("Gagal update status: " + err.message);
+        notify.error("Gagal update status: " + err.message);
         refreshData(); // Revert
     }
   };

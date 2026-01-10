@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { Akun } from "@/lib/types";
 import AccountTable from "@/app/components/dashboard/AccountTable";
 import KonfirmasiAkunStats from "@/app/components/dashboard/KonfirmasiAkunStats";
+import { notify } from "@/lib/notify";
 
 interface KonfirmasiAkunClientProps {
   initialData: Akun[];
@@ -49,11 +50,11 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
               item.id === id ? { ...item, status: newStatus as any } : item
           ));
 
-          alert(action === 'approve' ? "Akun berhasil disetujui (AKTIF)." : "Akun telah ditolak.");
+          notify.success(action === 'approve' ? "Akun berhasil disetujui (AKTIF)." : "Akun telah ditolak.");
 
       } catch (error) {
           console.error("Error updating status:", error);
-          alert("Gagal memperbarui status akun.");
+          notify.error("Gagal memperbarui status akun.");
       } finally {
           setLoading(false);
       }
@@ -71,10 +72,10 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
           setData(prev => prev.map(item => 
               item.id === id ? { ...item, peran: newRole } : item
           ));
-          
+          notify.success("Peran akun berhasil diperbarui.");
       } catch (error) {
            console.error("Error updating role:", error);
-           alert("Gagal memperbarui peran akun.");
+           notify.error("Gagal memperbarui peran akun.");
       }
   };
 

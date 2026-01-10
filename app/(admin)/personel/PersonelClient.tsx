@@ -10,7 +10,7 @@ import {
   Filter,
   Users
 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { notify } from "@/lib/notify";
 import AddPersonelModal from "@/app/components/dashboard/AddPersonelModal";
 import PersonelTable from "@/app/components/dashboard/PersonelTable";
 import PersonelStats from "@/app/components/dashboard/PersonelStats";
@@ -45,11 +45,11 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
         setLoading(true);
         const result = await deletePersonel(id);
         if (result.success) {
-            toast.success("Personel berhasil dihapus");
+            notify.success("Personel berhasil dihapus");
             router.refresh();
             setPersonelData(prev => prev.filter(p => p.id !== id));
         } else {
-            toast.error(result.error || "Gagal menghapus");
+            notify.error(result.error || "Gagal menghapus");
         }
         setLoading(false);
     }

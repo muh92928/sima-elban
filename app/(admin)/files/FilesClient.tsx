@@ -17,6 +17,7 @@ import { FileItem } from "@/lib/types";
 import AddFileModal from "@/app/components/dashboard/AddFileModal";
 import FileTable from "@/app/components/dashboard/FileTable";
 import FilesStats from "@/app/components/dashboard/FilesStats";
+import { notify } from "@/lib/notify";
 
 interface FilesClientProps {
   initialData: FileItem[];
@@ -71,9 +72,10 @@ export default function FilesClient({ initialData }: FilesClientProps) {
 
         if (error) throw error;
         await refreshData();
+        notify.success("File berhasil dihapus");
     } catch (error) {
         console.error("Error deleting file:", error);
-        alert("Gagal menghapus file");
+        notify.error("Gagal menghapus file");
     } finally {
         setLoading(false);
     }
