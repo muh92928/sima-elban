@@ -78,11 +78,17 @@ export default function DashboardLayoutClient({
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black">
-        {/* Notification Popup */}
-        <ComplaintNotification userRole={role} />
+    <div 
+        style={{ '--sidebar-margin': isSidebarCollapsed ? '5rem' : '13.75rem' } as React.CSSProperties}
+        className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black"
+    >
+        {/* Notification Wrapper - Fixed & Centered relative to Content */}
+        <div className="fixed top-6 left-0 right-0 md:left-[var(--sidebar-margin)] z-50 flex justify-center pointer-events-none transition-[left] duration-300 px-4 md:px-8 print:hidden">
+             <div className="pointer-events-auto w-full max-w-7xl">
+                <ComplaintNotification userRole={role} />
+             </div>
+        </div>
 
-        {/* Sidebar css removed for succinctness in replacement, keeping original structure imply */}
         {/* Sidebar */}
         <div className="print:hidden">
             <Sidebar 
@@ -114,7 +120,6 @@ export default function DashboardLayoutClient({
 
         {/* Main Content Area */}
         <main 
-            style={{ '--sidebar-margin': isSidebarCollapsed ? '5rem' : '13.75rem' } as React.CSSProperties}
             className={`flex-1 transition-[margin] duration-300 ease-in-out
                 ml-0 md:ml-[var(--sidebar-margin)] 
                 print:ml-0 p-4 md:p-8 pt-20 md:pt-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}

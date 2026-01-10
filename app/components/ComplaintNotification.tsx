@@ -62,42 +62,38 @@ export default function ComplaintNotification({ userRole }: ComplaintNotificatio
     <AnimatePresence>
       {isVisible && (
         <motion.div 
-            initial={{ opacity: 0, y: 50, x: 0 }}
-            animate={{ opacity: 1, y: 0, x: 0 }}
-            exit={{ opacity: 0, y: 50, x: 0 }}
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50 w-[90%] md:w-auto md:max-w-sm print:hidden"
+            className="w-full"
         >
-            <div className="bg-slate-900/95 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.2)] p-4 flex items-start gap-4 ring-1 ring-white/10">
-                <div className="bg-indigo-500/20 p-3 rounded-full shrink-0">
-                     <Bell className="text-indigo-400 animate-pulse" size={24} />
-                </div>
-                
-                <div className="flex-1 pt-1">
-                    <h4 className="text-white font-bold text-lg mb-1">Pengaduan Baru!</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                         Terdapat <span className="font-bold text-indigo-400">{newCount} pengaduan</span> dengan status "Baru" yang perlu ditinjau.
-                    </p>
+            <div className="bg-slate-900/95 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.2)] p-4 flex items-center justify-between gap-4 ring-1 ring-white/10">
+                <div className="flex items-center gap-4 flex-1">
+                    <div className="bg-indigo-500/20 p-3 rounded-full shrink-0">
+                         <Bell className="text-indigo-400 animate-pulse" size={24} />
+                    </div>
                     
+                    <div className="flex-1">
+                        <h4 className="text-white font-bold text-lg inline-block mr-3">Pengaduan Baru!</h4>
+                        <span className="text-slate-300 text-sm">
+                             Terdapat <span className="font-bold text-indigo-400">{newCount} pengaduan</span> dengan status "Baru" yang perlu ditinjau.
+                        </span>
+                    </div>
+
                     <div className="flex items-center gap-3">
                         <button 
                             onClick={handleNavigate}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20"
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
                         >
                             Lihat Pengaduan <ArrowRight size={16} />
-                        </button>
-                        <button 
-                            onClick={handleDismiss}
-                            className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
-                        >
-                            Tutup
                         </button>
                     </div>
                 </div>
 
                 <button 
                     onClick={handleDismiss}
-                    className="text-slate-500 hover:text-white transition-colors"
+                    className="text-slate-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg -mr-2"
                 >
                     <X size={20} />
                 </button>
