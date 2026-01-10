@@ -19,7 +19,7 @@ export default function KonfirmasiAkunStats({ data }: KonfirmasiAkunStatsProps) 
     const total = data.length;
     
     const pending = data.filter(item => item.status === 'pending').length;
-    const approved = data.filter(item => item.status === 'approved').length;
+    const approved = data.filter(item => item.status === 'approved' || item.status === 'AKTIF').length;
     const rejected = data.filter(item => item.status === 'rejected').length;
 
     return { total, pending, approved, rejected };

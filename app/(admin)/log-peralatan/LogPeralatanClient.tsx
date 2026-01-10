@@ -34,7 +34,12 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
   const [editingItem, setEditingItem] = useState<LogPeralatan | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [reportDate, setReportDate] = useState(new Date());
+  const [reportDate, setReportDate] = useState<Date | null>(null);
+
+  // Set default report date on mount
+  useEffect(() => {
+    setReportDate(new Date());
+  }, []);
   
   // Toast State
   const [toast, setToast] = useState<{ show: boolean; message: string; type: ToastType }>({
@@ -118,9 +123,10 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
     
     // Date Filter (Year & Month)
     const itemDate = new Date(item.tanggal);
-    const matchDate = 
-        itemDate.getFullYear() === reportDate.getFullYear() &&
-        itemDate.getMonth() === reportDate.getMonth();
+    const matchDate = reportDate
+        ? (itemDate.getFullYear() === reportDate.getFullYear() &&
+           itemDate.getMonth() === reportDate.getMonth())
+        : true;
 
     return matchSearch && matchStatus && matchDate;
   });
@@ -230,7 +236,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
                          <tr>
                              <td>Bulan / Tahun</td>
                              <td>:</td>
-                             <td>{reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</td>
+                             <td>{reportDate ? reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Semua Bulan'}</td>
                          </tr>
                      </tbody>
                  </table>
@@ -296,10 +302,12 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             <div className="relative group flex-1 md:flex-none">
                 <input 
                     type="month"
-                    value={reportDate.toISOString().slice(0, 7)}
+                    value={reportDate ? reportDate.toISOString().slice(0, 7) : ''}
                     onChange={(e) => {
                         if (e.target.value) {
                             setReportDate(new Date(e.target.value + "-01"));
+                        } else {
+                            setReportDate(null);
                         }
                     }}
                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
@@ -356,7 +364,10 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
              {/* Right Box */}
              <div className="text-center flex flex-col items-center">
-                 <p className="mb-1">Langgur, {new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0).getDate()} {reportDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</p>
+                 <p className="mb-1">Langgur, {(() => {
+                    const d = reportDate || new Date(); 
+                    return `${new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()} ${d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
+                 })()}</p>
                  <p className="font-bold">PIC PELAPORAN</p>
                  <div className="relative h-20 w-32 flex items-center justify-center my-1">
                      <img 

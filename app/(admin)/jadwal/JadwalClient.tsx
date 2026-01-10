@@ -79,7 +79,12 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
 
   // Filter Logic
   const [filterType, setFilterType] = useState("all");
-  const [dateFilter, setDateFilter] = useState<Date | null>(new Date());
+  const [dateFilter, setDateFilter] = useState<Date | null>(null);
+
+  // Set default date filter on mount
+  useEffect(() => {
+    setDateFilter(new Date());
+  }, []);
 
   const filteredData = data.filter((item) => {
     const query = searchQuery.toLowerCase();
@@ -211,6 +216,8 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
                      onChange={(e) => {
                          if (e.target.value) {
                              setDateFilter(new Date(e.target.value + "-01"));
+                         } else {
+                             setDateFilter(null);
                          }
                      }}
                      className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"

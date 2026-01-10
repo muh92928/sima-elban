@@ -30,7 +30,6 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
   // State for Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [jabatanFilter, setJabatanFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState<Date | null>(new Date()); // Visual only for now, or match DOB?
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -172,20 +171,7 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
             </button>
          </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
-                 <input 
-                     type="month"
-                     value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
-                     onChange={(e) => {
-                         if (e.target.value) {
-                             setDateFilter(new Date(e.target.value + "-01"));
-                         }
-                     }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
-                 />
-             </div>
-         </div>
+
       </motion.div>
 
       {/* Content Section */}

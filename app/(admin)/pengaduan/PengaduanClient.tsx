@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Plus, MessageSquareWarning, Filter } from "lucide-react";
+import { Search, Plus, MessageSquareWarning, Filter, Calendar } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Pengaduan } from "@/lib/types";
 import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
@@ -24,7 +24,12 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState<Date | null>(new Date());
+  const [dateFilter, setDateFilter] = useState<Date | null>(null); // Start with null to prevent hydration mismatch
+
+  // Set default date filter to current month on mount
+  useEffect(() => {
+    setDateFilter(new Date());
+  }, []);
 
   const [processingItem, setProcessingItem] = useState<Pengaduan | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -168,6 +173,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
 
     // Date Filter matches *Month Created*
     const itemDate = new Date(item.created_at);
+    
     const matchDate = dateFilter 
         ? itemDate.getFullYear() === dateFilter.getFullYear() && itemDate.getMonth() === dateFilter.getMonth()
         : true;
@@ -267,6 +273,8 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
                      onChange={(e) => {
                          if (e.target.value) {
                              setDateFilter(new Date(e.target.value + "-01"));
+                         } else {
+                             setDateFilter(null);
                          }
                      }}
                      className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
