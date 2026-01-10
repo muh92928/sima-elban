@@ -62,13 +62,13 @@ export default function ComplaintNotification({ userRole }: ComplaintNotificatio
     <AnimatePresence>
       {isVisible && (
         <motion.div 
-            initial={{ opacity: 0, y: -50, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: -50, x: "-50%" }}
+            initial={{ opacity: 0, y: 50, x: 0 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: 50, x: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md print:hidden"
+            className="fixed bottom-6 right-6 z-50 w-[90%] md:w-auto md:max-w-sm print:hidden"
         >
-            <div className="bg-slate-900/90 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.3)] p-4 flex items-start gap-4 ring-1 ring-white/10">
+            <div className="bg-slate-900/95 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.2)] p-4 flex items-start gap-4 ring-1 ring-white/10">
                 <div className="bg-indigo-500/20 p-3 rounded-full shrink-0">
                      <Bell className="text-indigo-400 animate-pulse" size={24} />
                 </div>
