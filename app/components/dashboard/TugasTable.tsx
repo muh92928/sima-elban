@@ -36,6 +36,7 @@ interface TugasTableProps {
   onDelete: (id: number | number[]) => void;
   onStatusChange: (id: number | number[], status: 'PENDING' | 'PROSES' | 'SELESAI') => void;
   currentUserNip?: string;
+  userRole?: string;
   isKanitOrAdmin: boolean;
   title?: string;
 }
@@ -47,6 +48,7 @@ export default function TugasTable({
   onDelete, 
   onStatusChange,
   currentUserNip,
+  userRole,
   isKanitOrAdmin,
   title,
 }: TugasTableProps) {
@@ -206,9 +208,10 @@ export default function TugasTable({
                   s === 'PROSES' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                   'bg-pink-500/10 text-pink-400 border-pink-500/20';
                
-              // Check if current user is one of the assignees
+              // Check if current user is one of the assignees, or if they have the TEKNISI_ELBAN role generally
                const isAssigned = row.assignees.some((a: { nip: string }) => a.nip === currentUserNip);
-               const canChangeStatus = isAssigned || isKanitOrAdmin;
+               const isTeknisiElban = userRole === 'TEKNISI_ELBAN';
+               const canChangeStatus = isAssigned || isKanitOrAdmin || isTeknisiElban;
                
                if (canChangeStatus) {
                    return (
@@ -289,7 +292,7 @@ export default function TugasTable({
 
       return cols;
     },
-    [currentUserNip, isKanitOrAdmin, onEdit, onDelete, onStatusChange]
+    [currentUserNip, userRole, isKanitOrAdmin, onEdit, onDelete, onStatusChange]
   );
 
   const table = useReactTable({
@@ -321,7 +324,8 @@ export default function TugasTable({
                         'text-pink-400 bg-pink-500/10 border-pink-500/20';
                     
                     const isAssigned = t.assignees.some((a: { nama: string | null; nip: string }) => a.nip === currentUserNip);
-                    const canChangeStatus = isAssigned || isKanitOrAdmin;
+                    const isTeknisiElban = userRole === 'TEKNISI_ELBAN';
+                    const canChangeStatus = isAssigned || isKanitOrAdmin || isTeknisiElban;
 
                     return (
                         <motion.div

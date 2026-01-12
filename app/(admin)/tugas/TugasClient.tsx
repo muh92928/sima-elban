@@ -326,6 +326,7 @@ export default function TugasClient({
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
                 currentUserNip={currentUser?.nip}
+                userRole={currentUser?.role}
                 isKanitOrAdmin={canManage}
             />
         </div>
