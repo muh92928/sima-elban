@@ -157,7 +157,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                     </div>
                 </div>
                 
-                <QRCode value={`https://sima-elban.app/peralatan/${data.id}`} size={250} />
+                <QRCode value={`https://sima-elban.vercel.app/peralatan?id=${data.id}`} size={250} />
                 
                 <div className="mt-4">
                     <h2 className="text-3xl font-black text-black mb-2 text-center leading-tight">{data.nama}</h2>
@@ -353,7 +353,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                         <Tab.Panel className="flex flex-col items-center justify-center py-8 gap-6">
                             <div className="bg-white p-4 rounded-2xl shadow-2xl">
                                 <QRCode 
-                                    value={`https://sima-elban.app/peralatan/${data.id}`} 
+                                    value={`https://sima-elban.vercel.app/peralatan?id=${data.id}`} 
                                     size={200}
                                     level="H"
                                 />
