@@ -17,6 +17,7 @@ import PeralatanDetailModal from "@/app/components/dashboard/PeralatanDetailModa
 import { useRouter, useSearchParams } from "next/navigation";
 import { deletePeralatan } from "./actions";
 import { notify } from "@/lib/notify";
+import { supabase } from "@/lib/supabase";
 
 interface PeralatanListProps {
   initialData: any[];
@@ -40,6 +41,30 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [reportDate, setReportDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Role Based Access
+  const [userRole, setUserRole] = useState("");
+  const [roleLoading, setRoleLoading] = useState(true);
+
+  useEffect(() => {
+    const checkRole = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: akun } = await supabase.from('akun').select('peran').eq('email', user.email!).single();
+                const r = (akun?.peran || user.user_metadata?.role || "").toUpperCase();
+                setUserRole(r);
+            }
+        } catch (e) {
+            console.error("Error fetching role", e);
+        } finally {
+            setRoleLoading(false);
+        }
+    };
+    checkRole();
+  }, []);
+
+  const isPrivileged = ['KANIT_ELBAN', 'TEKNISI_ELBAN', 'TEKNISI', 'ADMIN'].some(p => userRole.includes(p));
 
   // Sync initialData & Handle Deep Linking
   useEffect(() => {
@@ -269,6 +294,7 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
 
          {/* Action Buttons moved here */}
         <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+            {isPrivileged && (
             <button 
                 onClick={handleAdd}
                 className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
@@ -277,6 +303,7 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
                 <span className="hidden lg:inline">Tambah Peralatan</span>
                 <span className="lg:hidden">Baru</span>
             </button>
+            )}
             <button 
                 onClick={handlePrint}
                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
@@ -296,8 +323,8 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
         <PeralatanTable 
             data={filteredData} 
             loading={loading} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete} 
+            onEdit={isPrivileged ? handleEdit : undefined} 
+            onDelete={isPrivileged ? handleDelete : undefined} 
             onView={handleView}
         />
       </motion.div>

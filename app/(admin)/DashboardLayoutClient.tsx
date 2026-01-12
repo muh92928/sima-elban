@@ -63,7 +63,8 @@ export default function DashboardLayoutClient({
     const isPrivileged = privilegedRoles.some(p => role.includes(p));
     
     // Redirect non-privileged users to pengaduan if they try to access other pages
-    if (!isPrivileged && !pathname.startsWith('/pengaduan')) {
+    // Exception: Allow /peralatan for QR code access (Read Only)
+    if (!isPrivileged && !pathname.startsWith('/pengaduan') && !pathname.startsWith('/peralatan')) {
         router.replace('/pengaduan');
     }
   }, [loading, role, pathname, router]);

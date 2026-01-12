@@ -30,8 +30,8 @@ import TablePagination from "./TablePagination";
 interface PeralatanTableProps {
   data: Peralatan[];
   loading: boolean;
-  onEdit: (item: Peralatan) => void;
-  onDelete: (id: number) => void;
+  onEdit?: (item: Peralatan) => void;
+  onDelete?: (id: number) => void;
   onView: (item: Peralatan) => void;
 }
 
@@ -164,23 +164,27 @@ export default function PeralatanTable({
                 >
                     <Info size={16} />
                 </button>
+                {onEdit && (
                 <button 
                     onClick={() => onEdit(info.row.original)}
                     className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
                 >
                     <Pencil size={16} />
                 </button>
+                )}
+                {onDelete && (
                 <button 
                     onClick={() => onDelete(info.row.original.id)}
                     className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
                 >
                     <Trash2 size={16} />
                 </button>
+                )}
             </div>
         )
       }
     ],
-    [onEdit, onDelete]
+    [onEdit, onDelete, onView]
   );
 
   const table = useReactTable({
@@ -276,18 +280,22 @@ export default function PeralatanTable({
                                 >
                                     <Info size={14} />
                                 </button>
+                                {onEdit && (
                                 <button 
                                     onClick={() => onEdit(item)}
                                     className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"
                                 >
                                     <Pencil size={14} />
                                 </button>
+                                )}
+                                {onDelete && (
                                 <button 
                                     onClick={() => onDelete(item.id)}
                                     className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                                 >
                                     <Trash2 size={14} />
                                 </button>
+                                )}
                             </div>
                         </motion.div>
                     );
