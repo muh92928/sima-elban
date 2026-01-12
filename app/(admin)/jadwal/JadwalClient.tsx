@@ -39,6 +39,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
   
   // Day Details State
   const [selectedDetailDate, setSelectedDetailDate] = useState<Date | null>(null);
+  const [addModalDate, setAddModalDate] = useState<string | undefined>(undefined);
 
   // Fetch Kanit & All Users for Phone Mapping
   const fetchJadwalAuxData = async () => {
@@ -118,7 +119,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             notify.success("Jadwal berhasil dihapus");
         } catch (error) {
             console.error("Error deleting jadwal:", error);
-            notify.error("Gagal menghapus jadwal.");
+            notify.error(`Gagal menghapus jadwal: ${error.message}`);
         }
     }
   };
@@ -173,12 +174,13 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             onClose={() => {
                 setIsModalOpen(false);
                 setEditingItem(null);
+                setAddModalDate(undefined);
             }} 
             onSuccess={() => {
                 refreshData();
             }} 
             initialData={editingItem}
-            defaultDate={selectedDetailDate ? selectedDetailDate.toLocaleDateString('en-CA') : undefined}
+            defaultDate={addModalDate}
         />
 
         {/* Modal Day Details */}
@@ -190,6 +192,9 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAdd={() => {
+                if (selectedDetailDate) {
+                    setAddModalDate(selectedDetailDate.toLocaleDateString('en-CA'));
+                }
                 setIsModalOpen(true);
                 setSelectedDetailDate(null); 
             }}
@@ -281,6 +286,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
                 onClick={() => {
                     setEditingItem(null);
                     setSelectedDetailDate(null);
+                    setAddModalDate(undefined);
                     setIsModalOpen(true);
                 }}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap"
