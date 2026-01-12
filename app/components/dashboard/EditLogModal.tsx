@@ -6,6 +6,8 @@ import { Fragment } from "react";
 import { X, Save, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LogPeralatan, Peralatan } from "@/lib/types";
+import { toast, useToaster } from "react-hot-toast";
+import { useLayout } from "@/app/context/LayoutContext";
 
 interface EditLogModalProps {
   isOpen: boolean;
@@ -20,6 +22,12 @@ const STATUS_OPTIONS: ('Normal Ops' | 'Perlu Perbaikan' | 'Perlu Perawatan')[] =
 ];
 
 export default function EditLogModal({ isOpen, onClose, onSuccess, logData, peralatanList }: EditLogModalProps) {
+  const { isComplaintVisible } = useLayout();
+  const { toasts } = useToaster();
+  const isToastActive = toasts.some(t => t.visible);
+  
+  const shouldShift = isComplaintVisible || isToastActive;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -234,8 +242,8 @@ export default function EditLogModal({ isOpen, onClose, onSuccess, logData, pera
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className={`fixed inset-0 overflow-y-auto transition-[padding] duration-300 ease-in-out ${shouldShift ? 'pt-72 md:pt-32' : ''}`}>
+          <div className={`flex min-h-full justify-center p-4 text-center ${shouldShift ? 'items-start' : 'items-center'}`}>
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"

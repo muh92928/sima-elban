@@ -10,13 +10,16 @@ import {  Plus,
   Clock,
   MapPin,
   MoreVertical,
-  CalendarDays
+  CalendarDays,
+  Printer
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Jadwal } from "@/lib/types";
+import { Jadwal, Akun } from "@/lib/types"; // Import Akun
 import AddJadwalModal from "@/app/components/dashboard/AddJadwalModal";
 import DayDetailsModal from "@/app/components/dashboard/DayDetailsModal";
 import JadwalCalendar from "@/app/components/dashboard/JadwalCalendar";
+import JadwalMatrixPrint from "@/app/components/dashboard/JadwalMatrixPrint";
+import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import JadwalStats from "@/app/components/dashboard/JadwalStats";
 import { notify } from "@/lib/notify";
 
@@ -31,9 +34,49 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Jadwal | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [kanitElban, setKanitElban] = useState<Akun | null>(null); 
+  const [userMap, setUserMap] = useState<Record<string, string>>({}); // Name -> WA Number map
   
   // Day Details State
   const [selectedDetailDate, setSelectedDetailDate] = useState<Date | null>(null);
+
+  // Fetch Kanit & All Users for Phone Mapping
+  const fetchJadwalAuxData = async () => {
+      try {
+          // 1. Fetch Kanit
+          const { data: kanitData } = await supabase
+            .from('akun')
+            .select('*')
+            .eq('peran', 'KANIT_ELBAN')
+            .limit(1);
+          
+          if (kanitData && kanitData.length > 0) {
+              setKanitElban(kanitData[0] as Akun);
+          }
+
+          // 2. Fetch All Users for Phone Mapping
+          const { data: allUsers } = await supabase
+            .from('akun')
+            .select('nama, no_wa');
+            
+          if (allUsers) {
+              const map: Record<string, string> = {};
+              allUsers.forEach((u: any) => {
+                  if (u.nama && u.no_wa) {
+                      map[u.nama] = u.no_wa;
+                  }
+              });
+              setUserMap(map);
+          }
+
+      } catch (err) {
+          console.error("Error fetching aux data:", err);
+      }
+  };
+
+  useEffect(() => {
+      fetchJadwalAuxData();
+  }, []);
 
   const refreshData = async () => {
     try {
@@ -47,6 +90,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
       if (error) throw error;
       
       setData(jadwal as Jadwal[] || []);
+      fetchJadwalAuxData(); 
     } catch (error) {
       console.error('Error fetching jadwal:', error);
     } finally {
@@ -151,6 +195,11 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             }}
         />
 
+      <style media="print">{`
+        .no-print { display: none !important; }
+      `}</style>
+
+      <div className="space-y-6 print:hidden no-print">
       {/* Header & Actions */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -240,14 +289,26 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
                 <span className="hidden lg:inline">Tambah Jadwal</span>
                 <span className="lg:hidden">Baru</span>
             </button>
+
+             <button
+                onClick={() => window.print()}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all hover:scale-105 active:scale-95"
+                title="Cetak Jadwal"
+            >
+                <Printer size={18} />
+            </button>
         </div>
       </motion.div>
+      </div>
 
-      {/* Content Section - Calendar View */}
+
+
+      {/* Content Section - Calendar View (Screen Only) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="print:hidden" 
       >
           <JadwalCalendar 
             data={filteredData}
@@ -257,6 +318,16 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             onDateClick={(date: Date) => setSelectedDetailDate(date)}
           />
       </motion.div>
+
+      {/* PRINT VIEW - MATRIX LAYOUT */}
+      <div className="hidden print:block w-full h-full">
+         <JadwalMatrixPrint 
+            data={filteredData} 
+            month={dateFilter || new Date()} 
+            kanitElban={kanitElban}
+            userMap={userMap}
+         />
+      </div>
     </div>
   );
 }

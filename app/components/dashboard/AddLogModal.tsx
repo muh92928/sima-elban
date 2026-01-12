@@ -6,6 +6,8 @@ import { Fragment } from "react";
 import { X, Upload, Search, Save, CheckSquare, Square, FileImage, Image as ImageIcon, CheckCircle, ChevronDown, ChevronRight, Filter } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Peralatan } from "@/lib/types";
+import { toast, useToaster } from "react-hot-toast";
+import { useLayout } from "@/app/context/LayoutContext";
 
 interface AddLogModalProps {
   isOpen: boolean;
@@ -27,6 +29,12 @@ const STATUS_OPTIONS: ('Normal Ops' | 'Perlu Perbaikan' | 'Perlu Perawatan')[] =
 ];
 
 export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList }: AddLogModalProps) {
+  const { isComplaintVisible } = useLayout();
+  const { toasts } = useToaster();
+  const isToastActive = toasts.some(t => t.visible);
+  
+  const shouldShift = isComplaintVisible || isToastActive;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   

@@ -84,6 +84,7 @@ export interface Akun {
   status: 'AKTIF' | 'NONAKTIF' | 'pending' | 'approved' | 'rejected';
   created_at: string;
   role?: string; // Optional helper
+  no_wa?: string; // WhatsApp Number
 }
 
 export interface Pengaduan {

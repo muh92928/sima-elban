@@ -7,10 +7,11 @@ import { Peralatan, LogPeralatan, Tugas } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import QRCode from "react-qr-code";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
-import { toast } from "react-hot-toast";
-
-interface PeralatanDetailModalProps {
-  isOpen: boolean;
+import { toast, useToaster } from "react-hot-toast";
+import { useLayout } from "@/app/context/LayoutContext";
+ 
+ interface PeralatanDetailModalProps {
+   isOpen: boolean;
   onClose: () => void;
   data: Peralatan | null;
 }
@@ -20,6 +21,12 @@ function classNames(...classes: string[]) {
 }
 
 export default function PeralatanDetailModal({ isOpen, onClose, data }: PeralatanDetailModalProps) {
+  const { isComplaintVisible } = useLayout();
+  const { toasts } = useToaster();
+  const isToastActive = toasts.some(t => t.visible);
+  
+  const shouldShift = isComplaintVisible || isToastActive;
+
   const [history, setHistory] = useState<(LogPeralatan | Tugas)[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [scheduling, setScheduling] = useState(false);
@@ -99,6 +106,69 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
   if (!data) return null;
 
   return (
+    <>
+
+    {isOpen && (
+      <>
+        <style type="text/css" media="print">
+            {`
+                @media print {
+                    @page { size: portrait; margin: 0; }
+                    body { visibility: hidden; background: white; }
+                    .qr-print-area { 
+                        visibility: visible; 
+                        position: fixed; 
+                        top: 0; 
+                        left: 0; 
+                        width: 100vw; 
+                        height: 100vh; 
+                        display: flex !important; 
+                        align-items: center; 
+                        justify-content: center; 
+                        background: white; 
+                        z-index: 99999;
+                    }
+                    .qr-print-content {
+                        visibility: visible;
+                        display: flex !important;
+                        flex-direction: column;
+                        align-items: center;
+                        border: 2px solid black;
+                        padding: 40px;
+                        border-radius: 20px;
+                        text-align: center;
+                    }
+                    .qr-print-content * { visibility: visible; }
+                    
+                    /* Hide other print elements from parent */
+                    .print-block, .print-container { display: none !important; }
+                }
+            `}
+        </style>
+        
+        {/* Printable Area - Only Visible in Print */}
+        <div className="qr-print-area hidden">
+            <div className="qr-print-content gap-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <img src="/logo_kemenhub.png" className="w-10 h-10 object-contain" />
+                    <div className="text-left">
+                        <p className="text-[10px] font-bold uppercase leading-tight">Direktorat Jenderal Perhubungan Udara</p>
+                        <p className="text-[12px] font-black uppercase leading-tight">Bandara Karel Sadsuitubun</p>
+                    </div>
+                </div>
+                
+                <QRCode value={`https://sima-elban.app/peralatan/${data.id}`} size={250} />
+                
+                <div className="mt-4">
+                    <h2 className="text-3xl font-black text-black mb-2 text-center leading-tight">{data.nama}</h2>
+                    <div className="border-t-2 border-black w-full my-2"></div>
+                    <p className="text-black font-bold text-lg">Tahun Instalasi: {data.tahun_instalasi || '-'}</p>
+                </div>
+            </div>
+        </div>
+      </>
+    )}
+
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
@@ -110,11 +180,11 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className={`fixed inset-0 overflow-y-auto transition-[padding] duration-300 ease-in-out ${shouldShift ? 'pt-72 md:pt-32' : ''}`}>
+          <div className={`flex min-h-full justify-center p-4 text-center ${shouldShift ? 'items-start' : 'items-center'}`}>
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -356,5 +426,6 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
         </div>
       </Dialog>
     </Transition>
+    </>
   );
 }

@@ -14,6 +14,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
   const [nip, setNip] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [waNumber, setWaNumber] = useState(""); // Add WA state
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("");
@@ -66,8 +67,9 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
         options: {
           data: {
             nip: nip.trim(),
-            full_name: fullName, // Use 'nama' or 'full_name' depending on DB trigger expectation. Usually full_name is standard.
-            peran: role // Passing 'peran' to match 'role' selection. Trigger should map this to 'role' or 'peran' column.
+            full_name: fullName, 
+            peran: role,
+            no_wa: "62" + waNumber.replace(/^0+/, '') // Normalize: Ensure start with 62 and remove leading 0 if user typed 08...
           }
         }
       });
@@ -176,7 +178,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
               </div>
 
               {/* Email Field - Added */}
-              <div className="space-y-1 col-span-2 animate-slide-up-fade" style={{ animationDelay: "175ms" }}>
+              <div className="space-y-1 animate-slide-up-fade" style={{ animationDelay: "175ms" }}>
               <label className="text-[10px] font-bold text-slate-300 ml-1 tracking-widest flex items-center gap-1.5 opacity-80">
                   EMAIL AKTIF
               </label>
@@ -190,6 +192,29 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contoh@email.com"
+                  className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
+                  />
+              </div>
+              </div>
+
+              {/* WhatsApp Number Field - Added */}
+              <div className="space-y-1 animate-slide-up-fade" style={{ animationDelay: "185ms" }}>
+              <label className="text-[10px] font-bold text-slate-300 ml-1 tracking-widest flex items-center gap-1.5 opacity-80">
+                  NOMOR WHATSAPP
+              </label>
+              <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-slate-500 font-bold text-[10px]">+62</span>
+                  </div>
+                  <input
+                  type="text"
+                  required
+                  value={waNumber}
+                  onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, ''); // Numbers only
+                      setWaNumber(val);
+                  }}
+                  placeholder="8xxx"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
                   />
               </div>

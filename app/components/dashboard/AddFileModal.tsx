@@ -5,6 +5,8 @@ import { Dialog, Transition } from "@headlessui/react";
 import { X, UploadCloud, FileText, Tag, AlignLeft, Info, Save, Loader2, Paperclip } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { FileItem } from "@/lib/types";
+import { useLayout } from "@/app/context/LayoutContext";
+import { useToaster } from "react-hot-toast";
 
 interface AddFileModalProps {
   isOpen: boolean;
@@ -15,6 +17,11 @@ interface AddFileModalProps {
 
 export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }: AddFileModalProps) {
   const [loading, setLoading] = useState(false);
+  
+  const { setIsModalOpen } = useLayout();
+  useEffect(() => {
+    setIsModalOpen(isOpen);
+  }, [isOpen, setIsModalOpen]);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   
@@ -179,7 +186,7 @@ export default function AddFileModal({ isOpen, onClose, onSuccess, initialData }
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">

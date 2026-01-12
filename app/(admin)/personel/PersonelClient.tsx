@@ -74,7 +74,7 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
   const uniqueJabatan = Array.from(new Set(personelData.map(item => item.jabatan).filter(Boolean)));
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 print:pb-0 print:space-y-4">
       <AddPersonelModal 
         isOpen={isModalOpen}
         onClose={() => {
@@ -87,11 +87,33 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
         initialData={editingItem || undefined}
       />
 
+       <style type="text/css" media="print">
+        {`
+          @page { size: landscape; margin: 20mm; }
+          body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            font-family: 'Times New Roman', Times, serif;
+            background-color: white !important;
+          }
+          .print-hidden { display: none !important; }
+          .print-block { display: block !important; }
+          /* Target standard tables */
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          th, td { border: 1px solid #000 !important; padding: 4px 6px !important; color: black !important; }
+          th { background-color: #B4C6E7 !important; font-weight: bold !important; text-align: center; vertical-align: middle; }
+          td { vertical-align: top; }
+          
+          /* Force Text Color */
+          * { color: black !important; text-shadow: none !important; }
+        `}
+      </style>
+
       {/* Header & Actions */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden"
       >
         <div>
         <div className="flex flex-col gap-2">
@@ -113,15 +135,68 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
         </div>
       </motion.div>
 
+       {/* Print Only Header (Official Format) */}
+       <div className="hidden print-block text-black mb-4 print-container">
+         <div className="print-title text-center font-bold mb-4">
+             DATA PERSONEL TEKNISI PENERBANGAN<br/>
+             UPBU KELAS II KAREL SADSUITUBUN - LANGGUR
+         </div>
+         
+         <div className="w-full flex justify-between items-start text-xs font-bold leading-relaxed">
+             {/* Left Side Info */}
+             <div className="flex-1">
+                 <table className="print-header-table w-auto border-none" style={{ border: 'none' }}>
+                     <tbody>
+                         <tr style={{ border: 'none' }}>
+                             <td className="w-[120px] border-none !border-0 pl-0">BANDAR UDARA</td>
+                             <td className="w-[10px] border-none !border-0">:</td>
+                             <td className="border-none !border-0">KAREL SADSUITUBUN - LANGGUR</td>
+                         </tr>
+                         <tr>
+                             <td className="border-none !border-0 pl-0">Tanggal Laporan</td>
+                             <td className="border-none !border-0">:</td>
+                             <td className="border-none !border-0">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                         </tr>
+                     </tbody>
+                 </table>
+             </div>
+
+             {/* Right Side Info */}
+             <div className="flex-1 flex flex-col items-end">
+                  <table className="print-header-table w-auto border-none" style={{ width: 'auto', border: 'none' }}>
+                     <tbody>
+                         <tr>
+                             <td className="text-left w-[80px] border-none !border-0">LEMBAR I</td>
+                             <td className="text-center w-[10px] border-none !border-0">:</td>
+                             <td className="text-left w-[300px] border-none !border-0">DIREKTORAT KEAMANAN PENERBANGAN</td>
+                         </tr>
+                         <tr>
+                             <td className="text-left border-none !border-0">LEMBAR II</td>
+                             <td className="text-center border-none !border-0">:</td>
+                             <td className="text-left border-none !border-0">KANTOR OTORITAS BANDAR UDARA WILAYAH VIII</td>
+                         </tr>
+                         <tr>
+                             <td className="text-left border-none !border-0">LEMBAR III</td>
+                             <td className="text-center border-none !border-0">:</td>
+                             <td className="text-left border-none !border-0">KANTOR UPBU KELAS II KAREL SADSUITUBUN</td>
+                         </tr>
+                     </tbody>
+                 </table>
+             </div>
+         </div>
+       </div>
+
       {/* Stats Widget */}
-      <PersonelStats data={personelData} />
+      <div className="print:hidden">
+          <PersonelStats data={personelData} />
+      </div>
 
       {/* Search & Filter */}
       <motion.div 
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col md:flex-row gap-3 print:hidden"
       >
         <div className="relative w-full md:flex-1 md:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
@@ -187,6 +262,38 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
             loading={loading}
           />
       </motion.div>
+
+       {/* Print Footer (Signatures) */}
+       <div className="hidden print-block mt-8 text-black text-xs">
+         <div className="flex justify-between px-10 items-start">
+             {/* Left Box */}
+             <div className="text-center flex flex-col items-center">
+                 <p className="mb-1">Mengetahui,</p>
+                 <p className="font-bold">KEPALA SEKSI TOKPD</p>
+                 <p className="font-bold mb-20">UPBU KAREL SADSUITUBUN</p>
+                 <p className="font-bold underline leading-none">ROBERTUS FABUMASSE, ST</p>
+                 <p>NIP. 19821210 200812 1 001</p>
+             </div>
+
+             {/* Right Box */}
+             <div className="text-center flex flex-col items-center">
+                 <p className="mb-1">Langgur, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                 <p className="font-bold">PIC ADMINISTRASI</p> 
+                 {/* Changed to PIC ADMINISTRASI for Personel? Or keep PIC PELAPORAN? User said same format. I'll keep generic/similar but "PIC" is safer than "PIC PELAPORAN" if it's personel data. Or maybe "PENGELOLA KEPEGAWAIAN"? */}
+                 {/* I will use PIC KEPEGAWAIAN or similar. But user said "format yang sama". */}
+                 <div className="relative h-20 w-32 flex items-center justify-center my-1">
+                      {/* Signature placeholder or same sig? I'll use same sig for consistency if requested. */}
+                     <img 
+                          src="/signature-pic.png" 
+                          alt="Signature" 
+                          className="h-full w-full object-contain filter contrast-125"
+                      />
+                 </div>
+                 <p className="font-bold underline leading-none">MUH. FARHAN A.Md.T</p>
+                 <p>NIP. 19990517 202210 1 001</p>
+             </div>
+         </div>
+       </div>
     </div>
   );
 }

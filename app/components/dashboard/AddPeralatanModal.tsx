@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Save } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, Save, Box, Info, FileText, Calendar, Hash, Tag, Activity, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { Peralatan } from "@/lib/types";
 import { createPeralatan, updatePeralatan } from "@/app/(admin)/peralatan/actions";
-import { toast } from "react-hot-toast";
+import { toast, useToaster } from "react-hot-toast";
+import { useLayout } from "@/app/context/LayoutContext";
 
 interface AddPeralatanModalProps {
   isOpen: boolean;
@@ -16,6 +18,12 @@ interface AddPeralatanModalProps {
 
 export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialData }: AddPeralatanModalProps) {
   const [loading, setLoading] = useState(false);
+  const { setIsModalOpen } = useLayout();
+  
+  useEffect(() => {
+    setIsModalOpen(isOpen);
+  }, [isOpen, setIsModalOpen]);
+
   const [formData, setFormData] = useState<{
     nama: string;
     jenis: string;
@@ -159,9 +167,9 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60]"
           />
-          <div className="fixed inset-0 z-[70] flex items-center justify-center pl-0 md:pl-[220px] pointer-events-none">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center pl-0 md:pl-[220px] pointer-events-none transition-[padding] duration-300 ease-in-out">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}

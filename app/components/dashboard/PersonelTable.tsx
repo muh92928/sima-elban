@@ -65,7 +65,7 @@ export default function PersonelTable({
             const item = info.row.original;
             return (
                 <div className="flex items-center gap-3 text-left min-w-[200px]">
-                    <div className="w-9 h-9 min-w-[2.25rem] rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    <div className="w-9 h-9 min-w-[2.25rem] rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md print:hidden">
                         {item.nama.charAt(0)}
                     </div>
                     <div className="font-bold text-white text-sm">{item.nama}</div>
