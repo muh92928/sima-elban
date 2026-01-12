@@ -206,23 +206,30 @@ export default function TugasTable({
                   s === 'PROSES' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                   'bg-pink-500/10 text-pink-400 border-pink-500/20';
                
-               // Check if current user is one of the assignees
+              // Check if current user is one of the assignees
                const isAssigned = row.assignees.some((a: { nip: string }) => a.nip === currentUserNip);
                const canChangeStatus = isAssigned || isKanitOrAdmin;
                
-               if (canChangeStatus && !isKanitOrAdmin && isAssigned) {
+               if (canChangeStatus) {
                    return (
-                      <select 
-                          value={s} 
-                          onChange={(e) => {
-                              onStatusChange(row.ids, e.target.value as any);
-                          }}
-                          className={`text-[10px] font-bold uppercase rounded-lg px-2 py-1 border outline-none cursor-pointer ${color} bg-transparent text-center`}
-                      >
-                          <option value="PENDING" className="bg-slate-900 text-pink-400">PENDING</option>
-                          <option value="PROSES" className="bg-slate-900 text-amber-400">PROSES</option>
-                          <option value="SELESAI" className="bg-slate-900 text-emerald-400">SELESAI</option>
-                      </select>
+                      <div className="relative group/select">
+                        <select 
+                            value={s} 
+                            onChange={(e) => {
+                                onStatusChange(row.ids, e.target.value as any);
+                            }}
+                            className={`appearance-none font-bold uppercase rounded-lg pl-3 pr-6 py-1 border outline-none cursor-pointer ${color} bg-transparent text-[10px] w-full text-center transition-all hover:bg-white/5 focus:bg-slate-900 focus:ring-1 focus:ring-indigo-500/50`}
+                        >
+                            <option value="PENDING" className="bg-slate-900 text-pink-400">PENDING</option>
+                            <option value="PROSES" className="bg-slate-900 text-amber-400">PROSES</option>
+                            <option value="SELESAI" className="bg-slate-900 text-emerald-400">SELESAI</option>
+                        </select>
+                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 group-hover/select:opacity-100 transition-opacity">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </div>
+                      </div>
                    );
                }
 
@@ -313,6 +320,9 @@ export default function TugasTable({
                         t.status === 'PROSES' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
                         'text-pink-400 bg-pink-500/10 border-pink-500/20';
                     
+                    const isAssigned = t.assignees.some((a: { nama: string | null; nip: string }) => a.nip === currentUserNip);
+                    const canChangeStatus = isAssigned || isKanitOrAdmin;
+
                     return (
                         <motion.div
                             key={row.id}
@@ -331,7 +341,7 @@ export default function TugasTable({
                                 </div>
                                
                                 {/* Status Badge mobile */}
-                               {(!isKanitOrAdmin && t.assignees.some((a: { nama: string | null; nip: string }) => a.nip === currentUserNip)) ? (
+                               {canChangeStatus ? (
                                     <select 
                                         value={t.status} 
                                         onChange={(e) => onStatusChange(t.id, e.target.value as 'PENDING' | 'PROSES' | 'SELESAI')}
@@ -341,7 +351,7 @@ export default function TugasTable({
                                             'text-pink-400 border-pink-500/20'
                                         }`}
                                     >
-                                        <option value="BELUM_DIKERJAKAN" className="bg-slate-900 text-pink-400">BELUM</option>
+                                        <option value="PENDING" className="bg-slate-900 text-pink-400">PENDING</option>
                                         <option value="PROSES" className="bg-slate-900 text-amber-400">PROSES</option>
                                         <option value="SELESAI" className="bg-slate-900 text-emerald-400">SELESAI</option>
                                     </select>
