@@ -9,6 +9,7 @@ import QRCode from "react-qr-code";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { toast, useToaster } from "react-hot-toast";
 import { useLayout } from "@/app/context/LayoutContext";
+import { useRouter } from "next/navigation";
  
 interface PeralatanDetailModalProps {
    isOpen: boolean;
