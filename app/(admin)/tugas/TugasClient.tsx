@@ -20,6 +20,7 @@ import TugasTable from "@/app/components/dashboard/TugasTable";
 import TugasModal from "@/app/components/dashboard/TugasModal";
 import TugasStats from "@/app/components/dashboard/TugasStats";
 import { notify } from "@/lib/notify";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface TugasClientProps {
   initialTasks: Tugas[];
@@ -41,6 +42,30 @@ export default function TugasClient({
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tugas | null>(null);
+  
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [defaultTaskValues, setDefaultTaskValues] = useState<{ equipmentId?: number; judul?: string; deskripsi?: string } | undefined>(undefined);
+
+  // Check for deep link "create" action
+  useEffect(() => {
+      const action = searchParams.get('action');
+      if (action === 'create') {
+          const eqId = searchParams.get('equipmentId');
+          const eqName = searchParams.get('equipmentName');
+          
+          if (eqId) {
+              setDefaultTaskValues({
+                  equipmentId: Number(eqId),
+                  judul: eqName ? `Maintenance: ${eqName}` : undefined,
+                  deskripsi: "Jadwal pemeliharaan berkala otomatis."
+              });
+          }
+          setIsAddModalOpen(true);
+          // Optional: Clean URL
+          // router.replace('/tugas', { scroll: false }); 
+      }
+  }, [searchParams]);
   
   const refreshData = async () => {
     try {
@@ -376,6 +401,7 @@ export default function TugasClient({
             onSuccess={refreshData}
             teknisiList={teknisiList}
             peralatanList={peralatanList}
+            defaultValues={defaultTaskValues}
         />
         
         {editingItem && (

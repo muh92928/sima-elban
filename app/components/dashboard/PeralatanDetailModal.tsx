@@ -10,17 +10,18 @@ import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import { toast, useToaster } from "react-hot-toast";
 import { useLayout } from "@/app/context/LayoutContext";
  
- interface PeralatanDetailModalProps {
+interface PeralatanDetailModalProps {
    isOpen: boolean;
   onClose: () => void;
   data: Peralatan | null;
+  userRole?: string;
 }
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function PeralatanDetailModal({ isOpen, onClose, data }: PeralatanDetailModalProps) {
+export default function PeralatanDetailModal({ isOpen, onClose, data, userRole = "" }: PeralatanDetailModalProps) {
   const { isComplaintVisible } = useLayout();
   const { toasts } = useToaster();
   const isToastActive = toasts.some(t => t.visible);
@@ -29,9 +30,10 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
 
   const [history, setHistory] = useState<(LogPeralatan | Tugas)[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [scheduling, setScheduling] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleDesc, setScheduleDesc] = useState("");
+  const router = useRouter(); 
+
+  // Derived Permission
+  const isKanitElban = userRole.includes("KANIT_ELBAN");
 
   useEffect(() => {
     if (isOpen && data) {
@@ -77,30 +79,9 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
     }
   };
 
-  const handleScheduleMaintenance = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!scheduleDate || !scheduleDesc || !data) return;
-      
-      setScheduling(true);
-      try {
-          // Insert into Jadwal
-          const { error } = await supabase.from('jadwal').insert([{
-              nama_kegiatan: `Maintenance: ${data.nama}`,
-              tanggal: scheduleDate,
-              waktu: '09:00:00', // Default morning
-              lokasi: 'Lokasi Peralatan', 
-              keterangan: scheduleDesc
-          }]);
-
-          if (error) throw error;
-          toast.success("Jadwal maintenance berhasil dibuat!");
-          setScheduleDate("");
-          setScheduleDesc("");
-      } catch (e: any) {
-          toast.error("Gagal membuat jadwal: " + e.message);
-      } finally {
-          setScheduling(false);
-      }
+  const handleNavigateToTask = () => {
+      if (!data) return;
+      router.push(`/tugas?action=create&equipmentId=${data.id}&equipmentName=${encodeURIComponent(data.nama)}`);
   };
 
   if (!data) return null;
@@ -209,9 +190,9 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                 </div>
 
                 <Tab.Group>
-                    <Tab.List className="flex space-x-1 rounded-xl bg-slate-800/50 p-1 mb-6 border border-white/5">
+                    <Tab.List className="flex space-x-1 rounded-xl bg-slate-800/50 p-1 mb-6 border border-white/5 overflow-x-auto">
                         <Tab className={({ selected }) =>
-                            classNames('w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                            classNames('w-full min-w-[100px] rounded-lg py-2.5 text-sm font-medium leading-5 transition-all whitespace-nowrap',
                             selected ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:bg-white/[0.12] hover:text-white')
                         }>
                             <div className="flex items-center justify-center gap-2">
@@ -219,7 +200,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                             </div>
                         </Tab>
                         <Tab className={({ selected }) =>
-                            classNames('w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                            classNames('w-full min-w-[100px] rounded-lg py-2.5 text-sm font-medium leading-5 transition-all whitespace-nowrap',
                             selected ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:bg-white/[0.12] hover:text-white')
                         }>
                             <div className="flex items-center justify-center gap-2">
@@ -227,7 +208,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                             </div>
                         </Tab>
                         <Tab className={({ selected }) =>
-                            classNames('w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                            classNames('w-full min-w-[100px] rounded-lg py-2.5 text-sm font-medium leading-5 transition-all whitespace-nowrap',
                             selected ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:bg-white/[0.12] hover:text-white')
                         }>
                             <div className="flex items-center justify-center gap-2">
@@ -235,7 +216,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
                             </div>
                         </Tab>
                         <Tab className={({ selected }) =>
-                            classNames('w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all',
+                            classNames('w-full min-w-[100px] rounded-lg py-2.5 text-sm font-medium leading-5 transition-all whitespace-nowrap',
                             selected ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:bg-white/[0.12] hover:text-white')
                         }>
                             <div className="flex items-center justify-center gap-2">
@@ -374,48 +355,40 @@ export default function PeralatanDetailModal({ isOpen, onClose, data }: Peralata
 
                         {/* Schedule Maintenance Panel */}
                         <Tab.Panel>
-                            <form onSubmit={handleScheduleMaintenance} className="space-y-4">
-                                <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl flex gap-3 text-indigo-200 text-sm mb-4">
-                                    <CalendarPlus className="shrink-0 mt-0.5" size={18} />
-                                    <p>Jadwalkan pemeliharaan berkala untuk alat ini. Jadwal akan otomatis muncul di Kalender Kegiatan.</p>
+                            {isKanitElban ? (
+                                <div className="space-y-6 text-center py-6">
+                                    <div className="bg-gradient-to-br from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 p-6 rounded-2xl">
+                                        <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/30 shadow-lg shadow-indigo-500/20">
+                                            <CalendarPlus size={32} className="text-indigo-400" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white mb-2">Jadwalkan Pemeliharaan</h3>
+                                        <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto mb-6">
+                                            Buat tugas maintenance baru untuk <b>{data.nama}</b>. Tugas akan otomatis masuk ke kategori "Tugas Kanit Elban" dan kalender kegiatan.
+                                        </p>
+                                        
+                                        <button 
+                                            onClick={handleNavigateToTask}
+                                            className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 mx-auto"
+                                        >
+                                            <ListTodo size={18} />
+                                            Buat Jadwal via Tugas
+                                        </button>
+                                    </div>
+                                    <div className="text-xs text-slate-500">
+                                        Fitur ini khusus untuk peran KANIT ELBAN.
+                                    </div>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Tanggal Rencana</label>
-                                    <input 
-                                        type="date" 
-                                        required
-                                        value={scheduleDate}
-                                        onChange={e => setScheduleDate(e.target.value)}
-                                        className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                                        <AlertOctagon className="text-slate-500" size={24} />
+                                    </div>
+                                    <h4 className="text-slate-300 font-bold">Akses Dibatasi</h4>
+                                    <p className="text-slate-500 text-sm max-w-xs">
+                                        Fitur penjadwalan maintenance hanya tersedia untuk KANIT ELBAN.
+                                    </p>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Catatan / Rencana Kegiatan</label>
-                                    <textarea 
-                                        required
-                                        rows={3}
-                                        value={scheduleDesc}
-                                        onChange={e => setScheduleDesc(e.target.value)}
-                                        placeholder="Contoh: Pengecekan rutin pelumas dan filter..."
-                                        className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
-
-                                <button 
-                                    type="submit"
-                                    disabled={scheduling}
-                                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {scheduling ? <LoadingSpinner label="Menyimpan..." /> : (
-                                        <>
-                                            <CalendarPlus size={18} />
-                                            Buat Jadwal Maintenance
-                                        </>
-                                    )}
-                                </button>
-                            </form>
+                            )}
                         </Tab.Panel>
                     </Tab.Panels>
                 </Tab.Group>

@@ -13,6 +13,11 @@ interface TugasModalProps {
   teknisiList: Akun[];
   peralatanList: Peralatan[];
   initialData?: Tugas | null; // If provided, we are in EDIT mode
+  defaultValues?: {
+      equipmentId?: number;
+      judul?: string;
+      deskripsi?: string;
+  }
 }
 
 export default function TugasModal({ 
@@ -21,7 +26,8 @@ export default function TugasModal({
   onSuccess, 
   teknisiList, 
   peralatanList, 
-  initialData 
+  initialData,
+  defaultValues
 }: TugasModalProps) {
   const isEdit = !!initialData;
   
@@ -50,16 +56,16 @@ export default function TugasModal({
         setSelectedNips(initialData.ditugaskan_ke_nip ? [initialData.ditugaskan_ke_nip] : []);
       } else {
         // Add Mode Defaults
-        setJudul("");
-        setDeskripsi("");
-        setPeralatanId("");
+        setJudul(defaultValues?.judul || "");
+        setDeskripsi(defaultValues?.deskripsi || "");
+        setPeralatanId(defaultValues?.equipmentId || "");
         setStatus("PENDING");
         setSelectedNips([]);
       }
       setError(null);
       setIsMultiSelectOpen(false);
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, defaultValues]);
 
   const toggleNipSelection = (nip: string) => {
       // Edit Mode: Single Select Only

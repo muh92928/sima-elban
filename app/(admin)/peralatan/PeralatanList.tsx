@@ -370,6 +370,7 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           data={selectedItem}
+          userRole={userRole}
       />
     </div>
   );
