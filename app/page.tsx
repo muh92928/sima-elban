@@ -6,16 +6,23 @@ import { ShieldCheck } from "lucide-react";
 import LoginForm from "./components/auth/LoginForm";
 import RegisterForm from "./components/auth/RegisterForm";
 import SuccessState from "./components/auth/SuccessState";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [view, setView] = useState<"login" | "register" | "success">("login");
   const [successMode, setSuccessMode] = useState<"login" | "register">("login");
   const [redirectPath, setRedirectPath] = useState("/dashboard"); // Default
   const [isClient, setIsClient] = useState(false);
+  
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    const returnUrl = searchParams.get("returnUrl");
+    if (returnUrl) {
+        setRedirectPath(decodeURIComponent(returnUrl));
+    }
+  }, [searchParams]);
 
   if (!isClient) return null;
 
@@ -57,7 +64,12 @@ export default function LoginPage() {
                 {view === "login" ? (
                 <LoginForm 
                     onSuccess={(path) => {
-                        if (path) setRedirectPath(path);
+                        const returnUrl = searchParams.get("returnUrl");
+                        if (returnUrl) {
+                             setRedirectPath(decodeURIComponent(returnUrl));
+                        } else if (path) {
+                             setRedirectPath(path);
+                        }
                         setSuccessMode("login");
                         setView("success");
                     }} 

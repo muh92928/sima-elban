@@ -40,7 +40,8 @@ export default function DashboardLayoutClient({
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                router.replace("/");
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                router.replace(`/?returnUrl=${returnUrl}`);
                 return;
             }
             const { data: akun } = await supabase.from('akun').select('peran').eq('email', user.email!).single();
