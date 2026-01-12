@@ -74,7 +74,7 @@ export const akun = pgTable("akun", {
 	peran: userPeranEnum(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`timezone('utc'::text, now())`).notNull(),
 	email: text(),
-	noWa: text("no_wa"),
+	// noWa: text("no_wa"),
 	status: text().default('pending'),
 }, (table) => [
 	foreignKey({

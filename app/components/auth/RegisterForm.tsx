@@ -69,7 +69,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
             nip: nip.trim(),
             full_name: fullName, 
             peran: role,
-            no_wa: "62" + waNumber.replace(/^0+/, '') // Normalize: Ensure start with 62 and remove leading 0 if user typed 08...
+            // no_wa: "62" + waNumber.replace(/^0+/, '') // TODO: Enable after schema migration
           }
         }
       });

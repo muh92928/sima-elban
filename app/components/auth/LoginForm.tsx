@@ -124,7 +124,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
           </div>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4 relative z-10 w-full">
+        <form onSubmit={handleLogin} className="space-y-4 relative z-10 w-full" autoComplete="off">
 
           {/* Error Message */}
           {error && (
@@ -149,6 +149,8 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
                 value={nip}
                 onChange={(e) => setNip(e.target.value)}
                 placeholder="Masukkan NIP Anda"
+                autoComplete="off"
+                name="nip_field_random"
                 className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 tracking-wider font-mono shadow-inner"
               />
             </div>
@@ -177,6 +179,8 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="new-password"
+                name="password_field_random"
                 className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-12 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
               />
               <button

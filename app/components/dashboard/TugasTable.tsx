@@ -35,8 +35,8 @@ interface TugasTableProps {
   onEdit: (item: Tugas) => void;
   onDelete: (id: number | number[]) => void;
   onStatusChange: (id: number | number[], status: 'PENDING' | 'PROSES' | 'SELESAI') => void;
-  currentUserNip?: string;
-  userRole?: string;
+  currentUserNip?: string | null;
+  userRole?: string | null;
   isKanitOrAdmin: boolean;
   title?: string;
 }
@@ -208,10 +208,11 @@ export default function TugasTable({
                   s === 'PROSES' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                   'bg-pink-500/10 text-pink-400 border-pink-500/20';
                
-              // Check if current user is one of the assignees, or if they have the TEKNISI_ELBAN role generally
+               // Check if current user is one of the assignees, or if they have the TEKNISI_ELBAN role generally
+               // We use toUpperCase to be safe against case mismatches
                const isAssigned = row.assignees.some((a: { nip: string }) => a.nip === currentUserNip);
-               const isTeknisiElban = userRole === 'TEKNISI_ELBAN';
-               const canChangeStatus = isAssigned || isKanitOrAdmin || isTeknisiElban;
+               const isTeknisi = userRole?.toUpperCase().includes('TEKNISI');
+               const canChangeStatus = isTeknisi; // Restricted to TEKNISI only per user request
                
                if (canChangeStatus) {
                    return (
@@ -324,8 +325,8 @@ export default function TugasTable({
                         'text-pink-400 bg-pink-500/10 border-pink-500/20';
                     
                     const isAssigned = t.assignees.some((a: { nama: string | null; nip: string }) => a.nip === currentUserNip);
-                    const isTeknisiElban = userRole === 'TEKNISI_ELBAN';
-                    const canChangeStatus = isAssigned || isKanitOrAdmin || isTeknisiElban;
+                    const isTeknisi = userRole?.toUpperCase().includes('TEKNISI');
+                    const canChangeStatus = isTeknisi; // User request: Only TEKNISI
 
                     return (
                         <motion.div

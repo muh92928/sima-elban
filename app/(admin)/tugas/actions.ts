@@ -20,6 +20,13 @@ export async function getTugas(): Promise<{ tasks: Tugas[], currentUser: { nip: 
         const userAkun = await db.query.akun.findFirst({
             where: eq(akun.email, user.email!)
         });
+        
+        // Console log for debugging
+        // console.log("SERVER ACTION getTugas - User Found:", { 
+        //     email: user.email, 
+        //     akunFound: !!userAkun,
+        //     role: userAkun?.peran 
+        // });
 
         if (userAkun) {
             userRole = (userAkun.peran || "").toUpperCase().replace(/ /g, '_');

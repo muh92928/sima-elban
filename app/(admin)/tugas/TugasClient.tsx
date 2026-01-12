@@ -163,6 +163,38 @@ export default function TugasClient({
       return isAutoSource || isAutoDesc;
   };
 
+  // State for user role fallback if server action fails to populate it
+  const [localUserRole, setLocalUserRole] = useState<string | null>(currentUser?.role || null);
+  const [localUserNip, setLocalUserNip] = useState<string | null>(currentUser?.nip || null);
+
+  useEffect(() => {
+     // If currentUser prop is missing role, try to fetch it client-side
+     if (!currentUser?.role) {
+         const fetchUser = async () => {
+             const { data: { user } } = await supabase.auth.getUser();
+             if (user) {
+                 const { data: akun } = await supabase
+                    .from('akun')
+                    .select('peran, nip')
+                    .eq('email', user.email!)
+                    .single();
+                 
+                 if (akun) {
+                     setLocalUserRole((akun.peran || "").toUpperCase().replace(/ /g, '_'));
+                     setLocalUserNip(akun.nip);
+                 }
+             }
+         };
+         fetchUser();
+     }
+  }, [currentUser]);
+
+  const effectiveRole = currentUser?.role || localUserRole;
+  const effectiveNip = currentUser?.nip || localUserNip;
+  const isKanitOrAdmin = effectiveRole?.includes('KANIT') || effectiveRole?.includes('ADMIN');
+  // Only allow "Manage" buttons for Kanit/Admin
+  // const canManage = isKanitOrAdmin; // This line is already defined above, so commenting out to avoid redeclaration.
+  
   // Filters for Manual Tasks
   // Filters for Manual Tasks
   const [searchQuery, setSearchQuery] = useState("");
@@ -249,7 +281,7 @@ export default function TugasClient({
             </div>
         </motion.div>
 
-        <TugasStats data={tasks} />
+      <TugasStats data={tasks} />
 
         {/* Manual Tasks Table (Kanit Only) */}
       {/* Search & Filter */}
@@ -325,8 +357,8 @@ export default function TugasClient({
                 onEdit={(item) => setEditingItem(item)}
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
-                currentUserNip={currentUser?.nip}
-                userRole={currentUser?.role}
+                currentUserNip={effectiveNip}
+                userRole={effectiveRole}
                 isKanitOrAdmin={canManage}
             />
         </div>
@@ -380,6 +412,7 @@ export default function TugasClient({
                  />
              </div>
          </div>
+         
       </motion.div>
 
         <div className="space-y-4">
@@ -390,7 +423,8 @@ export default function TugasClient({
                 onEdit={(item) => setEditingItem(item)}
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
-                currentUserNip={currentUser?.nip}
+                currentUserNip={effectiveNip}
+                userRole={effectiveRole}
                 isKanitOrAdmin={canManage}
             />
         </div>
