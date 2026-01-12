@@ -2,7 +2,7 @@
 
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition, Tab } from "@headlessui/react";
-import { X, QrCode, History, Info, CalendarPlus, FileText, Wrench, CheckCircle2, AlertTriangle, AlertOctagon, User, Calendar } from "lucide-react";
+import { X, QrCode, History, Info, CalendarPlus, FileText, Wrench, CheckCircle2, AlertTriangle, AlertOctagon, User, Calendar, ListTodo } from "lucide-react";
 import { Peralatan, LogPeralatan, Tugas } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import QRCode from "react-qr-code";
