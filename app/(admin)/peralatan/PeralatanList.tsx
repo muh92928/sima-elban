@@ -14,7 +14,7 @@ import AddPeralatanModal from "@/app/components/dashboard/AddPeralatanModal";
 import PeralatanTable from "@/app/components/dashboard/PeralatanTable";
 import PeralatanStats from "@/app/components/dashboard/PeralatanStats";
 import PeralatanDetailModal from "@/app/components/dashboard/PeralatanDetailModal";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { deletePeralatan } from "./actions";
 import { notify } from "@/lib/notify";
 
@@ -24,6 +24,7 @@ interface PeralatanListProps {
 
 export default function PeralatanList({ initialData }: PeralatanListProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<any[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,12 +41,26 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
   const [reportDate, setReportDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Sync initialData
+  // Sync initialData & Handle Deep Linking
   useEffect(() => {
     setData(initialData);
     setReportDate(new Date());
     setMounted(true);
-  }, [initialData]);
+
+    // Deep Link Logic (QR Code Support)
+    const idParam = searchParams.get('id');
+    if (idParam && initialData.length > 0) {
+      const targetItem = initialData.find(item => item.id.toString() === idParam);
+      if (targetItem) {
+        setSelectedItem(targetItem);
+        setIsDetailModalOpen(true);
+        // Optional: Clean URL
+        // router.replace('/peralatan', { scroll: false });
+      } else {
+        notify.error("Data peralatan dari QR Code tidak ditemukan.");
+      }
+    }
+  }, [initialData, searchParams]);
 
   // Function to re-fetch data (used for Refresh button & after mutations)
   const refreshData = async () => {
