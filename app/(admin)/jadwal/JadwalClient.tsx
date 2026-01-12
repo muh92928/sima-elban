@@ -119,7 +119,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             notify.success("Jadwal berhasil dihapus");
         } catch (error) {
             console.error("Error deleting jadwal:", error);
-            notify.error(`Gagal menghapus jadwal: ${error.message}`);
+            notify.error(`Gagal menghapus jadwal: ${(error as any).message || "Unknown error"}`);
         }
     }
   };
