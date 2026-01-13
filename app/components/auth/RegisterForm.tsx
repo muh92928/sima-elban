@@ -127,7 +127,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
           </div>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-3 relative z-10">
+        <form onSubmit={handleRegister} className="space-y-3 relative z-10" autoComplete="off">
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium p-2 rounded-xl text-center flex items-center justify-center gap-2 mb-3 animate-slide-up-fade">
@@ -152,6 +152,8 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                   value={nip}
                   onChange={(e) => setNip(e.target.value)}
                   placeholder="NIP Pegawai"
+                  autoComplete="off"
+                  name="nip_reg_random"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 tracking-wider font-mono shadow-inner"
                   />
               </div>
@@ -172,6 +174,8 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Nama Lengkap"
+                  autoComplete="off"
+                  name="fullname_reg_random"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
                   />
               </div>
@@ -192,6 +196,8 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contoh@email.com"
+                  autoComplete="off"
+                  name="email_reg_random"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
                   />
               </div>
@@ -215,6 +221,8 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                       setWaNumber(val);
                   }}
                   placeholder="8xxx"
+                  autoComplete="off"
+                  name="wa_reg_random"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
                   />
               </div>
@@ -265,6 +273,8 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
+                  name="password_reg_random"
                   className="w-full bg-slate-950/50 border border-slate-700/50 text-white placeholder:text-slate-600 rounded-xl py-2.5 pl-9 pr-12 text-xs focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 hover:border-slate-600/50 shadow-inner"
                   />
                   <button

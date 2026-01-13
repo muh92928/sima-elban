@@ -100,6 +100,15 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
     }
   };
 
+  // Date-only filtered data for Stats (Monthly Summary)
+  const monthlyData = data.filter((item) => {
+    const itemDate = new Date(item.tanggal);
+    return reportDate
+        ? (itemDate.getFullYear() === reportDate.getFullYear() &&
+           itemDate.getMonth() === reportDate.getMonth())
+        : true;
+  });
+
   // Filter Data Logic
   const filteredData = data.filter((item) => {
     const query = searchQuery.toLowerCase();
@@ -200,7 +209,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
       {/* Stats Widget */}
       <div className="print:hidden">
-          <LogPeralatanStats data={data} />
+          <LogPeralatanStats data={monthlyData} />
       </div>
 
        {/* Print Only Header (Official Format) */}

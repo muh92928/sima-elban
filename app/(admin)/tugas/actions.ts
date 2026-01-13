@@ -16,10 +16,12 @@ export async function getTugas(): Promise<{ tasks: Tugas[], currentUser: { nip: 
 
     if (user) {
         // Fetch full user profile from akun table
-        // We can use drizzle here too for consistency
-        const userAkun = await db.query.akun.findFirst({
-            where: eq(akun.email, user.email!)
-        });
+        // Use supabase client for consistency and to avoid potential DB connection delays
+        const { data: userAkun } = await supabase
+            .from('akun')
+            .select('peran, nip')
+            .eq('email', user.email!)
+            .single();
         
         // Console log for debugging
         // console.log("SERVER ACTION getTugas - User Found:", { 
