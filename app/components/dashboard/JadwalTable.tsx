@@ -54,9 +54,11 @@ export default function JadwalTable({
         accessorKey: "nama_kegiatan",
         header: "Nama Kegiatan",
         cell: (info) => (
-          <span className="font-bold text-indigo-300">
-            {info.getValue() as string}
-          </span>
+          <div className="max-w-[200px] mx-auto text-center">
+            <span className="font-bold text-indigo-300 line-clamp-2" title={info.getValue() as string}>
+                {info.getValue() as string}
+            </span>
+          </div>
         ),
       },
       {
@@ -79,16 +81,22 @@ export default function JadwalTable({
         accessorKey: "lokasi",
         header: "Lokasi",
         cell: (info) => (
-            <div className="flex items-center justify-center gap-1.5 text-slate-300">
-                <MapPin size={14} className="text-indigo-400" />
-                <span>{info.getValue() as string}</span>
+            <div className="flex items-center justify-center gap-1.5 text-slate-300 max-w-[150px] mx-auto">
+                <MapPin size={14} className="text-indigo-400 shrink-0" />
+                <span className="truncate" title={info.getValue() as string}>{info.getValue() as string}</span>
             </div>
         ),
       },
       {
         accessorKey: "keterangan",
         header: "Keterangan",
-        cell: (info) => <span className="text-slate-400 italic text-xs">{info.getValue() as string || "-"}</span>,
+        cell: (info) => (
+            <div className="max-w-[150px] mx-auto">
+                <span className="text-slate-400 italic text-xs line-clamp-2" title={info.getValue() as string}>
+                    {info.getValue() as string || "-"}
+                </span>
+            </div>
+        ),
       },
       {
         id: "aksi",
@@ -133,7 +141,7 @@ export default function JadwalTable({
   return (
     <>
       {/* Mobile Card Render */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
+      <div className="hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />

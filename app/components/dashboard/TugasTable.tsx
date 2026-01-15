@@ -107,36 +107,36 @@ export default function TugasTable({
         {
           header: "No",
           id: "index",
-          size: 60,
-          cell: (info) => <div className="text-center">{info.row.index + 1}</div>,
+          size: 50,
+          cell: (info) => <div className="text-center w-[50px] mx-auto">{info.row.index + 1}</div>,
           enableSorting: false,
         },
         {
           accessorKey: "peralatan.nama",
-          header: "Peralatan",
-          size: 200,
+          header: () => <div className="min-w-[140px] mx-auto">Peralatan</div>,
+          size: 140,
           cell: (info) => {
               const p = info.row.original.peralatan;
               if (!p) return <span className="text-slate-500 text-xs italic">Tanpa Peralatan</span>;
               return (
-                  <div className="flex flex-col items-center">
-                      <span className="font-bold text-white text-sm text-center">{p.nama}</span>
-                      <span className="text-xs text-slate-400">{p.merk || "-"}</span>
+                  <div className="flex flex-col items-center min-w-[140px] mx-auto">
+                      <span className="font-bold text-white text-sm text-center line-clamp-2" title={p.nama}>{p.nama}</span>
+                      <span className="text-xs text-slate-400 line-clamp-1" title={p.merk}>{p.merk || "-"}</span>
                   </div>
               )
           }
         },
         {
-          header: "Judul / Deskripsi",
+          header: () => <div className="min-w-[220px] mx-auto">Judul / Deskripsi</div>,
           accessorKey: "deskripsi",
-          size: 400,
+          size: 220,
           cell: (info) => {
               const t = info.row.original;
               const hasDescription = t.deskripsi && t.deskripsi !== '-';
               
               return (
-                  <div className="max-w-[400px] mx-auto text-center flex flex-col justify-center">
-                      {t.judul && <div className={`font-bold text-white ${hasDescription ? 'mb-1' : ''}`}>{t.judul}</div>}
+                  <div className="min-w-[220px] mx-auto text-center flex flex-col justify-center">
+                      {t.judul && <div className={`font-bold text-white ${hasDescription ? 'mb-1' : ''} line-clamp-1`} title={t.judul}>{t.judul}</div>}
                       {hasDescription && (
                         <div className="text-xs text-slate-300 line-clamp-2" title={t.deskripsi}>
                             {t.deskripsi}
@@ -147,14 +147,13 @@ export default function TugasTable({
           }
         },
         {
-          header: "Ditugaskan Ke",
+          header: () => <div className="min-w-[160px] mx-auto">Ditugaskan Ke</div>,
           accessorKey: "ditugaskan_ke",
-          size: 250, 
+          size: 160, 
           cell: (info) => {
               const assignees = info.row.original.assignees as { nama: string; nip: string }[];
               if (!assignees || assignees.length === 0) return <span className="text-slate-500 text-xs italic">Belum ditugaskan</span>;
               
-              // Predefined premium colors for avatars
               const colors = [
                 { bg: 'bg-blue-500', text: 'text-blue-100', pillBg: 'bg-blue-500/10', border: 'border-blue-500/20' },
                 { bg: 'bg-emerald-500', text: 'text-emerald-100', pillBg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
@@ -165,16 +164,13 @@ export default function TugasTable({
               ];
 
               return (
-                  <div className="flex flex-wrap items-center justify-center gap-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 min-w-[160px] mx-auto">
                        {assignees.map((u, i) => {
-                           // Get initials
                            const name = u.nama || u.nip;
                            const nameParts = name.split(' ');
                            const initials = nameParts.length > 1 
                                 ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
                                 : nameParts[0].substring(0, 2).toUpperCase();
-
-                           // Deterministic color selection based on name char code sum
                            const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                            const color = colors[charCodeSum % colors.length];
 
@@ -197,9 +193,9 @@ export default function TugasTable({
           }
         },
         {
-          header: "Status",
+          header: () => <div className="w-[100px] mx-auto">Status</div>,
           accessorKey: "status",
-          size: 150,
+          size: 100,
           cell: (info) => {
                const s = info.getValue() as string;
                const row = info.row.original;
@@ -208,15 +204,13 @@ export default function TugasTable({
                   s === 'PROSES' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                   'bg-pink-500/10 text-pink-400 border-pink-500/20';
                
-               // Check if current user is one of the assignees, or if they have the TEKNISI_ELBAN role generally
-               // We use toUpperCase to be safe against case mismatches
                const isAssigned = row.assignees.some((a: { nip: string }) => a.nip === currentUserNip);
                const isTeknisi = userRole?.toUpperCase().includes('TEKNISI');
-               const canChangeStatus = isTeknisi; // Restricted to TEKNISI only per user request
+               const canChangeStatus = isTeknisi; 
                
                if (canChangeStatus) {
                    return (
-                      <div className="relative group/select">
+                      <div className="relative group/select w-[100px] mx-auto">
                         <select 
                             value={s} 
                             onChange={(e) => {
@@ -245,13 +239,13 @@ export default function TugasTable({
           }
         },
         {
-          header: "Dibuat",
+          header: () => <div className="w-[100px] mx-auto">Dibuat</div>,
           accessorKey: "dibuat_kapan",
-          size: 150,
+          size: 100,
           cell: (info) => {
               const d = new Date(info.getValue() as string);
               return (
-                  <div className="text-xs text-slate-400 text-center">
+                  <div className="text-xs text-slate-400 text-center w-[100px] mx-auto">
                       {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}
                   </div>
               )
@@ -262,15 +256,12 @@ export default function TugasTable({
       if (isKanitOrAdmin) {
         cols.push({
           id: "aksi",
-          header: "Aksi",
-          size: 100,
+          header: () => <div className="w-[80px] mx-auto">Aksi</div>,
+          size: 80,
           cell: (info) => {
               const item = info.row.original;  
               return (
                   <div className="flex items-center justify-center gap-2">
-                       {/* Edit only visible if single item? Or allow editing 'template' but applies to single? */}
-                       {/* Editing a group is tricky. Let's hide Edit for groups > 1 for safety, or allow it but know it references just one ID? */}
-                       {/* Actually, editing the representative record (ID) is fine, but it will split the group if content changes. */}
                       <button 
                           onClick={() => onEdit(item)}
                           className="p-1.5 text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
@@ -279,7 +270,7 @@ export default function TugasTable({
                           <Pencil size={16} />
                       </button>
                       <button 
-                          onClick={() => onDelete(item.ids)} // Pass array of IDs
+                          onClick={() => onDelete(item.ids)} 
                           className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                           title="Hapus"
                       >
@@ -313,7 +304,7 @@ export default function TugasTable({
 
         
         {/* Mobile View (Cards) */}
-        <div className="min-[820px]:hidden grid grid-cols-1 gap-4">
+        <div className="hidden">
             {loading ? (
                 <LoadingSpinner label="Memuat tugas..." />
             ) : table.getRowModel().rows.length > 0 ? (

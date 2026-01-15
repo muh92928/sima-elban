@@ -66,12 +66,12 @@ export default function FileTable({
         accessorKey: "nama",
         header: "Nama File",
         cell: (info) => (
-          <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-800 rounded-lg text-indigo-400">
+          <div className="flex items-center gap-3 max-w-[250px] mx-auto">
+              <div className="p-2 bg-slate-800 rounded-lg text-indigo-400 shrink-0">
                   <FileText size={18} />
               </div>
-              <div className="flex flex-col text-left">
-                  <a href={info.row.original.url} target="_blank" className="font-bold text-indigo-300 hover:text-indigo-200 hover:underline">
+              <div className="flex flex-col text-left min-w-0">
+                  <a href={info.row.original.url} target="_blank" className="font-bold text-indigo-300 hover:text-indigo-200 hover:underline truncate block" title={info.getValue() as string}>
                     {info.getValue() as string}
                   </a>
                   <span className="text-xs text-slate-500">{new Date(info.row.original.created_at).toLocaleDateString("id-ID")}</span>
@@ -96,7 +96,13 @@ export default function FileTable({
       {
         accessorKey: "catatan",
         header: "Catatan",
-        cell: (info) => <span className="text-slate-400 italic text-xs line-clamp-2 text-left">{info.getValue() as string || "-"}</span>,
+        cell: (info) => (
+            <div className="max-w-[200px] mx-auto">
+                <span className="text-slate-400 italic text-xs line-clamp-2 text-left" title={info.getValue() as string}>
+                    {info.getValue() as string || "-"}
+                </span>
+            </div>
+        ),
       },
       {
         id: "aksi",
@@ -150,7 +156,7 @@ export default function FileTable({
   return (
     <>
       {/* Mobile Card Render */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
+      <div className="hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />

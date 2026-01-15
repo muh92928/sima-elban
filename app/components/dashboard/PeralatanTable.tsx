@@ -54,136 +54,159 @@ export default function PeralatanTable({
   }, []);
 
   // Columns Definitions
-  const columns = useMemo<ColumnDef<Peralatan>[]>(
-    () => [
-      {
-        header: "No",
-        id: "index",
-        cell: (info) => info.row.index + 1,
-        enableSorting: false,
-      },
-      {
-        accessorKey: "nama",
-        header: "Nama Peralatan",
-        cell: (info) => (
-          <span className="font-medium text-white group-hover:text-blue-200 transition-colors">
-            {info.getValue() as string}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "jenis",
-        header: "Jenis Peralatan",
-        cell: (info) => <span className="text-slate-300">{info.getValue() as string}</span>,
-      },
-      {
-        accessorKey: "merk",
-        header: "Merk / Tipe / S.N",
-        cell: (info) => (
-          <span className="text-slate-400 font-mono text-xs">
-            {info.getValue() as string || "-"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "no_sertifikat",
-        header: "No Sertifikat",
-        cell: (info) => {
-          const val = info.getValue() as string;
-          return val && val !== "-" ? (
-            <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] uppercase font-bold print:bg-transparent print:text-black print:border-none">
-              {val}
-            </span>
-          ) : (
-            <span className="text-slate-500 print:text-black">-</span>
-          );
-        },
-      },
-      {
-        accessorKey: "tahun_instalasi",
-        header: "Tahun Instalasi",
-        cell: (info) => (
-          <span className="text-center block text-slate-400">
-            {info.getValue() as number || "-"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "kondisi_persen",
-        header: "Kondisi",
-        cell: (info) => {
-           const val = info.getValue() as number || 0;
-           let color = "text-red-400";
-           if (val >= 90) color = "text-emerald-400";
-           else if (val >= 70) color = "text-amber-400";
-           
-           return <span className={`font-bold ${color}`}>{val}%</span>;
-        }
-      },
-      {
-        accessorKey: "status_laik",
-        header: "Status Laik",
-        cell: (info) => {
-            const val = info.getValue() as string;
-            const isLaik = val !== "TIDAK LAIK OPERASI";
-            return (
-              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-                    !isLaik
-                    ? "bg-red-500/10 border-red-500/20 text-red-400 print:bg-transparent print:text-black print:border-none print:p-0" 
-                    : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 print:bg-transparent print:text-black print:border-none print:p-0"
-                }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full print:hidden ${
-                         !isLaik ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-                    }`} />
-                    <span className="text-[10px] font-bold tracking-wide uppercase">
-                        {val || "UNKNOWN"}
-                    </span>
+      const columns = useMemo<ColumnDef<Peralatan>[]>(
+        () => [
+          {
+            header: "No",
+            id: "index",
+            cell: (info) => info.row.index + 1,
+            enableSorting: false,
+            size: 50,
+            meta: { className: "w-[50px]" }
+          },
+          {
+            accessorKey: "nama",
+            header: () => <div className="min-w-[180px] mx-auto">Nama Peralatan</div>,
+            size: 180,
+            cell: (info) => (
+              <div className="min-w-[180px] mx-auto">
+                <span className="font-medium text-white group-hover:text-blue-200 transition-colors line-clamp-2" title={info.getValue() as string}>
+                  {info.getValue() as string}
+                </span>
               </div>
-            );
-        }
-      },
-      {
-        accessorKey: "keterangan",
-        header: "Keterangan",
-        cell: (info) => (
-            <span className="text-slate-400 text-xs italic">
-                {info.getValue() as string || "-"}
-            </span>
-        )
-      },
-      {
-        id: "aksi",
-        header: "Aksi",
-        enableSorting: false,
-        cell: (info) => (
-            <div className="flex items-center justify-center gap-2">
-                <button 
-                    onClick={() => onView(info.row.original)}
-                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-colors"
-                    title="Lihat Detail"
-                >
-                    <Info size={16} />
-                </button>
-                {onEdit && (
-                <button 
-                    onClick={() => onEdit(info.row.original)}
-                    className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
-                >
-                    <Pencil size={16} />
-                </button>
-                )}
-                {onDelete && (
-                <button 
-                    onClick={() => onDelete(info.row.original.id)}
-                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
-                >
-                    <Trash2 size={16} />
-                </button>
-                )}
-            </div>
-        )
-      }
-    ],
+            ),
+          },
+          {
+            accessorKey: "jenis",
+            header: "Jenis",
+            size: 120,
+            cell: (info) => (
+                <div className="min-w-[120px] mx-auto">
+                    <span className="text-slate-300 line-clamp-2">{info.getValue() as string}</span>
+                </div>
+            ),
+          },
+          {
+            accessorKey: "merk",
+            header: () => <div className="min-w-[150px] mx-auto">Merk / Tipe / S.N</div>,
+            size: 150,
+            cell: (info) => (
+              <div className="min-w-[150px] mx-auto">
+                <span className="text-slate-400 font-mono text-xs line-clamp-2" title={info.getValue() as string}>
+                    {info.getValue() as string || "-"}
+                </span>
+              </div>
+            ),
+          },
+          {
+            accessorKey: "no_sertifikat",
+            header: "No Sertifikat",
+            size: 130,
+            cell: (info) => {
+              const val = info.getValue() as string;
+              return val && val !== "-" ? (
+                <div className="min-w-[130px] mx-auto truncate">
+                    <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] uppercase font-bold print:bg-transparent print:text-black" title={val}>
+                    {val}
+                    </span>
+                </div>
+              ) : (
+                <span className="text-slate-500 print:text-black">-</span>
+              );
+            },
+          },
+          {
+            accessorKey: "tahun_instalasi",
+            header: "Tahun Instalasi",
+            size: 100,
+            cell: (info) => (
+              <span className="text-center block text-slate-400 min-w-[100px]">
+                {info.getValue() as number || "-"}
+              </span>
+            ),
+          },
+          {
+            accessorKey: "kondisi_persen",
+            header: "Kondisi",
+            size: 80,
+            cell: (info) => {
+               const val = info.getValue() as number || 0;
+               let color = "text-red-400";
+               if (val >= 90) color = "text-emerald-400";
+               else if (val >= 70) color = "text-amber-400";
+               
+               return <span className={`font-bold ${color}`}>{val}%</span>;
+            }
+          },
+          {
+            accessorKey: "status_laik",
+            header: "Status Laik",
+            size: 140,
+            cell: (info) => {
+                const val = info.getValue() as string;
+                const isLaik = val !== "TIDAK LAIK OPERASI";
+                return (
+                  <div className={`inline-flex items-center gap-1.5 min-w-[120px] justify-center px-3 py-1 rounded-full border ${
+                        !isLaik
+                        ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                        : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    }`}>
+                        <div className={`w-1.5 h-1.5 rounded-full print:hidden ${
+                             !isLaik ? "bg-red-500 animate-pulse" : "bg-emerald-500"
+                        }`} />
+                        <span className="text-[10px] font-bold tracking-wide uppercase whitespace-nowrap">
+                            {val || "UNKNOWN"}
+                        </span>
+                  </div>
+                );
+            }
+          },
+          {
+            accessorKey: "keterangan",
+            header: () => <div className="min-w-[150px] mx-auto">Keterangan</div>,
+            size: 150,
+            cell: (info) => (
+                <div className="min-w-[150px] mx-auto">
+                    <span className="text-slate-400 text-xs italic line-clamp-1" title={info.getValue() as string}>
+                        {info.getValue() as string || "-"}
+                    </span>
+                </div>
+            ),
+          },
+          {
+            id: "aksi",
+            header: "Aksi",
+            enableSorting: false,
+            size: 100,
+            cell: (info) => (
+                <div className="flex items-center justify-center gap-2">
+                    <button 
+                        onClick={() => onView(info.row.original)}
+                        className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-colors"
+                        title="Lihat Detail"
+                    >
+                        <Info size={16} />
+                    </button>
+                    {onEdit && (
+                    <button 
+                        onClick={() => onEdit(info.row.original)}
+                        className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-lg transition-colors"
+                    >
+                        <Pencil size={16} />
+                    </button>
+                    )}
+                    {onDelete && (
+                    <button 
+                        onClick={() => onDelete(info.row.original.id)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                    )}
+                </div>
+            )
+          }
+        ],
     [onEdit, onDelete, onView]
   );
 
@@ -205,7 +228,7 @@ export default function PeralatanTable({
   return (
     <>
       {/* Mobile Card Render (Visible < MD, Hidden >= MD, Hidden on Print) */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden print:hidden">
+      <div className="hidden">
              {loading ? (
                  <LoadingSpinner label="Memuat peralatan..." />
              ) : data.length === 0 ? (

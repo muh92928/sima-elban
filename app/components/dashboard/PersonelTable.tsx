@@ -68,7 +68,7 @@ export default function PersonelTable({
                     <div className="w-9 h-9 min-w-[2.25rem] rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md print:hidden">
                         {item.nama.charAt(0)}
                     </div>
-                    <div className="font-bold text-white text-sm">{item.nama}</div>
+                    <div className="font-bold text-white text-sm line-clamp-2" title={item.nama}>{item.nama}</div>
                 </div>
             );
         },
@@ -77,7 +77,7 @@ export default function PersonelTable({
         accessorKey: "nip",
         header: () => <div className="text-center">NIP</div>,
         cell: (info) => (
-            <div className="text-indigo-300 font-mono text-xs text-center">
+            <div className="text-indigo-300 font-mono text-xs text-center min-w-[140px]">
                 {info.getValue() as string || "-"}
             </div>
         )
@@ -89,7 +89,7 @@ export default function PersonelTable({
             const item = info.row.original;
             if (!item.tempatLahir && !item.tanggalLahir) return <div className="text-slate-500 text-xs text-center">-</div>;
             return (
-                <div className="text-xs text-slate-300 flex items-center justify-center gap-1.5">
+                <div className="text-xs text-slate-300 flex items-center justify-center gap-1.5 min-w-[180px] mx-auto text-center">
                     <span>
                     <span>
                         {[
@@ -108,8 +108,8 @@ export default function PersonelTable({
         cell: (info) => {
             const val = info.getValue() as string;
             return (
-                <div className="flex justify-center">
-                    <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap">
+                <div className="flex justify-center min-w-[150px] mx-auto">
+                    <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded text-[11px] font-bold line-clamp-2 text-center" title={val}>
                         {val || "-"}
                     </span>
                 </div>
@@ -120,7 +120,7 @@ export default function PersonelTable({
         accessorKey: "formasiPendidikan",
         header: () => <div className="text-center">Pendidikan</div>,
         cell: (info) => (
-            <div className="text-xs text-slate-400 whitespace-nowrap text-center">
+            <div className="text-xs text-slate-400 text-center min-w-[120px] mx-auto line-clamp-2" title={info.getValue() as string}>
                 <span>{info.getValue() as string || "-"}</span>
             </div>
         )
@@ -131,15 +131,10 @@ export default function PersonelTable({
         cell: (info) => {
             const item = info.row.original;
             return (
-                <div className="flex flex-col gap-0.5 items-center justify-center min-w-[150px]">
-                    <div className="text-orange-300 text-xs font-medium text-center">
+                <div className="flex flex-col gap-0.5 items-center justify-center min-w-[150px] mx-auto">
+                    <div className="text-orange-300 text-xs font-medium text-center line-clamp-2" title={item.jenisSertifikat || ""}>
                         {item.jenisSertifikat || "-"}
                     </div>
-                    {item.noSertifikat && (
-                        <div className="text-[10px] text-slate-500 font-mono text-center">
-                           {item.noSertifikat}
-                        </div>
-                    )}
                 </div>
             );
         },
@@ -149,7 +144,7 @@ export default function PersonelTable({
         header: () => <div className="text-center">Kompetensi</div>,
         cell: (info) => (
             <div className="flex justify-center">
-                <span className="text-slate-400 text-xs italic block text-center max-w-[200px] truncate" title={info.getValue() as string}>
+                <span className="text-slate-400 text-xs italic block text-center min-w-[150px] truncate" title={info.getValue() as string}>
                     {info.getValue() as string || "-"}
                 </span>
             </div>
@@ -160,7 +155,7 @@ export default function PersonelTable({
         header: () => <div className="text-center">Keterangan</div>,
         cell: (info) => (
             <div className="flex justify-center">
-                <span className="text-slate-500 text-xs block text-center max-w-[150px] truncate">
+                <span className="text-slate-500 text-xs block text-center min-w-[150px] truncate">
                     {info.getValue() as string || "-"}
                 </span>
             </div>
@@ -170,7 +165,7 @@ export default function PersonelTable({
         id: "aksi",
         header: "Aksi",
         enableSorting: false,
-        size: 80,
+        size: 100,
         cell: (info) => (
             <div className="flex items-center justify-center gap-1">
                 <button 
@@ -212,7 +207,7 @@ export default function PersonelTable({
   return (
     <>
       {/* Mobile Card Render (Visible < MD, Hidden >= MD, Hidden on Print) */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden print:hidden">
+      <div className="hidden">
              {loading ? (
                  <LoadingSpinner label="Memuat personel..." />
              ) : data.length === 0 ? (

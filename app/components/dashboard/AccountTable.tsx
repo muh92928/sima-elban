@@ -76,13 +76,13 @@ export default function AccountTable({
         accessorKey: "nama",
         header: "Identitas",
         cell: (info) => (
-          <div className="flex flex-col items-center text-center">
-             <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-sm">{info.getValue() as string}</span>
+          <div className="flex flex-col items-center text-center max-w-[200px] mx-auto">
+             <div className="flex items-center gap-2 justify-center w-full">
+                <span className="font-bold text-white text-sm line-clamp-1" title={info.getValue() as string}>{info.getValue() as string}</span>
              </div>
-             <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
-                <BadgeCheck size={12} className="text-indigo-400" />
-                <span>NIP: {info.row.original.nip || '-'}</span>
+             <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 justify-center w-full">
+                <BadgeCheck size={12} className="text-indigo-400 shrink-0" />
+                <span className="truncate max-w-full">NIP: {info.row.original.nip || '-'}</span>
              </div>
           </div>
         ),
@@ -200,7 +200,7 @@ export default function AccountTable({
   return (
     <>
       {/* Mobile Card Render */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
+      <div className="hidden">
             {loading ? (
                 <div className="text-center py-8 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />

@@ -62,8 +62,8 @@ export default function PengaduanTable({
         accessorKey: "peralatan.nama", // Access nested data
         header: "Peralatan",
         cell: (info) => (
-          <div className="flex flex-col text-left">
-              <span className="font-bold text-white text-sm line-clamp-2">
+          <div className="flex flex-col text-left max-w-[180px]">
+              <span className="font-bold text-white text-sm line-clamp-2" title={info.getValue() as string}>
                   {info.getValue() as string || "Peralatan Tidak Diketahui"}
               </span>
           </div>
@@ -74,8 +74,8 @@ export default function PengaduanTable({
         id: "pengadu", // Custom ID since we access multiple fields
         accessorFn: (row) => row.akun?.nama || row.pelapor || "Unknown",
         cell: (info) => (
-            <div className="flex flex-col">
-              <span className="text-slate-300 text-xs font-semibold text-left">{info.getValue() as string}</span>
+            <div className="flex flex-col max-w-[150px]">
+              <span className="text-slate-300 text-xs font-semibold text-left line-clamp-2" title={info.getValue() as string}>{info.getValue() as string}</span>
             </div>
         ),
       },
@@ -184,7 +184,7 @@ export default function PengaduanTable({
   return (
     <>
       {/* Mobile Card Render */}
-      <div className="flex flex-col gap-4 p-4 min-[820px]:hidden">
+      <div className="hidden">
             {data.length === 0 ? (
                 <div className="text-center py-8 text-slate-500 italic">
                     Belum ada pengaduan.

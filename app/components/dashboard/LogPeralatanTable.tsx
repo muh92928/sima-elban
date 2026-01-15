@@ -59,9 +59,9 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
         accessorKey: "peralatan.nama", // Access nested data
         header: "Peralatan",
         cell: (info) => (
-            <div className="flex flex-col items-center text-center">
-                <span className="font-bold text-white text-xs print:text-black">{info.row.original.peralatan?.nama || `Peralatan #${info.row.original.peralatan_id}`}</span>
-                <span className="text-[10px] text-slate-400 print:text-gray-600">
+            <div className="flex flex-col items-center text-center max-w-[200px] mx-auto">
+                <span className="font-bold text-white text-xs print:text-black line-clamp-2" title={info.row.original.peralatan?.nama}>{info.row.original.peralatan?.nama || `Peralatan #${info.row.original.peralatan_id}`}</span>
+                <span className="text-[10px] text-slate-400 print:text-gray-600 line-clamp-1">
                     {info.row.original.peralatan?.jenis} 
                     {info.row.original.peralatan?.merk ? ` • ${info.row.original.peralatan?.merk}` : ''}
                 </span>
@@ -167,7 +167,7 @@ export default function LogPeralatanTable({ data, loading, onEdit, onDelete }: L
   return (
     <>
       {/* Mobile Card View (Visible on < lg, Hidden on >= lg, Hidden on Print) */}
-      <div className="min-[820px]:hidden flex flex-col gap-4 print:hidden">
+      <div className="hidden">
             {loading ? (
                  <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-indigo-500" size={24} />
