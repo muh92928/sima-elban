@@ -153,10 +153,11 @@ export default function DashboardLayoutClient({
                 position="top-center"
                 containerStyle={{
                     top: 24,
-                    left: 'var(--sidebar-margin)', 
+                    left: 0,
                     right: 0,
                     bottom: 'auto',
                 }}
+                containerClassName="md:!left-[var(--sidebar-margin)]"
                 toastOptions={{
                     className: '',
                     style: {
