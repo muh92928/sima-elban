@@ -95,15 +95,8 @@ export default function DashboardLayoutClient({
     <LayoutContext.Provider value={{ isComplaintVisible, setIsComplaintVisible, isModalOpen, setIsModalOpen }}>
         <div 
             style={{ '--sidebar-margin': isSidebarCollapsed ? '5rem' : '13.75rem' } as React.CSSProperties}
-            className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black [--sidebar-margin:0] md:[--sidebar-margin:var(--sidebar-margin)]"
+            className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black"
         >
-            {/* Notification Wrapper - Fixed & Centered relative to Content */}
-            <div className={`fixed top-24 md:top-6 left-0 right-0 md:left-[var(--sidebar-margin)] z-50 flex justify-center pointer-events-none transition-all duration-300 px-4 md:px-8 print:hidden ${!shouldShowNotification ? 'opacity-0 translate-y-[-20px] pointer-events-none hidden' : 'opacity-100 translate-y-0'}`}>
-                <div className="pointer-events-auto w-full max-w-7xl">
-                    <ComplaintNotification userRole={role} onVisibilityChange={setIsComplaintVisible} />
-                </div>
-            </div>
-
             {/* Sidebar */}
             <div className="print:hidden">
                 <Sidebar 
@@ -132,19 +125,57 @@ export default function DashboardLayoutClient({
                     <Menu size={20} />
                 </button>
             </div>
-
             {/* Main Content Area */}
             <main 
                 className={`flex-1 transition-[padding] duration-300 ease-in-out
                     ml-0 md:ml-[var(--sidebar-margin)] 
-                    ${(isToastActive || shouldShowNotification) ? 'pt-72 md:pt-32' : 'pt-20 md:pt-8'}
-                    print:ml-0 p-4 md:p-8 relative min-h-screen overflow-hidden print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
+                    pt-16 md:pt-0
+                    print:ml-0 p-4 md:p-8 relative min-h-screen print:block print:h-auto print:min-h-0 print:p-0 print:overflow-visible`}
             >
                 {/* Background Atmosphere */}
                 <div className="fixed top-0 transition-[left] duration-300 left-0 md:left-[var(--sidebar-margin)] right-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none print:hidden" />
                 <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
                 
-                <div className="relative z-10 max-w-7xl mx-auto print:max-w-none">
+                {/* Content Container */}
+                <div className="relative z-10 max-w-7xl mx-auto print:max-w-none flex flex-col items-stretch">
+                    
+                    {/* Unified Sticky Notification Wrapper */}
+                    <div className="sticky top-16 md:top-2 z-40 mb-6 flex flex-col gap-4 transition-all duration-300 pointer-events-none">
+                        
+                        {/* Toaster: Flows naturally, takes space */}
+                        <div className="w-full empty:hidden pointer-events-auto">
+                            <Toaster 
+                                position="top-center"
+                                containerStyle={{
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 'auto',
+                                    position: 'relative',
+                                }}
+                                toastOptions={{
+                                    className: 'w-full !max-w-full shadow-lg',
+                                    style: {
+                                        background: 'transparent',
+                                        boxShadow: 'none',
+                                        padding: 0,
+                                        maxWidth: '100%',
+                                        width: '100%',
+                                    },
+                                }}
+                            />
+                        </div>
+
+                        {/* Complaint Notification */}
+                        <div className={`
+                            w-full transition-all duration-300 pointer-events-auto
+                            ${!shouldShowNotification ? 'hidden' : 'block'} 
+                            ${!shouldShowNotification ? 'opacity-0 translate-y-[-20px] pointer-events-none hidden' : 'opacity-100 translate-y-0'}
+                        `}>
+                            <ComplaintNotification userRole={role} onVisibilityChange={setIsComplaintVisible} />
+                        </div>
+                    </div>
+
                     {children}
                 </div>
             </main>
@@ -153,10 +184,11 @@ export default function DashboardLayoutClient({
                 position="top-center"
                 containerStyle={{
                     top: 24,
-                    left: 'var(--sidebar-margin)', 
+                    left: 0,
                     right: 0,
                     bottom: 'auto',
                 }}
+                containerClassName="!left-0 md:!left-[var(--sidebar-margin)]"
                 toastOptions={{
                     className: '',
                     style: {

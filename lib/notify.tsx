@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import NotificationToast from "@/app/components/ui/NotificationToast";
+import { motion } from "framer-motion";
 
 export const notify = {
   success: (message: string) => {
@@ -30,7 +31,12 @@ export const notify = {
     return new Promise((resolve) => {
       toast.custom(
         (t) => (
-          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} w-full max-w-7xl mx-auto px-4 md:px-8 pointer-events-none flex justify-center`}>
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`${t.visible ? 'animate-enter' : 'animate-leave'} w-full max-w-7xl mx-auto px-4 md:px-8 pointer-events-none flex justify-center`}
+          >
             <div className="pointer-events-auto w-full bg-slate-900/95 backdrop-blur-md border border-yellow-500/30 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.2)] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ring-1 ring-white/10 relative">
               
               <div className="flex items-start md:items-center gap-4 flex-1 w-full">
@@ -69,7 +75,7 @@ export const notify = {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         ),
         {
           duration: Infinity,
