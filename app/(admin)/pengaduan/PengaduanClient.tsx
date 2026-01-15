@@ -1,127 +1,33 @@
-"use client";
+import { getPengaduan } from "./actions"; // Import Server Action
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Search, Plus, MessageSquareWarning, Filter, Calendar } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { Pengaduan } from "@/lib/types";
-import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
-import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
-import ProcessPengaduanModal from "@/app/components/dashboard/ProcessPengaduanModal";
-import PengaduanStats from "@/app/components/dashboard/PengaduanStats";
-import { notify } from "@/lib/notify";
-
-interface PengaduanClientProps {
-  initialData: Pengaduan[];
-}
+// ... (existing imports)
 
 export default function PengaduanClient({ initialData }: PengaduanClientProps) {
-  const [data, setData] = useState<Pengaduan[]>(initialData);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Pengaduan | null>(null);
-  
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState<Date | null>(null); // Start with null to prevent hydration mismatch
-
-  // Set default date filter to current month on mount
-  useEffect(() => {
-    setDateFilter(new Date());
-  }, []);
-
-  const [processingItem, setProcessingItem] = useState<Pengaduan | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // Fetch Role Client Side
-  useEffect(() => {
-      const fetchRole = async () => {
-          try {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (user) {
-                  setCurrentUserEmail(user.email || "");
-                  const { data: akun } = await supabase.from('akun').select('id, peran').eq('email', user.email!).single();
-                  
-                  if (akun) {
-                      const r = (akun.peran || "").toUpperCase().replace(/ /g, '_');
-                      setRole(r);
-                      setCurrentUserId(akun.id);
-                  } else {
-                      setRole(user.user_metadata?.role || ""); 
-                  }
-              } else {
-                  setRole("");
-              }
-          } catch (e) {
-              console.error("Client role fetch error", e);
-              setRole("");
-          }
-      };
-      
-      fetchRole();
-  }, []);
-
-  const isTechnician = role ? (role.includes("KANIT") || role.includes("TEKNISI")) : false;
-  const canCreate = role && !isTechnician;
-  const [peralatanMap, setPeralatanMap] = useState<Record<number, string>>({});
+  // ... (existing state)
 
   const refreshData = async () => {
     try {
       setLoading(true);
       
-      setLoading(true);
-      
-      // 1. Fetch Pengaduan with Akun relation
-      let query = supabase
-        .from('pengaduan')
-        .select('*, akun(nama, peran)') 
-        .order('created_at', { ascending: false });
+      // Use the Secure Server Action (RBAC Enforced)
+      const data = await getPengaduan();
 
-      // Apply RBAC Client Side if needed (Defense in Depth)
-      // Note: role and currentUserId must be loaded.
-      if (role && currentUserId && !isTechnician) {
-          query = query.eq('akun_id', currentUserId);
-      }
-
-      const { data: pengaduan, error } = await query;
-
-      if (error) throw error;
-      
-      // 2. Fetch Peralatan (Lookup Map)
-      const { data: peralatanList } = await supabase
-        .from('peralatan')
-        .select('id, nama');
-      
-      const pMap: Record<number, string> = {};
-      if (peralatanList) {
-          peralatanList.forEach(p => {
-              pMap[p.id] = p.nama;
-          });
-          setPeralatanMap(pMap);
-      }
-      
-      // Enrich data locally
-      const enrichedData = (pengaduan || []).map((p: any) => ({
-          ...p,
-          peralatan: { nama: pMap[p.peralatan_id] || "Tidak Diketahui" }
-      }));
-
-      setData(enrichedData as Pengaduan[]);
+      setData(data); // Server action returns already-mapped data
     } catch (error) {
-      console.error('Error fetching pengaduan:', error);
+       console.error('Error fetching pengaduan:', error);
+       notify.error("Gagal memuat data terbaru.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+      // If initialData is empty/missing, fetch from server action
       if (!initialData || initialData.length === 0) {
           refreshData();
       }
-  }, []);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   const handleEdit = (item: Pengaduan) => {
       if (isTechnician) {
