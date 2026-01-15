@@ -114,9 +114,9 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus data pengaduan ini?")) {
-        return;
-    }
+    const confirmed = await notify.confirm("Apakah Anda yakin ingin menghapus data pengaduan ini?");
+    
+    if (!confirmed) return;
     
     try {
         setLoading(true);
@@ -124,7 +124,6 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
         notify.success("Pengaduan berhasil dihapus.");
         await refreshData();
     } catch (error) {
-        // console.error("Error deleting pengaduan:", error); // Removed debug console.error
         notify.error("Gagal menghapus pengaduan: " + (error instanceof Error ? error.message : String(error)));
     } finally {
         setLoading(false);
