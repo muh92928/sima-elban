@@ -6,6 +6,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { toast, useToaster } from "react-hot-toast";
 import { createPersonel, updatePersonel } from "@/app/(admin)/personel/actions";
 import { useLayout } from "@/app/context/LayoutContext";
+import { supabase } from "@/lib/supabase";
 
 interface PersonelData {
   id?: string;
@@ -83,6 +84,31 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Auto-fill Nama based on NIP
+  useEffect(() => {
+    const fetchNameByNIP = async () => {
+      // Only fetch if it's a new entry (not edit mode) and NIP looks complete
+      if (initialData?.id || !formData.nip || formData.nip.length < 18) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('akun')
+          .select('nama')
+          .eq('nip', formData.nip)
+          .single();
+
+        if (data && data.nama) {
+          setFormData(prev => ({ ...prev, nama: data.nama }));
+          toast.success(`Ditemukan: ${data.nama}`, { id: 'nip-lookup' });
+        }
+      } catch (err) {
+        // Silent fail for background lookup
+      }
+    };
+
+    fetchNameByNIP();
+  }, [formData.nip, initialData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -155,8 +181,18 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
                 <div className="flex-1 overflow-y-auto p-6">
                   <form id="personelForm" onSubmit={handleSubmit} className="space-y-6">
                     
-                    {/* Nama & NIP */}
+                    {/* NIP & Nama */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300">NIP</label>
+                        <input 
+                          name="nip"
+                          value={formData.nip}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
+                          placeholder="Nomor Induk Pegawai"
+                        />
+                      </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-300">Nama Lengkap <span className="text-red-500">*</span></label>
                         <input 
@@ -166,16 +202,6 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
                           onChange={handleChange}
                           className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
                           placeholder="Nama Pegawai"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">NIP</label>
-                        <input 
-                          name="nip"
-                          value={formData.nip}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Nomor Induk Pegawai"
                         />
                       </div>
                     </div>
