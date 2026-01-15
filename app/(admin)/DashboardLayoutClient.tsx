@@ -95,7 +95,7 @@ export default function DashboardLayoutClient({
     <LayoutContext.Provider value={{ isComplaintVisible, setIsComplaintVisible, isModalOpen, setIsModalOpen }}>
         <div 
             style={{ '--sidebar-margin': isSidebarCollapsed ? '5rem' : '13.75rem' } as React.CSSProperties}
-            className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black"
+            className="min-h-screen w-full bg-[#030712] text-white font-sans selection:bg-indigo-500/30 flex print:block print:bg-white print:text-black [--sidebar-margin:0] md:[--sidebar-margin:var(--sidebar-margin)]"
         >
             {/* Notification Wrapper - Fixed & Centered relative to Content */}
             <div className={`fixed top-24 md:top-6 left-0 right-0 md:left-[var(--sidebar-margin)] z-50 flex justify-center pointer-events-none transition-all duration-300 px-4 md:px-8 print:hidden ${!shouldShowNotification ? 'opacity-0 translate-y-[-20px] pointer-events-none hidden' : 'opacity-100 translate-y-0'}`}>
@@ -153,11 +153,10 @@ export default function DashboardLayoutClient({
                 position="top-center"
                 containerStyle={{
                     top: 24,
-                    left: 0,
+                    left: 'var(--sidebar-margin)', 
                     right: 0,
                     bottom: 'auto',
                 }}
-                containerClassName="md:!left-[var(--sidebar-margin)]"
                 toastOptions={{
                     className: '',
                     style: {
