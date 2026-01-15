@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { pengaduan, peralatan, akun } from "@/drizzle/schema";
-import { desc, eq, or, and } from "drizzle-orm";
+import { desc, eq, or, and, inArray } from "drizzle-orm";
 import { Pengaduan } from "@/lib/types";
 
 import { createClient } from "@/utils/supabase/server";
@@ -14,67 +14,59 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
 
         if (!user) return [];
 
-        // Fetch user role cheaply to decide permission
-        const { data: userAkun } = await supabase
+        // Collect all potential Account IDs for this user
+        // 1. Check by Auth ID (PK)
+        const { data: byId } = await supabase
             .from('akun')
             .select('id, peran')
-            .eq('email', user.email!)
-            .single();
+            .eq('id', user.id);
 
-        if (!userAkun) return [];
+        // 2. Check by Email
+        const { data: byEmail } = await supabase
+            .from('akun')
+            .select('id, peran')
+            .eq('email', user.email!);
 
-        const userRole = (userAkun.peran || "").toUpperCase().replace(/ /g, '_');
-        const isPrivileged = userRole === 'KANIT_ELBAN' || userRole.includes('TEKNISI');
+        const allAccounts = [ ...(byId || []), ...(byEmail || []) ];
+        
+        // Deduplicate by ID
+        const uniqueAccounts = Array.from(new Map(allAccounts.map(item => [item.id, item])).values());
 
-        console.log("DEBUG RBAC Pengaduan:", {
-            email: user.email,
-            role: userRole,
-            isPrivileged,
-            myId: userAkun.id
-        });
-
-        // Conditional query
-        let query = db.select({
-            id: pengaduan.id,
-            deskripsi: pengaduan.deskripsi,
-            status: pengaduan.status,
-            dokumentasi: pengaduan.dokumentasi,
-            buktiPetugas: pengaduan.buktiPetugas,
-            createdAt: pengaduan.createdAt,
-            peralatanId: pengaduan.peralatanId,
-            akunId: pengaduan.akunId,
-            // Joined fields
-            peralatanNama: peralatan.nama,
-            akunNama: akun.nama,
-            akunPeran: akun.peran,
-        })
-        .from(pengaduan)
-        .leftJoin(peralatan, eq(pengaduan.peralatanId, peralatan.id))
-        .leftJoin(akun, eq(pengaduan.akunId, akun.id))
-        .orderBy(desc(pengaduan.createdAt));
-
-        // Drizzle .where() returns a new instance, so we MUST reassign 'query'
-        // or apply it to a new variable.
-        if (!isPrivileged) {
-             console.log("DEBUG RBAC: Applying Filter ID =", userAkun.id);
-             // @ts-ignore - Drizzle types can be tricky with dynamic where
-             query = query.where(eq(pengaduan.akunId, userAkun.id));
-        } else {
-             console.log("DEBUG RBAC: No Filter (Privileged)");
+        if (uniqueAccounts.length === 0) {
+            console.error("DEBUG RBAC: User Akun NOT FOUND for Auth ID/Email", user.id, user.email);
+            return [];
         }
 
-        const rawData = await query;
+
+        const accountIds = uniqueAccounts.map(a => a.id);
+        const roles = uniqueAccounts.map(a => (a.peran || "").toUpperCase().replace(/ /g, '_'));
+        const isPrivileged = roles.some(r => r === 'KANIT_ELBAN' || r.includes('TEKNISI'));
+
+        let whereClause = undefined;
+        if (!isPrivileged) {
+             whereClause = inArray(pengaduan.akunId, accountIds);
+        }
+
+        // Use Drizzle Query API
+        const data = await db.query.pengaduan.findMany({
+            where: whereClause,
+            with: {
+                peralatan: true,
+                akun: true
+            },
+            orderBy: [desc(pengaduan.createdAt)]
+        });
 
         // Map to Pengaduan interface
-        return rawData.map((item: any) => ({
+        return data.map((item: any) => ({
             id: item.id,
             peralatan_id: item.peralatanId,
-            peralatan: item.peralatanNama ? { nama: item.peralatanNama } : { nama: "Tidak Diketahui" },
+            peralatan: item.peralatan ? { nama: item.peralatan.nama } : { nama: "Tidak Diketahui" },
             
             akun_id: item.akunId,
-            akun: item.akunNama ? { 
-                nama: item.akunNama, 
-                peran: item.akunPeran 
+            akun: item.akun ? { 
+                nama: item.akun.nama, 
+                peran: item.akun.peran 
             } : null,
             
             deskripsi: item.deskripsi,
@@ -82,13 +74,14 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
             dokumentasi: item.dokumentasi,
             bukti_petugas: item.buktiPetugas,
             created_at: item.createdAt,
-            pelapor: item.akunNama || null
+            // Legacy support if needed, but 'pelapor' usually comes from akun.nama
+            pelapor: item.akun?.nama || null
         })) as unknown as Pengaduan[];
-
-
 
     } catch (error) {
         console.error('[getPengaduan] Error:', error);
         return [];
     }
 }
+// Removed helper function as logic is now consolidated above
+

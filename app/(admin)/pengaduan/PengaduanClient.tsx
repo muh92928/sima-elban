@@ -11,7 +11,6 @@ import ProcessPengaduanModal from "@/app/components/dashboard/ProcessPengaduanMo
 import PengaduanStats from "@/app/components/dashboard/PengaduanStats";
 import { notify } from "@/lib/notify";
 import { getPengaduan } from "./actions"; // Import Server Action
-import { getPengaduan } from "./actions"; // Import Server Action
 
 interface PengaduanClientProps {
   initialData: Pengaduan[];
@@ -78,6 +77,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
       const data = await getPengaduan();
 
       setData(data); // Server action returns already-mapped data
+      notify.success(`Data dimuat: ${data.length} item`); // DEBUG: Show count
     } catch (error) {
        console.error('Error fetching pengaduan:', error);
        notify.error("Gagal memuat data terbaru.");
@@ -98,15 +98,15 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
       if (isTechnician) {
           setProcessingItem(item);
       } else {
-      if (item.status === "Selesai") {
-          notify.success("Pengaduan telah selesai ditangani. Data tersimpan sebagai arsip.");
-          return;
-      }
+          if (item.status === "Selesai") {
+              notify.success("Pengaduan telah selesai ditangani. Data tersimpan sebagai arsip.");
+              return;
+          }
 
-      if (item.status === "Diproses") {
-          notify.warning("Pengaduan sedang ditangani oleh teknisi. Data dikunci sementara.");
-          return;
-      }
+          if (item.status === "Diproses") {
+              notify.warning("Pengaduan sedang ditangani oleh teknisi. Data dikunci sementara.");
+              return;
+          }
           setEditingItem(item);
           setIsModalOpen(true);
       }
@@ -140,11 +140,14 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
     const matchStatus = statusFilter === "all" || item.status === statusFilter;
 
     // Date Filter matches *Month Created*
+    // DEBUG: Disabled date filter to ensure data visibility
+    const matchDate = true; 
+    /*
     const itemDate = new Date(item.created_at);
-    
     const matchDate = dateFilter 
         ? itemDate.getFullYear() === dateFilter.getFullYear() && itemDate.getMonth() === dateFilter.getMonth()
         : true;
+    */
 
     return matchSearch && matchStatus && matchDate;
   });
