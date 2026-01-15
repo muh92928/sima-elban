@@ -72,11 +72,21 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
     try {
       setLoading(true);
       
+      setLoading(true);
+      
       // 1. Fetch Pengaduan with Akun relation
-      const { data: pengaduan, error } = await supabase
+      let query = supabase
         .from('pengaduan')
         .select('*, akun(nama, peran)') 
         .order('created_at', { ascending: false });
+
+      // Apply RBAC Client Side if needed (Defense in Depth)
+      // Note: role and currentUserId must be loaded.
+      if (role && currentUserId && !isTechnician) {
+          query = query.eq('akun_id', currentUserId);
+      }
+
+      const { data: pengaduan, error } = await query;
 
       if (error) throw error;
       
