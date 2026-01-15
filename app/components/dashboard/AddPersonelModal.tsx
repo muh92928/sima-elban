@@ -31,6 +31,8 @@ interface AddPersonelModalProps {
 
 export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialData }: AddPersonelModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [nipFound, setNipFound] = useState(false);
 
   const { setIsModalOpen } = useLayout();
   useEffect(() => {
@@ -87,9 +89,20 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
   // Auto-fill Nama based on NIP
   useEffect(() => {
     const fetchNameByNIP = async () => {
-      // Only fetch if it's a new entry (not edit mode) and NIP looks complete
-      if (initialData?.id || !formData.nip || formData.nip.length < 18) return;
+      // Clear name if NIP is too short or cleared
+      if (!formData.nip || formData.nip.length < 18) {
+        if (!initialData) { // Only clear if we're in "Add" mode
+           setFormData(prev => ({ ...prev, nama: "" }));
+        }
+        setNipFound(false);
+        setIsSearching(false);
+        return;
+      }
 
+      // Only fetch if it's a new entry (not edit mode)
+      if (initialData?.id) return;
+
+      setIsSearching(true);
       try {
         const { data, error } = await supabase
           .from('akun')
@@ -99,14 +112,22 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
 
         if (data && data.nama) {
           setFormData(prev => ({ ...prev, nama: data.nama }));
-          toast.success(`Ditemukan: ${data.nama}`, { id: 'nip-lookup' });
+          setNipFound(true);
+        } else {
+          setNipFound(false);
         }
       } catch (err) {
-        // Silent fail for background lookup
+        setNipFound(false);
+      } finally {
+        setIsSearching(false);
       }
     };
 
-    fetchNameByNIP();
+    const timer = setTimeout(() => {
+        fetchNameByNIP();
+    }, 500); // Debounce to allow user to finish typing
+
+    return () => clearTimeout(timer);
   }, [formData.nip, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,13 +204,27 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
                     
                     {/* NIP & Nama */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">NIP</label>
+                      <div className="space-y-2 relative">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-slate-300">NIP</label>
+                            {isSearching && (
+                                <span className="flex items-center gap-1.5 text-xs text-indigo-400">
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                    Mencari...
+                                </span>
+                            )}
+                            {!isSearching && nipFound && !initialData && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">
+                                    Ditemukan ✓
+                                </span>
+                            )}
+                        </div>
                         <input 
                           name="nip"
                           value={formData.nip}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
+                          autoComplete="off"
+                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500 transition-all"
                           placeholder="Nomor Induk Pegawai"
                         />
                       </div>
@@ -200,8 +235,13 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
                           name="nama"
                           value={formData.nama}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Nama Pegawai"
+                          readOnly={!initialData?.id}
+                          className={`w-full px-4 py-2 border border-white/10 rounded-xl outline-none text-white placeholder:text-slate-500 transition-all ${
+                            !initialData?.id 
+                              ? "bg-slate-800/50 text-slate-400 cursor-not-allowed border-dashed focus:ring-0" 
+                              : "bg-slate-800 focus:ring-2 focus:ring-indigo-500"
+                          }`}
+                          placeholder={!initialData?.id ? "Terisi otomatis via NIP" : "Nama Pegawai"}
                         />
                       </div>
                     </div>
