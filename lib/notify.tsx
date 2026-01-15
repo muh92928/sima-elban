@@ -51,7 +51,7 @@ export const notify = {
               <div className="flex gap-3 w-full md:w-auto">
                 <button
                   onClick={() => {
-                    toast.dismiss(t.id);
+                    toast.remove(t.id);
                     resolve(true);
                   }}
                   className="flex-1 md:flex-none px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-red-500/20"
@@ -60,7 +60,7 @@ export const notify = {
                 </button>
                 <button
                   onClick={() => {
-                    toast.dismiss(t.id);
+                    toast.remove(t.id);
                     resolve(false);
                   }}
                   className="flex-1 md:flex-none px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-semibold text-sm transition-colors"
