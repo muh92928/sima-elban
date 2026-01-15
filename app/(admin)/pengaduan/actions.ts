@@ -53,9 +53,12 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
         .leftJoin(akun, eq(pengaduan.akunId, akun.id))
         .orderBy(desc(pengaduan.createdAt));
 
+        // Drizzle .where() returns a new instance, so we MUST reassign 'query'
+        // or apply it to a new variable.
         if (!isPrivileged) {
              console.log("DEBUG RBAC: Applying Filter ID =", userAkun.id);
-             query.where(eq(pengaduan.akunId, userAkun.id));
+             // @ts-ignore - Drizzle types can be tricky with dynamic where
+             query = query.where(eq(pengaduan.akunId, userAkun.id));
         } else {
              console.log("DEBUG RBAC: No Filter (Privileged)");
         }
