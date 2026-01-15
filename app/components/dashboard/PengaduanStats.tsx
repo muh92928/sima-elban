@@ -27,7 +27,7 @@ export default function PengaduanStats({ data }: PengaduanStatsProps) {
 
   const cards = [
     {
-      title: "Baru Masuk",
+      title: "Baru Diajukan",
       value: stats.baru,
       icon: Inbox,
       color: "blue",
