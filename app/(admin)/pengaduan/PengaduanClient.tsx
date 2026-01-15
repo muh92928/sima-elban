@@ -1,9 +1,74 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Search, Plus, MessageSquareWarning, Filter, Calendar } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { Pengaduan } from "@/lib/types";
+import AddPengaduanModal from "@/app/components/dashboard/AddPengaduanModal";
+import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
+import ProcessPengaduanModal from "@/app/components/dashboard/ProcessPengaduanModal";
+import PengaduanStats from "@/app/components/dashboard/PengaduanStats";
+import { notify } from "@/lib/notify";
+import { getPengaduan } from "./actions"; // Import Server Action
 import { getPengaduan } from "./actions"; // Import Server Action
 
-// ... (existing imports)
+interface PengaduanClientProps {
+  initialData: Pengaduan[];
+}
 
 export default function PengaduanClient({ initialData }: PengaduanClientProps) {
-  // ... (existing state)
+  const [data, setData] = useState<Pengaduan[]>(initialData);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Pengaduan | null>(null);
+  
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState<Date | null>(null); // Start with null to prevent hydration mismatch
+
+  // Set default date filter to current month on mount
+  useEffect(() => {
+    setDateFilter(new Date());
+  }, []);
+
+  const [processingItem, setProcessingItem] = useState<Pengaduan | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Fetch Role Client Side
+  useEffect(() => {
+      const fetchRole = async () => {
+          try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                  setCurrentUserEmail(user.email || "");
+                  const { data: akun } = await supabase.from('akun').select('id, peran').eq('email', user.email!).single();
+                  
+                  if (akun) {
+                      const r = (akun.peran || "").toUpperCase().replace(/ /g, '_');
+                      setRole(r);
+                      setCurrentUserId(akun.id);
+                  } else {
+                      setRole(user.user_metadata?.role || ""); 
+                  }
+              } else {
+                  setRole("");
+              }
+          } catch (e) {
+              console.error("Client role fetch error", e);
+              setRole("");
+          }
+      };
+      
+      fetchRole();
+  }, []);
+
+  const isTechnician = role ? (role.includes("KANIT") || role.includes("TEKNISI")) : false;
+  const canCreate = role && !isTechnician;
+  const [peralatanMap, setPeralatanMap] = useState<Record<number, string>>({});
 
   const refreshData = async () => {
     try {
