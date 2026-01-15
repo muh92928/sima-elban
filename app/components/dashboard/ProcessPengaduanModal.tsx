@@ -5,6 +5,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { X, Wrench, Save, Loader2, ImageIcon, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Pengaduan } from "@/lib/types";
+import { savePengaduan } from "@/app/(admin)/pengaduan/actions";
 
 interface ProcessPengaduanModalProps {
   isOpen: boolean;
@@ -87,15 +88,10 @@ export default function ProcessPengaduanModal({ isOpen, onClose, onSuccess, data
           }
       }
 
-      const { error } = await supabase
-          .from("pengaduan")
-          .update({ 
-              status: status,
-              bukti_petugas: finalUrl
-          })
-          .eq('id', data.id);
-
-      if (error) throw error;
+      await savePengaduan(data.id, { 
+          status: status,
+          bukti_petugas: finalUrl
+      });
       
       onSuccess();
       onClose();

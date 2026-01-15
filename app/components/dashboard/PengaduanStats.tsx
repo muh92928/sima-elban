@@ -12,9 +12,12 @@ import { motion } from "framer-motion";
 
 interface PengaduanStatsProps {
   data: Pengaduan[];
+  role?: string | null;
 }
 
-export default function PengaduanStats({ data }: PengaduanStatsProps) {
+export default function PengaduanStats({ data, role }: PengaduanStatsProps) {
+  const isPrivileged = role ? (role.includes("KANIT") || role.includes("TEKNISI")) : false;
+
   const stats = useMemo(() => {
     const total = data.length;
     
@@ -27,7 +30,7 @@ export default function PengaduanStats({ data }: PengaduanStatsProps) {
 
   const cards = [
     {
-      title: "Baru Diajukan",
+      title: isPrivileged ? "Baru Masuk" : "Baru Diajukan",
       value: stats.baru,
       icon: Inbox,
       color: "blue",

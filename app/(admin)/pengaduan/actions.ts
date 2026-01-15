@@ -83,5 +83,58 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
         return [];
     }
 }
+
+export async function deletePengaduan(id: number) {
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) throw new Error("Unauthorized");
+        
+        await db.delete(pengaduan).where(eq(pengaduan.id, id));
+        return { success: true };
+    } catch (error) {
+        console.error('[deletePengaduan] Error:', error);
+        throw error;
+    }
+}
+
+export async function savePengaduan(id: number | null, data: {
+    peralatan_id?: number | null;
+    deskripsi?: string;
+    status?: string;
+    dokumentasi?: string | null;
+    bukti_petugas?: string | null;
+    akun_id?: string | null;
+}) {
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) throw new Error("Unauthorized");
+
+        const payload: any = {
+            peralatanId: data.peralatan_id,
+            deskripsi: data.deskripsi,
+            status: data.status,
+            dokumentasi: data.dokumentasi,
+            buktiPetugas: data.bukti_petugas,
+            akunId: data.akun_id
+        };
+
+        if (id) {
+            // Update
+            await db.update(pengaduan).set(payload).where(eq(pengaduan.id, id));
+        } else {
+            // Create
+            await db.insert(pengaduan).values(payload);
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('[savePengaduan] Error:', error);
+        throw error;
+    }
+}
 // Removed helper function as logic is now consolidated above
 

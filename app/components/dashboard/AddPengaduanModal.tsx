@@ -5,6 +5,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { X, MessageSquareWarning, MapPin, User, AlignLeft, UploadCloud, Save, Loader2, ImageIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Pengaduan } from "@/lib/types";
+import { savePengaduan } from "@/app/(admin)/pengaduan/actions";
 
 interface AddPengaduanModalProps {
   isOpen: boolean;
@@ -148,21 +149,7 @@ export default function AddPengaduanModal({ isOpen, onClose, onSuccess, initialD
           akun_id: formData.akun_id // Send ID
       };
 
-      let error;
-      if (initialData?.id) {
-          // UPDATE
-          const { error: updateError } = await supabase
-              .from("pengaduan")
-              .update(payload)
-              .eq('id', initialData.id);
-          error = updateError;
-      } else {
-          // INSERT
-          const { error: insertError } = await supabase.from("pengaduan").insert([payload]);
-          error = insertError;
-      }
-
-      if (error) throw error;
+      await savePengaduan(initialData?.id || null, payload as any);
       
       onSuccess();
       onClose();

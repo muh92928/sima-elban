@@ -10,7 +10,7 @@ import PengaduanTable from "@/app/components/dashboard/PengaduanTable";
 import ProcessPengaduanModal from "@/app/components/dashboard/ProcessPengaduanModal";
 import PengaduanStats from "@/app/components/dashboard/PengaduanStats";
 import { notify } from "@/lib/notify";
-import { getPengaduan } from "./actions"; // Import Server Action
+import { getPengaduan, deletePengaduan } from "./actions"; // Import Server Actions
 
 interface PengaduanClientProps {
   initialData: Pengaduan[];
@@ -36,6 +36,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   const [role, setRole] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<{nama?: string, peran?: string, nip?: string} | null>(null);
 
   // Fetch Role Client Side
   useEffect(() => {
@@ -44,12 +45,13 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
                   setCurrentUserEmail(user.email || "");
-                  const { data: akun } = await supabase.from('akun').select('id, peran').eq('email', user.email!).single();
+                  const { data: akun } = await supabase.from('akun').select('id, peran, nama, nip').eq('email', user.email).single();
                   
                   if (akun) {
                       const r = (akun.peran || "").toUpperCase().replace(/ /g, '_');
                       setRole(r);
                       setCurrentUserId(akun.id);
+                      setUserProfile({ nama: akun.nama, peran: akun.peran, nip: akun.nip });
                   } else {
                       setRole(user.user_metadata?.role || ""); 
                   }
@@ -77,7 +79,6 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
       const data = await getPengaduan();
 
       setData(data); // Server action returns already-mapped data
-      notify.success(`Data dimuat: ${data.length} item`); // DEBUG: Show count
     } catch (error) {
        console.error('Error fetching pengaduan:', error);
        notify.error("Gagal memuat data terbaru.");
@@ -113,15 +114,20 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Apakah Anda yakin ingin menghapus data pengaduan ini?")) {
-        try {
-            const { error } = await supabase.from('pengaduan').delete().eq('id', id);
-            if (error) throw error;
-            refreshData();
-        } catch (error) {
-            console.error("Error deleting pengaduan:", error);
-            notify.error("Gagal menghapus pengaduan.");
-        }
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data pengaduan ini?")) {
+        return;
+    }
+    
+    try {
+        setLoading(true);
+        await deletePengaduan(id);
+        notify.success("Pengaduan berhasil dihapus.");
+        await refreshData();
+    } catch (error) {
+        // console.error("Error deleting pengaduan:", error); // Removed debug console.error
+        notify.error("Gagal menghapus pengaduan: " + (error instanceof Error ? error.message : String(error)));
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -174,6 +180,43 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             data={processingItem}
         />
         
+        
+        {/* Welcome Banner - Only for Non-Technician Users */}
+        {!isTechnician && userProfile && (
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-white/10 p-6 md:p-8 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
+                
+                <div className="relative z-10">
+                    <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white mb-2">
+                        Selamat Datang, {userProfile.nama || "Pengadu"}
+                    </h1>
+                    <p className="text-slate-400 text-sm md:text-base">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
+                    
+                    <div className="flex flex-wrap items-center gap-3 mt-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_-3px_rgba(59,130,246,0.4)]">
+                            {(userProfile.peran || "").replace(/_/g, " ")}
+                        </div>
+                        {userProfile.nip && (
+                            <div className="px-3 py-1.5 rounded-full bg-slate-800/50 border border-white/10 text-slate-400 text-xs font-mono">
+                                NIP: {userProfile.nip}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="relative z-10 hidden md:block">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
+                        <MessageSquareWarning className="text-white" size={40} />
+                    </div>
+                </div>
+            </motion.div>
+        )}
+
         {/* Header & Actions */}
         <motion.div 
             initial={{ opacity: 0, y: -20 }}
@@ -201,7 +244,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             
         </motion.div>
 
-        <PengaduanStats data={data} />
+        <PengaduanStats data={data} role={role} />
 
       {/* Search & Filter */}
       <motion.div 
