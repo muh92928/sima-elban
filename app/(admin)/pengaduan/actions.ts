@@ -34,34 +34,44 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
         });
 
         // Conditional query
-        let whereCondition = undefined;
+        let query = db.select({
+            id: pengaduan.id,
+            deskripsi: pengaduan.deskripsi,
+            status: pengaduan.status,
+            dokumentasi: pengaduan.dokumentasi,
+            buktiPetugas: pengaduan.buktiPetugas,
+            createdAt: pengaduan.createdAt,
+            peralatanId: pengaduan.peralatanId,
+            akunId: pengaduan.akunId,
+            // Joined fields
+            peralatanNama: peralatan.nama,
+            akunNama: akun.nama,
+            akunPeran: akun.peran,
+        })
+        .from(pengaduan)
+        .leftJoin(peralatan, eq(pengaduan.peralatanId, peralatan.id))
+        .leftJoin(akun, eq(pengaduan.akunId, akun.id))
+        .orderBy(desc(pengaduan.createdAt));
+
         if (!isPrivileged) {
-            // If not privileged, only see own complaints
-            whereCondition = eq(pengaduan.akunId, userAkun.id);
-            console.log("DEBUG RBAC: Filtering by ID", userAkun.id);
+             console.log("DEBUG RBAC: Applying Filter ID =", userAkun.id);
+             query.where(eq(pengaduan.akunId, userAkun.id));
         } else {
-            console.log("DEBUG RBAC: Showing ALL");
+             console.log("DEBUG RBAC: No Filter (Privileged)");
         }
 
-        const data = await db.query.pengaduan.findMany({
-            where: whereCondition,
-            with: {
-                peralatan: true,
-                akun: true
-            },
-            orderBy: [desc(pengaduan.createdAt)]
-        });
+        const rawData = await query;
 
         // Map to Pengaduan interface
-        return data.map((item: any) => ({
+        return rawData.map((item: any) => ({
             id: item.id,
             peralatan_id: item.peralatanId,
-            peralatan: item.peralatan ? { nama: item.peralatan.nama } : { nama: "Tidak Diketahui" },
+            peralatan: item.peralatanNama ? { nama: item.peralatanNama } : { nama: "Tidak Diketahui" },
             
             akun_id: item.akunId,
-            akun: item.akun ? { 
-                nama: item.akun.nama, 
-                peran: item.akun.peran 
+            akun: item.akunNama ? { 
+                nama: item.akunNama, 
+                peran: item.akunPeran 
             } : null,
             
             deskripsi: item.deskripsi,
@@ -69,9 +79,10 @@ export async function getPengaduan(): Promise<Pengaduan[]> {
             dokumentasi: item.dokumentasi,
             bukti_petugas: item.buktiPetugas,
             created_at: item.createdAt,
-            // Legacy support if needed, but 'pelapor' usually comes from akun.nama
-            pelapor: item.akun?.nama || null
+            pelapor: item.akunNama || null
         })) as unknown as Pengaduan[];
+
+
 
     } catch (error) {
         console.error('[getPengaduan] Error:', error);
