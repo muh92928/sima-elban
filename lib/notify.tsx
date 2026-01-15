@@ -48,24 +48,24 @@ export const notify = {
                 </div>
               </div>
 
-              <div className="flex gap-3 w-full md:w-auto">
-                <button
-                  onClick={() => {
-                    toast.remove(t.id);
-                    resolve(true);
-                  }}
-                  className="flex-1 md:flex-none px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-red-500/20"
-                >
-                  Ya, Hapus
-                </button>
+              <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
                 <button
                   onClick={() => {
                     toast.remove(t.id);
                     resolve(false);
                   }}
-                  className="flex-1 md:flex-none px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-semibold text-sm transition-colors"
+                  className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-semibold text-sm transition-colors order-1 md:order-2"
                 >
                   Batal
+                </button>
+                <button
+                  onClick={() => {
+                    toast.remove(t.id);
+                    resolve(true);
+                  }}
+                  className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-red-500/20 order-2 md:order-1"
+                >
+                  Ya, Hapus
                 </button>
               </div>
             </div>
