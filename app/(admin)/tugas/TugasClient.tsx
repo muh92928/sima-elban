@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Plus, 
   Search, 
   Filter, 
@@ -11,7 +11,8 @@ import { Plus,
   MoreVertical,
   CheckCircle2,
   AlertCircle,
-  ListTodo
+  ListTodo,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -42,6 +43,9 @@ export default function TugasClient({
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tugas | null>(null);
+  
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const dateInputLogRef = useRef<HTMLInputElement>(null);
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -87,14 +91,18 @@ export default function TugasClient({
         .order('dibuat_kapan', { ascending: false });
 
       // Apply same filtering logic as server
-      const userRole = currentUser?.role || "";
-      const userNip = currentUser?.nip || "";
-      const canManage = userRole === 'KANIT_ELBAN';
+      const userRole = effectiveRole || "";
+      const userNip = effectiveNip || "";
       const isKanitOrAdmin = ['KANIT_ELBAN', 'UNIT_ADMIN', 'ADMIN'].includes(userRole);
       
-      if (!isKanitOrAdmin && userRole.includes('TEKNISI')) {
+      if (!isKanitOrAdmin) {
           if (userNip) {
             query = query.eq('ditugaskan_ke_nip', userNip);
+          } else {
+             // If no role/nip, ideally we should show nothing
+             setTasks([]);
+             setLoading(false);
+             return;
           }
       }
 
@@ -206,11 +214,10 @@ export default function TugasClient({
   const [statusFilterLog, setStatusFilterLog] = useState("all");
   const [dateFilterLog, setDateFilterLog] = useState<Date | null>(null);
 
-  // Set default date filter to current month on mount
+  // No default month filter to show "Total Tugas" by default
   useEffect(() => {
-    const now = new Date();
-    setDateFilter(now);
-    setDateFilterLog(now);
+    // setDateFilter(null);
+    // setDateFilterLog(null);
   }, []);
 
   const filterFunction = (taskList: Tugas[], queryStr: string, statusStr: string, dateObj: Date | null) => {
@@ -244,7 +251,7 @@ export default function TugasClient({
         <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
         >
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-4">
@@ -281,7 +288,9 @@ export default function TugasClient({
             </div>
         </motion.div>
 
-      <TugasStats data={tasks} />
+
+
+      <TugasStats data={tasks} type="kanit" />
 
         {/* Manual Tasks Table (Kanit Only) */}
       {/* Search & Filter */}
@@ -289,9 +298,9 @@ export default function TugasClient({
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col @tablet:flex-row gap-3"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -302,7 +311,7 @@ export default function TugasClient({
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={statusFilter}
@@ -316,9 +325,29 @@ export default function TugasClient({
             </select>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
+         <div className="flex gap-3 w-full @tablet:w-auto">
+             <div className="relative group min-w-[160px]">
+                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
+                 <button 
+                    onClick={() => dateInputRef.current?.showPicker()}
+                    className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70"
+                 >
+                    {dateFilter ? (
+                        new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilter)
+                    ) : (
+                        <span className="text-slate-500">Semua Waktu</span>
+                    )}
+                 </button>
+                 {dateFilter && (
+                     <button 
+                        onClick={(e) => { e.stopPropagation(); setDateFilter(null); }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                     >
+                         <X size={14} />
+                     </button>
+                 )}
                  <input 
+                     ref={dateInputRef}
                      type="month"
                      value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
                      onChange={(e) => {
@@ -328,14 +357,14 @@ export default function TugasClient({
                              setDateFilter(null);
                          }
                      }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                     className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
                  />
              </div>
          </div>
 
          {/* Action Button Moved Here */}
          {canManage && (
-            <div className="ml-auto w-full md:w-auto flex justify-end">
+            <div className="ml-auto w-full @tablet:w-auto flex justify-end">
                 <button 
                     onClick={() => setIsAddModalOpen(true)}
                     className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
@@ -363,15 +392,18 @@ export default function TugasClient({
             />
         </div>
 
-        {/* Log Generated Tasks Table */}
+      <div className="pt-10">
+         <TugasStats data={tasks} type="log" />
+      </div>
+
       {/* Search & Filter Log Tasks */}
       <motion.div 
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3 pt-6 border-t border-white/5"
+         className="flex flex-col @tablet:flex-row gap-3 pt-6 border-t border-white/5"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -382,7 +414,7 @@ export default function TugasClient({
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={statusFilterLog}
@@ -397,8 +429,28 @@ export default function TugasClient({
         </div>
 
         <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
+             <div className="relative group min-w-[160px]">
+                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
+                 <button 
+                    onClick={() => dateInputLogRef.current?.showPicker()}
+                    className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70"
+                 >
+                    {dateFilterLog ? (
+                        new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilterLog)
+                    ) : (
+                        <span className="text-slate-500">Semua Waktu</span>
+                    )}
+                 </button>
+                 {dateFilterLog && (
+                     <button 
+                        onClick={(e) => { e.stopPropagation(); setDateFilterLog(null); }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                     >
+                         <X size={14} />
+                     </button>
+                 )}
                  <input 
+                     ref={dateInputLogRef}
                      type="month"
                      value={dateFilterLog ? dateFilterLog.toISOString().slice(0, 7) : ''}
                      onChange={(e) => {
@@ -408,7 +460,7 @@ export default function TugasClient({
                              setDateFilterLog(null);
                          }
                      }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                     className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
                  />
              </div>
          </div>

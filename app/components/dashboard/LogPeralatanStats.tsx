@@ -56,7 +56,7 @@ export default function LogPeralatanStats({ data }: LogPeralatanStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 @tablet:grid-cols-2 @pc:grid-cols-4 gap-4 mb-6">
       {cards.map((card, index) => (
         <motion.div
           key={card.title}

@@ -113,7 +113,7 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden"
+        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4 print:hidden"
       >
         <div>
         <div className="flex flex-col gap-2">
@@ -196,9 +196,9 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3 print:hidden"
+         className="flex flex-col @tablet:flex-row gap-3 print:hidden"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -209,12 +209,12 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
           />
         </div>
         
-         <div className="w-full md:w-auto relative group">
+         <div className="w-full @tablet:w-auto relative group">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
              <select 
                 value={jabatanFilter}
                 onChange={(e) => setJabatanFilter(e.target.value)}
-                className="w-full md:w-48 bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
+                className="w-full @tablet:w-48 bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
             >
                 <option value="all">Semua Jabatan</option>
                 {/* Dynamically Generate Jabatan Options */}
@@ -225,7 +225,7 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
          </div>
 
          {/* Actions Moved Here */}
-         <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+         <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
              <button 
                 onClick={() => {
                     setEditingItem(null);

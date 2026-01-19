@@ -72,24 +72,24 @@ export default function ComplaintNotification({ userRole, onVisibilityChange }: 
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="w-full"
         >
-            <div className="bg-slate-900/95 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.2)] p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ring-1 ring-white/10 relative">
-                <div className="flex items-start md:items-center gap-4 flex-1 w-full">
+            <div className="bg-slate-900/95 backdrop-blur-md border border-indigo-500/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.2)] p-4 flex flex-col @tablet:flex-row items-start @tablet:items-center justify-between gap-4 ring-1 ring-white/10 relative">
+                <div className="flex items-start @tablet:items-center gap-4 flex-1 w-full">
                     <div className="bg-indigo-500/20 p-3 rounded-full shrink-0">
                          <Bell className="text-indigo-400 animate-pulse" size={24} />
                     </div>
                     
                     <div className="flex-1">
-                        <h4 className="text-white font-bold text-lg block md:inline-block md:mr-3">Pengaduan Baru!</h4>
-                        <span className="text-slate-300 text-sm block md:inline">
+                        <h4 className="text-white font-bold text-lg block @tablet:inline-block @tablet:mr-3">Pengaduan Baru!</h4>
+                        <span className="text-slate-300 text-sm block @tablet:inline">
                              Terdapat <span className="font-bold text-indigo-400">{newCount} pengaduan</span> dengan status "Baru" yang perlu ditinjau.
                         </span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto pl-[3.25rem] md:pl-0">
+                <div className="flex items-center gap-3 w-full @tablet:w-auto pl-[3.25rem] @tablet:pl-0">
                     <button 
                         onClick={handleNavigate}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
+                        className="flex-1 @tablet:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
                     >
                         Lihat Pengaduan <ArrowRight size={16} />
                     </button>
@@ -97,7 +97,7 @@ export default function ComplaintNotification({ userRole, onVisibilityChange }: 
 
                 <button 
                     onClick={handleDismiss}
-                    className="absolute top-2 right-2 text-slate-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg md:relative md:top-auto md:right-auto md:p-2 md:-mr-2"
+                    className="absolute top-2 right-2 text-slate-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg @tablet:relative @tablet:top-auto @tablet:right-auto @tablet:p-2 @tablet:-mr-2"
                 >
                     <X size={20} />
                 </button>

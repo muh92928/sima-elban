@@ -137,7 +137,7 @@ export default function DashboardLayoutClient({
                 <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay print:hidden" />
                 
                 {/* Content Container */}
-                <div className="relative z-10 w-full max-w-full print:max-w-none flex flex-col items-stretch">
+                <div className="@container/main relative z-10 w-full max-w-full print:max-w-none flex flex-col items-stretch">
                     
                     {/* Unified Sticky Notification Wrapper */}
                     <div className="sticky top-16 md:top-2 z-40 mb-6 flex flex-col gap-4 transition-all duration-300 pointer-events-none">

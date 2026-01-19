@@ -39,7 +39,10 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
   // Set default report date on mount
   useEffect(() => {
-    setReportDate(new Date());
+    // Set to today's date at start of day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setReportDate(today);
   }, []);
   
 
@@ -100,14 +103,13 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
     }
   };
 
-  // Date-only filtered data for Stats (Monthly Summary)
-  const monthlyData = data.filter((item) => {
-    const itemDate = new Date(item.tanggal);
-    return reportDate
-        ? (itemDate.getFullYear() === reportDate.getFullYear() &&
-           itemDate.getMonth() === reportDate.getMonth())
-        : true;
-  });
+  // Helper to compare dates ignoring time and timezone shifts
+  const isSameDay = (dateStr: string, targetDate: Date) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return y === targetDate.getFullYear() &&
+           m - 1 === targetDate.getMonth() &&
+           d === targetDate.getDate();
+  };
 
   // Filter Data Logic
   const filteredData = data.filter((item) => {
@@ -123,15 +125,14 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
     // Status Filter
     const matchStatus = statusFilter === "all" || item.status === statusFilter;
     
-    // Date Filter (Year & Month)
-    const itemDate = new Date(item.tanggal);
-    const matchDate = reportDate
-        ? (itemDate.getFullYear() === reportDate.getFullYear() &&
-           itemDate.getMonth() === reportDate.getMonth())
-        : true;
+    // Date Filter (Exact Day for the Table)
+    const matchDate = reportDate ? isSameDay(item.tanggal, reportDate) : true;
 
     return matchSearch && matchStatus && matchDate;
   });
+
+  // Date-only filtered data for Stats (Daily) - Now follows filteredData
+  const dailyStatsData = filteredData;
 
   return (
     <div className="space-y-6 print:space-y-4">
@@ -187,7 +188,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden"
+        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4 print:hidden"
       >
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-4">
@@ -209,7 +210,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
       {/* Stats Widget */}
       <div className="print:hidden">
-          <LogPeralatanStats data={monthlyData} />
+          <LogPeralatanStats data={filteredData} />
       </div>
 
        {/* Print Only Header (Official Format) */}
@@ -269,19 +270,19 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex flex-col md:flex-row gap-3 print:hidden"
+        className="flex flex-col @tablet:flex-row gap-3 print:hidden"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
             <input 
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari alat (nama/jenis) atau status..." 
+                placeholder="Cari log..." 
                 className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
             />
         </div>
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={statusFilter}
@@ -295,25 +296,24 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             </select>
         </div>
         
-        <div className="flex gap-3 w-full md:w-auto">
-            <div className="relative group flex-1 md:flex-none">
+            <div className="relative group flex-1 @tablet:flex-none">
                 <input 
-                    type="month"
-                    value={reportDate ? reportDate.toISOString().slice(0, 7) : ''}
+                    type="date"
+                    value={reportDate ? reportDate.toISOString().slice(0, 10) : ''}
                     onChange={(e) => {
                         if (e.target.value) {
-                            setReportDate(new Date(e.target.value + "-01"));
+                            const [y, m, d] = e.target.value.split('-').map(Number);
+                            setReportDate(new Date(y, m - 1, d));
                         } else {
                             setReportDate(null);
                         }
                     }}
-                    className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                    className="w-full @tablet:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
                 />
             </div>
-        </div>
 
         {/* Action Buttons moved here */}
-        <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+        <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
             <button 
                 onClick={() => setIsAddModalOpen(true)}
                 className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"

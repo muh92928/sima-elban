@@ -185,16 +185,16 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             <motion.div 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-white/10 p-6 md:p-8 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-white/10 p-6 @tablet:p-8 shadow-2xl backdrop-blur-xl flex flex-col @tablet:flex-row items-start @tablet:items-center justify-between gap-4"
             >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5 pointer-events-none" />
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
                 
                 <div className="relative z-10">
-                    <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white mb-2">
+                    <h1 className="text-2xl @tablet:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white mb-2">
                         Selamat Datang, {userProfile.nama || "Pengadu"}
                     </h1>
-                    <p className="text-slate-400 text-sm md:text-base">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
+                    <p className="text-slate-400 text-sm @tablet:text-base">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
                     
                     <div className="flex flex-wrap items-center gap-3 mt-4">
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_-3px_rgba(59,130,246,0.4)]">
@@ -208,7 +208,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
                     </div>
                 </div>
                 
-                <div className="relative z-10 hidden md:block">
+                <div className="relative z-10 hidden @tablet:block">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
                         <MessageSquareWarning className="text-white" size={40} />
                     </div>
@@ -220,7 +220,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
         <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
         >
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-4">
@@ -250,9 +250,9 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col @tablet:flex-row gap-3"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -263,7 +263,7 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={statusFilter}
@@ -278,8 +278,8 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
             </select>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
+        <div className="flex gap-3 w-full @tablet:w-auto">
+             <div className="relative group flex-1 @tablet:flex-none">
                  <input 
                      type="month"
                      value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
@@ -290,13 +290,13 @@ export default function PengaduanClient({ initialData }: PengaduanClientProps) {
                              setDateFilter(null);
                          }
                      }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                     className="w-full @tablet:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
                  />
              </div>
          </div>
 
          {canCreate && (
-             <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+             <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
                 <button 
                     onClick={() => setIsModalOpen(true)}
                     className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"

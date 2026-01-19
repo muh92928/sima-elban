@@ -21,7 +21,7 @@ export default function WelcomeSection({ user, profile, variants }: WelcomeSecti
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
             
             <div className="relative z-10">
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-white mb-2">
+                <h1 className="text-2xl @tablet:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-white mb-2">
                     Selamat Datang, {profile?.nama || user?.user_metadata?.full_name || "Petugas"}
                 </h1>
                 <p className="text-slate-400">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
@@ -38,7 +38,7 @@ export default function WelcomeSection({ user, profile, variants }: WelcomeSecti
                 </div>
             </div>
             
-            <div className="relative z-10 hidden md:block mr-4">
+            <div className="relative z-10 hidden @tablet:block mr-4">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 border border-white/20">
                     <Activity className="text-white" size={40} />
                 </div>

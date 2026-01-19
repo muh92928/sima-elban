@@ -6,7 +6,7 @@ export const CARD_STYLES = {
     INTERACTIVE: "hover:border-indigo-500/20 hover:shadow-indigo-500/10 hover:-translate-y-1 cursor-pointer group",
 
     // Card Header / Title Section
-    HEADER: "flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 md:p-8 relative overflow-hidden",
+    HEADER: "flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-6 p-6 @tablet:p-8 relative overflow-hidden",
     
     // Card Body / Content Section
     BODY: "p-6 relative z-10",

@@ -41,6 +41,9 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
   const [selectedDetailDate, setSelectedDetailDate] = useState<Date | null>(null);
   const [addModalDate, setAddModalDate] = useState<string | undefined>(undefined);
 
+  // View Mode State
+  const [viewMode, setViewMode] = useState<'calendar' | 'matrix'>('calendar');
+
   // Fetch Kanit & All Users for Phone Mapping
   const fetchJadwalAuxData = async () => {
       try {
@@ -209,7 +212,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
       >
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-4">
@@ -228,6 +231,23 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
            <p className="text-slate-400 font-medium text-base">Agenda dan rencana aktivitas tim.</p>
         </div>
 
+        {/* View Toggle */}
+        <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-white/10 backdrop-blur-md self-center @tablet:self-auto">
+            <button 
+                onClick={() => setViewMode('calendar')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'calendar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+                <Calendar size={16} />
+                Kalender
+            </button>
+            <button 
+                onClick={() => setViewMode('matrix')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'matrix' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+                <Filter size={16} />
+                Matriks
+            </button>
+        </div>
       </motion.div>
       
       <JadwalStats data={data} />
@@ -237,9 +257,9 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col @tablet:flex-row gap-3"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -250,7 +270,7 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={filterType}
@@ -264,8 +284,8 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
             </select>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
+        <div className="flex gap-3 w-full @tablet:w-auto">
+             <div className="relative group flex-1 @tablet:flex-none">
                  <input 
                      type="month"
                      value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
@@ -276,12 +296,12 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
                              setDateFilter(null);
                          }
                      }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                     className="w-full @tablet:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
                  />
              </div>
          </div>
 
-         <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+         <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
             <button 
                 onClick={() => {
                     setEditingItem(null);
@@ -309,20 +329,29 @@ export default function JadwalClient({ initialData }: JadwalClientProps) {
 
 
 
-      {/* Content Section - Calendar View (Screen Only) */}
+      {/* Content Section - Calendar or Matrix View (Screen Only) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="print:hidden" 
       >
-          <JadwalCalendar 
-            data={filteredData}
-            loading={loading || refreshing}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            onDateClick={(date: Date) => setSelectedDetailDate(date)}
-          />
+          {viewMode === 'calendar' ? (
+              <JadwalCalendar 
+                data={filteredData}
+                loading={loading || refreshing}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                onDateClick={(date: Date) => setSelectedDetailDate(date)}
+              />
+          ) : (
+              <JadwalMatrixPrint 
+                data={filteredData}
+                month={dateFilter || new Date()}
+                userMap={userMap}
+                isPrintMode={false}
+              />
+          )}
       </motion.div>
 
       {/* PRINT VIEW - MATRIX LAYOUT */}

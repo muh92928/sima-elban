@@ -14,6 +14,7 @@ import TugasWidgets from "@/app/components/dashboard/widgets/TugasWidgets";
 import PengaduanWidgets from "@/app/components/dashboard/widgets/PengaduanWidgets";
 import AkunAlert from "@/app/components/dashboard/widgets/AkunAlert";
 import PersonelWidgets from "@/app/components/dashboard/widgets/PersonelWidgets";
+import JadwalPresenceWidget from "@/app/components/dashboard/widgets/JadwalPresenceWidget";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -23,13 +24,29 @@ export default function DashboardPage() {
         tugasTotal: 0,
         tugasPending: 0,
         tugasSelesai: 0,
+        tugasKanitTotal: 0,
+        tugasKanitPending: 0,
+        tugasKanitProses: 0,
+        tugasKanitSelesai: 0,
+        tugasLogTotal: 0,
+        tugasLogPending: 0,
+        tugasLogProses: 0,
+        tugasLogSelesai: 0,
         pengaduanBaru: 0,
         pengaduanDiproses: 0,
+        pengaduanSelesai: 0,
         jadwalDinas: 0,
-        logTotal: 0,
+        logTotalHariIni: 0,
+        logNormalOps: 0,
+        logPerluPerbaikan: 0,
+        logPerluPerawatan: 0,
         filesTotal: 0,
+        filesByCategory: {} as Record<string, number>,
         akunPending: 0,
-        personelTotal: 0
+        personelTotal: 0,
+        personelList: [] as any[],
+        jadwalList: [] as any[],
+        pengaduanList: [] as any[]
     });
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
@@ -114,7 +131,7 @@ export default function DashboardPage() {
     const tabs = [
         { id: "aset_log", label: "Aset & Log", icon: "Database" },
         { id: "tugas_personel", label: "Tugas & Personel", icon: "Users" },
-        { id: "operasional", label: "Operasional", icon: "Activity" }
+        { id: "operasional", label: "Pengaduan, Jadwal & Files", icon: "Activity" }
     ];
 
 
@@ -193,7 +210,18 @@ export default function DashboardPage() {
                             animate="show"
                             exit="exit"
                         >
-                            <PeralatanWidgets stats={stats} variants={itemVariants} />
+                            <PeralatanWidgets 
+                                stats={{
+                                    peralatanTotal: stats.peralatanTotal,
+                                    peralatanLaik: stats.peralatanLaik,
+                                    peralatanRusak: stats.peralatanRusak,
+                                    logTotalHariIni: stats.logTotalHariIni,
+                                    logNormalOps: stats.logNormalOps,
+                                    logPerluPerbaikan: stats.logPerluPerbaikan,
+                                    logPerluPerawatan: stats.logPerluPerawatan
+                                }} 
+                                variants={itemVariants} 
+                            />
                         </motion.div>
                     )}
 
@@ -219,7 +247,27 @@ export default function DashboardPage() {
                             animate="show"
                             exit="exit"
                         >
-                            <PengaduanWidgets stats={stats} variants={itemVariants} />
+                            <PengaduanWidgets 
+                                stats={{
+                                    pengaduanBaru: stats.pengaduanBaru,
+                                    pengaduanDiproses: stats.pengaduanDiproses,
+                                    pengaduanSelesai: stats.pengaduanSelesai,
+                                    jadwalDinas: stats.jadwalDinas,
+                                    filesTotal: stats.filesTotal,
+                                    filesByCategory: stats.filesByCategory,
+                                    pengaduanList: stats.pengaduanList
+                                }} 
+                                variants={itemVariants} 
+                            />
+                            {profile?.nama && (
+                                <div className="mt-8">
+                                    <JadwalPresenceWidget 
+                                        jadwalList={stats.jadwalList} 
+                                        namaUser={profile.nama} 
+                                        variants={itemVariants} 
+                                    />
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

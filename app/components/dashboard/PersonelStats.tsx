@@ -64,7 +64,7 @@ export default function PersonelStats({ data }: PersonelStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 @tablet:grid-cols-3 gap-4 mb-6">
       {cards.map((card, index) => (
         <motion.div
           key={card.title}
@@ -96,7 +96,7 @@ export default function PersonelStats({ data }: PersonelStatsProps) {
       ))}
 
       {/* Detail Mini Cards for Missing Attributes */}
-      <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div className="col-span-1 @tablet:col-span-3 grid grid-cols-1 @tablet:grid-cols-2 gap-4 mt-2">
            <motion.div 
              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
              className="bg-red-500/5 border border-red-500/10 rounded-xl p-3 flex justify-between items-center px-6"

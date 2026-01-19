@@ -38,13 +38,17 @@ export async function getTugas(): Promise<{ tasks: Tugas[], currentUser: { nip: 
     }
 
     const isKanitOrAdmin = ['KANIT_ELBAN', 'UNIT_ADMIN', 'ADMIN'].includes(userRole);
-    const isTeknisi = userRole.includes('TEKNISI');
-
+    
     let conditions = undefined;
 
-    // Filter logic: If NOT admin AND IS teknisi, filter by NIP
-    if (!isKanitOrAdmin && isTeknisi && userNip) {
-        conditions = eq(tugas.ditugaskanKeNip, userNip);
+    // Filter logic: If NOT admin, must filter by NIP
+    if (!isKanitOrAdmin) {
+        if (userNip) {
+            conditions = eq(tugas.ditugaskanKeNip, userNip);
+        } else {
+            // Return nothing if not admin and no NIP
+            return { tasks: [], currentUser };
+        }
     }
 
     try {

@@ -17,7 +17,7 @@ export default function PeralatanStats({ data }: PeralatanStatsProps) {
   const goodPercentage = totalAssets > 0 ? Math.round((goodCondition / totalAssets) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 @tablet:grid-cols-3 gap-4 mb-6">
       {/* Total Aset */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

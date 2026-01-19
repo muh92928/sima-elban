@@ -113,7 +113,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
       >
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-4">
@@ -178,9 +178,9 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col @tablet:flex-row gap-3"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -191,7 +191,7 @@ export default function KonfirmasiAkunClient({ initialData, currentUserRole: ini
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={roleFilter}

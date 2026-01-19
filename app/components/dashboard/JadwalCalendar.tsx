@@ -120,7 +120,7 @@ export default function JadwalCalendar({
   return (
     <div className="flex flex-col gap-6">
         {/* Calendar Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-md">
+        <div className="flex flex-col @tablet:flex-row items-center justify-between gap-4 p-3 rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-md">
             <div className="flex items-center gap-3">
                  <h2 className="text-lg font-bold text-white capitalize flex items-center gap-2">
                     <CalendarIcon className="text-indigo-400" size={20} />
@@ -155,7 +155,7 @@ export default function JadwalCalendar({
             {/* Week Headers */}
             <div className="grid grid-cols-7 border-b border-white/10 bg-slate-900/50">
                 {weekDays.map((day, i) => (
-                    <div key={i} className="py-3 text-center text-sm font-bold text-slate-400 uppercase tracking-wider">
+                    <div key={i} className="py-3 text-center text-[10px] @tablet:text-sm font-bold text-slate-400 uppercase tracking-wider">
                         {day}
                     </div>
                 ))}
@@ -173,25 +173,24 @@ export default function JadwalCalendar({
                             key={index} 
                             onClick={() => onDateClick(cell.date)} 
                             className={`
-                                min-h-[140px] p-2 border-b border-r border-white/5 relative group transition-colors
+                                min-h-[70px] @tablet:min-h-[140px] p-1 @tablet:p-2 border-b border-r border-white/5 relative group transition-colors cursor-pointer
                                 ${!cell.isCurrentMonth ? 'bg-slate-950/50 text-slate-600' : 'hover:bg-white/[0.02]'}
                                 ${isToday ? 'bg-indigo-500/5' : ''}
                             `}
                         >
-                            {/* Date Number */}
-                            <div className="flex justify-between items-start mb-2">
+                            <div className="flex justify-between items-start mb-1 @tablet:mb-2">
                                 <span className={`
-                                    text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full
+                                    text-xs @tablet:text-sm font-bold w-6 h-6 @tablet:w-7 @tablet:h-7 flex items-center justify-center rounded-full
                                     ${isToday ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400'}
                                     ${!cell.isCurrentMonth ? 'opacity-30' : ''}
                                 `}>
                                     {cell.date.getDate()}
                                 </span>
-                                {isToday && <span className="text-[10px] font-bold text-indigo-400 px-2 py-0.5 bg-indigo-500/10 rounded-full">Hari Ini</span>}
+                                {isToday && <span className="hidden @tablet:block text-[10px] font-bold text-indigo-400 px-2 py-0.5 bg-indigo-500/10 rounded-full">Hari Ini</span>}
                             </div>
 
                             {/* Events List */}
-                            <div className="flex flex-col gap-1.5">
+                            <div className="flex flex-wrap @tablet:flex-col gap-1 @tablet:gap-1.5 px-0.5 pb-1">
                                 <AnimatePresence>
                                     {items.map((item) => {
                                         // Check for Personnel Status format: "Status - Name"
@@ -220,20 +219,9 @@ export default function JadwalCalendar({
                                         return (
                                             <div
                                                 key={item.id}
-                                                className="flex items-center gap-2 mb-1 group/item cursor-pointer"
+                                                className="hidden @tablet:flex items-center gap-2 group/item"
                                                 title={item.nama_kegiatan} // Tooltip full text
-                                                onClick={(e) => {
-                                                    // Pass click to parent cell handler if possible, otherwise just stop propagation?
-                                                    // Actually, if we stop propagation, the "Day Detail" won't open.
-                                                    // The user wants "Day Detail" on click.
-                                                    // So we should NOT stop propagation here, or call the same handler.
-                                                    // For simple visuals, just letting the click bubble up to the cell div is best.
-                                                    // But we previously had specific edit actions.
-                                                    // Now the "Edit" is inside the DayDetailModal. 
-                                                    // So we just let it bubble up!
-                                                }}
                                             >
-                                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor} shadow-[0_0_4px_rgba(0,0,0,0.5)]`} /> 
                                                 <span className="text-[10px] font-medium text-slate-400 truncate group-hover/item:text-white transition-colors">
                                                     {shortName}
                                                 </span>

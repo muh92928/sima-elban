@@ -125,7 +125,7 @@ export default function FilesClient({ initialData }: FilesClientProps) {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
       >
         <div>
         <div className="flex flex-col gap-2">
@@ -155,9 +155,9 @@ export default function FilesClient({ initialData }: FilesClientProps) {
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col md:flex-row gap-3"
+         className="flex flex-col @tablet:flex-row gap-3"
       >
-        <div className="relative w-full md:flex-1 md:max-w-sm group">
+        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
           <input
             type="text"
@@ -168,7 +168,7 @@ export default function FilesClient({ initialData }: FilesClientProps) {
           />
         </div>
         
-        <div className="w-full md:w-48 relative">
+        <div className="w-full @tablet:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <select 
                 value={categoryFilter}
@@ -182,8 +182,8 @@ export default function FilesClient({ initialData }: FilesClientProps) {
             </select>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group flex-1 md:flex-none">
+        <div className="flex gap-3 w-full @tablet:w-auto">
+             <div className="relative group flex-1 @tablet:flex-none">
                  <input 
                      type="month"
                      value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
@@ -194,12 +194,12 @@ export default function FilesClient({ initialData }: FilesClientProps) {
                              setDateFilter(null);
                          }
                      }}
-                     className="w-full md:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                     className="w-full @tablet:w-auto h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer"
                  />
              </div>
          </div>
 
-         <div className="flex items-center gap-3 ml-auto w-full md:w-auto justify-end">
+         <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
              <button 
                 onClick={() => setIsModalOpen(true)}
                 className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
