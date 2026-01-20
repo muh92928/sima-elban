@@ -32,12 +32,13 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
     const EquipmentDonut = ({ laik, rusak }: { laik: number, rusak: number }) => {
         const total = laik + rusak;
         const pLaik = total > 0 ? (laik / total) * 100 : 0;
+        const isEmpty = total === 0;
         
         const options = {
             plugins: {
                 legend: { display: false },
                 tooltip: { 
-                    enabled: true,
+                    enabled: !isEmpty,
                     position: 'nearest' as const,
                     backgroundColor: '#0f172a',
                     bodyFont: { size: 12, weight: 'bold' as const },
@@ -46,12 +47,12 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                     displayColors: false,
                     borderColor: 'rgba(255,255,255,0.1)',
                     borderWidth: 1,
-                    caretPadding: 45, // Large gap to push outside
+                    caretPadding: 45,
                     caretSize: 0,
-                    yAlign: 'bottom' as const, // Force tooltip ABOVE the segment
+                    yAlign: 'bottom' as const,
                     xAlign: 'center' as const,
                     callbacks: {
-                        title: () => '', // Clear title
+                        title: () => '',
                         label: function(context: any) {
                             return `${context.label}: ${context.raw} Unit`;
                         }
@@ -66,12 +67,12 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
         const data = {
             labels: ['Laik Operasi', 'Tidak Laik'],
             datasets: [{
-                data: [laik, rusak],
-                backgroundColor: ['#10b981', '#f43f5e'],
-                hoverBackgroundColor: ['#059669', '#e11d48'],
+                data: isEmpty ? [1] : [laik, rusak],
+                backgroundColor: isEmpty ? ['rgba(255,255,255,0.05)'] : ['#10b981', '#f43f5e'],
+                hoverBackgroundColor: isEmpty ? ['rgba(255,255,255,0.05)'] : ['#059669', '#e11d48'],
                 borderWidth: 0,
-                borderRadius: total > 0 && laik > 0 && rusak > 0 ? 10 : 0,
-                spacing: total > 0 && laik > 0 && rusak > 0 ? 4 : 0,
+                borderRadius: !isEmpty && laik > 0 && rusak > 0 ? 10 : 0,
+                spacing: !isEmpty && laik > 0 && rusak > 0 ? 4 : 0,
                 cutout: '82%',
                 hoverOffset: 0
             }]
@@ -93,16 +94,17 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
     // Chart.js Donut for Log Status
     const LogStatusDonut = ({ normal, perawatan, perbaikan }: { normal: number, perawatan: number, perbaikan: number }) => {
         const total = normal + perawatan + perbaikan;
+        const isEmpty = total === 0;
         
         const data = {
             labels: ['Normal Ops', 'Perawatan', 'Perbaikan'],
             datasets: [{
-                data: [normal, perawatan, perbaikan],
-                backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'], // Emerald 500, Amber 500, Rose 500
-                hoverBackgroundColor: ['#059669', '#d97706', '#e11d48'],
+                data: isEmpty ? [1] : [normal, perawatan, perbaikan],
+                backgroundColor: isEmpty ? ['rgba(255,255,255,0.05)'] : ['#10b981', '#f59e0b', '#f43f5e'],
+                hoverBackgroundColor: isEmpty ? ['rgba(255,255,255,0.05)'] : ['#059669', '#d97706', '#e11d48'],
                 borderWidth: 0,
-                borderRadius: total > 0 ? 10 : 0,
-                spacing: total > 0 ? 4 : 0,
+                borderRadius: !isEmpty ? 10 : 0,
+                spacing: !isEmpty ? 4 : 0,
                 cutout: '82%',
                 hoverOffset: 0
             }]
@@ -112,7 +114,7 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
             plugins: {
                 legend: { display: false },
                 tooltip: { 
-                    enabled: true,
+                    enabled: !isEmpty,
                     position: 'nearest' as const,
                     backgroundColor: '#0f172a',
                     bodyFont: { size: 12, weight: 'bold' as const },
@@ -198,39 +200,45 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                         <div className="flex-1 w-full space-y-6">
                             <div className="grid grid-cols-1 gap-3">
                                 {/* Laik Operasi */}
-                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-emerald-500/30">
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-emerald-500/25 overflow-hidden transition-all duration-300">
                                     <div className="relative z-10 flex items-center gap-4">
-                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover/item:scale-110 transition-transform">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-white tracking-wide">Laik Operasi</span>
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Kondisi Normal</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Kondisi Normal</span>
                                         </div>
                                     </div>
-                                    <div className="relative z-10 text-right">
-                                        <div className="text-lg font-black text-white">{stats.peralatanLaik} <span className="text-[10px] text-slate-500">UNIT</span></div>
-                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-emerald-500/10 text-[10px] font-black text-emerald-400 border border-emerald-500/20">{persenLaik}%</div>
+                                    <div className="relative z-10 flex flex-col items-end gap-1.5">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className={`text-2xl font-bold tracking-tight leading-none ${stats.peralatanLaik > 0 ? "text-white" : "text-slate-500"}`}>{stats.peralatanLaik}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">Unit</span>
+                                        </div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-full bg-emerald-500/10 text-[8px] font-black text-emerald-400 border border-emerald-500/20 uppercase tracking-widest italic">{persenLaik}%</div>
                                     </div>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-40" />
                                 </div>
 
                                 {/* Tidak Laik */}
-                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border overflow-hidden transition-all duration-300 ${stats.peralatanRusak > 0 ? "border-rose-500/30" : "border-white/5 hover:border-rose-500/20"}`}>
+                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-rose-500/25 overflow-hidden transition-all duration-300`}>
                                     <div className="relative z-10 flex items-center gap-4">
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform group-hover/item:scale-110 ${stats.peralatanRusak > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/50 border-white/5"}`}>
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform ${stats.peralatanRusak > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/30 border-rose-500/10"}`}>
                                             <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)] ${stats.peralatanRusak > 0 ? "bg-rose-500 animate-pulse" : "bg-rose-500/40"}`} />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-white tracking-wide">Tidak Laik</span>
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Perlu Atensi</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Perlu Atensi</span>
                                         </div>
                                     </div>
-                                    <div className="relative z-10 text-right">
-                                        <div className="text-lg font-black text-white">{stats.peralatanRusak} <span className="text-[10px] text-slate-500">UNIT</span></div>
-                                        <div className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-black border ${stats.peralatanRusak > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-white/5 text-slate-500 border-white/5"}`}>{persenRusak}%</div>
+                                    <div className="relative z-10 flex flex-col items-end gap-1.5">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className={`text-2xl font-bold tracking-tight leading-none ${stats.peralatanRusak > 0 ? "text-white" : "text-slate-500"}`}>{stats.peralatanRusak}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">Unit</span>
+                                        </div>
+                                        <div className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-black border uppercase tracking-widest italic ${stats.peralatanRusak > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20 animate-pulse" : "bg-slate-800/50 text-slate-500 border-white/5"}`}>{persenRusak}%</div>
                                     </div>
-                                    {stats.peralatanRusak > 0 && <div className="absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5" />}
+                                    <div className={`absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5 opacity-40`} />
                                 </div>
                             </div>
                             {stats.peralatanRusak > 0 && (
@@ -295,57 +303,66 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                         <div className="flex-1 w-full space-y-6">
                             <div className="grid grid-cols-1 gap-3">
                                 {/* Normal Ops */}
-                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-emerald-500/30">
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-emerald-500/20 overflow-hidden transition-all duration-300">
                                     <div className="relative z-10 flex items-center gap-4">
-                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover/item:scale-110 transition-transform">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-white tracking-wide">Normal Ops</span>
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Aktivitas Normal</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Aktivitas Normal</span>
                                         </div>
                                     </div>
-                                    <div className="relative z-10 text-right">
-                                        <div className="text-lg font-black text-white">{stats.logNormalOps} <span className="text-[10px] text-slate-500">INPUT</span></div>
-                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-emerald-500/10 text-[10px] font-black text-emerald-400 border border-emerald-500/20">HARIAN</div>
+                                    <div className="relative z-10 flex flex-col items-end gap-1.5">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className={`text-2xl font-bold tracking-tight leading-none ${stats.logNormalOps > 0 ? "text-white" : "text-slate-500"}`}>{stats.logNormalOps}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">Log</span>
+                                        </div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-full bg-slate-800/50 text-[8px] font-bold text-slate-400 border border-white/5 uppercase tracking-[0.1em]">Harian</div>
                                     </div>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-40" />
                                 </div>
 
                                 {/* Perawatan */}
-                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-amber-500/20 overflow-hidden transition-all duration-300">
                                     <div className="relative z-10 flex items-center gap-4">
-                                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover/item:scale-110 transition-transform">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-white tracking-wide">Perawatan</span>
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Pemeliharaan</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Pemeliharaan</span>
                                         </div>
                                     </div>
-                                    <div className="relative z-10 text-right">
-                                        <div className="text-lg font-black text-white">{stats.logPerluPerawatan} <span className="text-[10px] text-slate-500">INPUT</span></div>
-                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-amber-500/10 text-[10px] font-black text-amber-400 border border-amber-500/20">HARIAN</div>
+                                    <div className="relative z-10 flex flex-col items-end gap-1.5">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className={`text-2xl font-bold tracking-tight leading-none ${stats.logPerluPerawatan > 0 ? "text-white" : "text-slate-500"}`}>{stats.logPerluPerawatan}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">Log</span>
+                                        </div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-full bg-slate-800/50 text-[8px] font-bold text-slate-400 border border-white/5 uppercase tracking-[0.1em]">Harian</div>
                                     </div>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/0 to-amber-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/0 to-amber-500/5 opacity-40" />
                                 </div>
 
                                 {/* Perbaikan */}
-                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border overflow-hidden transition-all duration-300 ${stats.logPerluPerbaikan > 0 ? "border-rose-500/30" : "border-white/5 hover:border-rose-500/20"}`}>
+                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border overflow-hidden transition-all duration-300 ${stats.logPerluPerbaikan > 0 ? "border-rose-500/30" : "border-rose-500/10"}`}>
                                     <div className="relative z-10 flex items-center gap-4">
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform group-hover/item:scale-110 ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/50 border-white/5"}`}>
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/30 border-rose-500/10"}`}>
                                             <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)] ${stats.logPerluPerbaikan > 0 ? "bg-rose-500 animate-pulse" : "bg-rose-500/40"}`} />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-white tracking-wide">Perbaikan</span>
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Tindak Lanjut</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tindak Lanjut</span>
                                         </div>
                                     </div>
-                                    <div className="relative z-10 text-right">
-                                        <div className="text-lg font-black text-white">{stats.logPerluPerbaikan} <span className="text-[10px] text-slate-500">INPUT</span></div>
-                                        <div className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-black border ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-white/5 text-slate-500 border-white/5"}`}>HARIAN</div>
+                                    <div className="relative z-10 flex flex-col items-end gap-1.5">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className={`text-2xl font-bold tracking-tight leading-none ${stats.logPerluPerbaikan > 0 ? "text-white" : "text-slate-500"}`}>{stats.logPerluPerbaikan}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.15em]">Log</span>
+                                        </div>
+                                        <div className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-bold border uppercase tracking-[0.1em] ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20 animate-pulse" : "bg-slate-800/50 text-slate-500 border-white/5"}`}>Harian</div>
                                     </div>
-                                    {stats.logPerluPerbaikan > 0 && <div className="absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5" />}
+                                    <div className={`absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5 ${stats.logPerluPerbaikan > 0 ? "opacity-100" : "opacity-0"}`} />
                                 </div>
                             </div>
                             
