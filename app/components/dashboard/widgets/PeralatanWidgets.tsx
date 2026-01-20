@@ -3,6 +3,11 @@
 import { motion } from "framer-motion";
 import { Database, CheckCircle, AlertTriangle, ArrowUpRight, Activity, Wrench, ClipboardCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
+
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface PeralatanWidgetsProps {
     stats: {
@@ -23,51 +28,61 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
     const persenLaik = stats.peralatanTotal > 0 ? Math.round((stats.peralatanLaik / stats.peralatanTotal) * 100) : 0;
     const persenRusak = stats.peralatanTotal > 0 ? (100 - persenLaik) : 0;
 
-    // SVG Donut Component for 2 segments (Equipment)
+    // Chart.js Donut for Equipment Status
     const EquipmentDonut = ({ laik, rusak }: { laik: number, rusak: number }) => {
         const total = laik + rusak;
         const pLaik = total > 0 ? (laik / total) * 100 : 0;
-        const pRusak = total > 0 ? (rusak / total) * 100 : 0;
-        const radius = 65;
-        const circumference = 2 * Math.PI * radius;
-        const viewBoxSize = 160;
-        const center = viewBoxSize / 2;
         
-        // Offsets
-        const offsetLaik = circumference - (pLaik / 100) * circumference;
-        const offsetRusak = circumference - (pRusak / 100) * circumference;
-        
+        const options = {
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    enabled: true,
+                    position: 'nearest' as const,
+                    backgroundColor: '#0f172a',
+                    bodyFont: { size: 12, weight: 'bold' as const },
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    caretPadding: 45, // Large gap to push outside
+                    caretSize: 0,
+                    yAlign: 'bottom' as const, // Force tooltip ABOVE the segment
+                    xAlign: 'center' as const,
+                    callbacks: {
+                        title: () => '', // Clear title
+                        label: function(context: any) {
+                            return `${context.label}: ${context.raw} Unit`;
+                        }
+                    }
+                }
+            },
+            maintainAspectRatio: false,
+            responsive: true,
+            rotation: -90,
+        };
+
+        const data = {
+            labels: ['Laik Operasi', 'Tidak Laik'],
+            datasets: [{
+                data: [laik, rusak],
+                backgroundColor: ['#10b981', '#f43f5e'],
+                hoverBackgroundColor: ['#059669', '#e11d48'],
+                borderWidth: 0,
+                borderRadius: total > 0 && laik > 0 && rusak > 0 ? 10 : 0,
+                spacing: total > 0 && laik > 0 && rusak > 0 ? 4 : 0,
+                cutout: '82%',
+                hoverOffset: 0
+            }]
+        };
+
         return (
             <div className="relative flex items-center justify-center w-48 h-48">
-                <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="w-full h-full transform -rotate-90">
-                    {/* Background Circle */}
-                    <circle cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/5" />
-                    
-                    {total > 0 && (
-                        <>
-                            {/* Rusak Segment (Red) - Rotated to start after Laik */}
-                            <motion.circle
-                                cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: offsetRusak }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="text-rose-500"
-                                strokeLinecap="round"
-                                style={{ rotate: `${(pLaik / 100) * 360}deg`, transformOrigin: 'center' }}
-                            />
-                            {/* Laik Segment (Emerald) */}
-                            <motion.circle
-                                cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: offsetLaik }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="text-emerald-500"
-                                strokeLinecap="round"
-                            />
-                        </>
-                    )}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="w-full h-full p-2">
+                    <Doughnut data={data} options={options} />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
                     <span className="text-4xl font-black text-white leading-none">{pLaik.toFixed(0)}%</span>
                     <span className="text-[11px] text-slate-500 uppercase font-black tracking-[0.2em] mt-2 bg-white/5 px-2 py-0.5 rounded">Kelaikan</span>
                 </div>
@@ -75,65 +90,60 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
         );
     };
 
-    // SVG Donut Component for 3 segments (Log Status)
+    // Chart.js Donut for Log Status
     const LogStatusDonut = ({ normal, perawatan, perbaikan }: { normal: number, perawatan: number, perbaikan: number }) => {
         const total = normal + perawatan + perbaikan;
-        const radius = 65;
-        const circumference = 2 * Math.PI * radius;
-        const viewBoxSize = 160;
-        const center = viewBoxSize / 2;
+        
+        const data = {
+            labels: ['Normal Ops', 'Perawatan', 'Perbaikan'],
+            datasets: [{
+                data: [normal, perawatan, perbaikan],
+                backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'], // Emerald 500, Amber 500, Rose 500
+                hoverBackgroundColor: ['#059669', '#d97706', '#e11d48'],
+                borderWidth: 0,
+                borderRadius: total > 0 ? 10 : 0,
+                spacing: total > 0 ? 4 : 0,
+                cutout: '82%',
+                hoverOffset: 0
+            }]
+        };
 
-        const pNormal = total > 0 ? (normal / total) * 100 : 0;
-        const pPerawatan = total > 0 ? (perawatan / total) * 100 : 0;
-        const pPerbaikan = total > 0 ? (perbaikan / total) * 100 : 0;
-
-        const offsetNormal = circumference - (pNormal / 100) * circumference;
-        const offsetPerawatan = circumference - (pPerawatan / 100) * circumference;
-        const offsetPerbaikan = circumference - (pPerbaikan / 100) * circumference;
+        const options = {
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    enabled: true,
+                    position: 'nearest' as const,
+                    backgroundColor: '#0f172a',
+                    bodyFont: { size: 12, weight: 'bold' as const },
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    caretPadding: 45,
+                    caretSize: 0,
+                    yAlign: 'bottom' as const,
+                    xAlign: 'center' as const,
+                    callbacks: {
+                        title: () => '',
+                        label: function(context: any) {
+                            return `${context.label}: ${context.raw} Log`;
+                        }
+                    }
+                }
+            },
+            maintainAspectRatio: false,
+            responsive: true,
+            rotation: -90,
+        };
 
         return (
             <div className="relative flex items-center justify-center w-48 h-48">
-                <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="w-full h-full transform -rotate-90">
-                    {/* Background Circle */}
-                    <circle cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/5" />
-                    
-                    {total > 0 && (
-                        <>
-                            {/* Perbaikan Segment (Red) */}
-                            <motion.circle
-                                cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: offsetPerbaikan }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="text-rose-500"
-                                strokeLinecap="round"
-                                style={{ rotate: `${((pNormal + pPerawatan) / 100) * 360}deg`, transformOrigin: 'center' }}
-                            />
-                            
-                            {/* Perawatan Segment (Amber) */}
-                            <motion.circle
-                                cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: offsetPerawatan }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="text-amber-500"
-                                strokeLinecap="round"
-                                style={{ rotate: `${(pNormal / 100) * 360}deg`, transformOrigin: 'center' }}
-                            />
-
-                            {/* Normal Segment (Emerald) */}
-                            <motion.circle
-                                cx={center} cy={center} r={radius} stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: offsetNormal }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="text-emerald-500"
-                                strokeLinecap="round"
-                            />
-                        </>
-                    )}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="w-full h-full p-2">
+                    <Doughnut data={data} options={options} />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
                     <span className="text-2xl font-black text-white leading-none">{total}</span>
                     <span className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] mt-2 bg-white/5 px-2 py-0.5 rounded">Log Hari Ini</span>
                 </div>
