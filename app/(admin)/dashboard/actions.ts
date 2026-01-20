@@ -28,27 +28,24 @@ export async function getDashboardStats() {
 
         const isKanitOrAdmin = ['KANIT_ELBAN', 'UNIT_ADMIN', 'ADMIN'].includes(userRole);
         const today = new Date().toISOString().split('T')[0];
+        const next7Days = new Date();
+        next7Days.setDate(next7Days.getDate() + 7);
+        const next7DaysStr = next7Days.toISOString().split('T')[0];
 
-        // 1. Peralatan
-        const peralatanData = await db.select({ 
-            statusLaik: peralatan.statusLaik 
-        }).from(peralatan);
-
-        // 2. Tugas (Filtered by Role)
+        // Prepare independent queries
+        const peralatanPromise = db.select({ statusLaik: peralatan.statusLaik }).from(peralatan);
+        
         let tugasQuery = db.select({ 
             status: tugas.status,
             sumber: tugas.sumber,
             deskripsi: tugas.deskripsi
         }).from(tugas);
-
         if (!isKanitOrAdmin && userNip) {
             tugasQuery = tugasQuery.where(eq(tugas.ditugaskanKeNip, userNip)) as any;
         }
-        
-        const tugasData = await tugasQuery;
+        const tugasPromise = tugasQuery;
 
-        // 3. Pengaduan (Joined for list view + counts)
-        const pengaduanData = await db.select({ 
+        const pengaduanPromise = db.select({ 
             id: pengaduan.id,
             status: pengaduan.status,
             createdAt: pengaduan.createdAt,
@@ -61,42 +58,58 @@ export async function getDashboardStats() {
         .leftJoin(peralatan, eq(pengaduan.peralatanId, peralatan.id))
         .orderBy(sql`${pengaduan.createdAt} desc`);
 
-        // 4. Jadwal (Hari ini)
-        const jadwalData = await db.select({
+        const jadwalTodayPromise = db.select({
             namaKegiatan: jadwal.namaKegiatan
         }).from(jadwal).where(eq(jadwal.tanggal, today));
 
-        // 5. Counts (Optimized using count())
-        const [logCountToday] = await db.select({ count: sql<number>`count(*)` })
+        const logCountTodayPromise = db.select({ count: sql<number>`count(*)` })
             .from(logPeralatan)
             .where(eq(logPeralatan.tanggal, today));
 
-        const logsStatusData = await db.select({ 
+        const logsStatusDataPromise = db.select({ 
             status: logPeralatan.status 
         }).from(logPeralatan)
         .where(eq(logPeralatan.tanggal, today));
 
-        const [akunPendingData] = await db.select({ count: sql<number>`count(*)` }).from(akun).where(eq(akun.status, 'pending'));
+        const akunPendingPromise = db.select({ count: sql<number>`count(*)` }).from(akun).where(eq(akun.status, 'pending'));
         
-        // Fetch files for category grouping
-        const allFilesData = await db.select({ 
+        const allFilesPromise = db.select({ 
             kategori: files.kategori 
         }).from(files);
 
-        const personelData = await db.select().from(personel).limit(5).orderBy(sql`${personel.createdAt} desc`);
+        const personelPromise = db.select().from(personel).limit(5).orderBy(sql`${personel.createdAt} desc`);
 
-        // NEW: Fetch Schedule for next 7 days for attendance view
-        const todayStr = new Date().toISOString().split('T')[0];
-        const next7Days = new Date();
-        next7Days.setDate(next7Days.getDate() + 7);
-        const next7DaysStr = next7Days.toISOString().split('T')[0];
-
-        const upcomingJadwal = await db.select().from(jadwal)
+        const upcomingJadwalPromise = db.select().from(jadwal)
             .where(and(
-                gte(jadwal.tanggal, todayStr),
+                gte(jadwal.tanggal, today),
                 lte(jadwal.tanggal, next7DaysStr)
             ))
             .orderBy(asc(jadwal.tanggal));
+
+        // Execute all queries in parallel
+        const [
+            peralatanData,
+            tugasData,
+            pengaduanData,
+            jadwalData,
+            [logCountToday],
+            logsStatusData,
+            [akunPendingData],
+            allFilesData,
+            personelData,
+            upcomingJadwal
+        ] = await Promise.all([
+            peralatanPromise,
+            tugasPromise,
+            pengaduanPromise,
+            jadwalTodayPromise,
+            logCountTodayPromise,
+            logsStatusDataPromise,
+            akunPendingPromise,
+            allFilesPromise,
+            personelPromise,
+            upcomingJadwalPromise
+        ]);
 
         // PROCESSING DATA
         const peralatanTotal = peralatanData.length;

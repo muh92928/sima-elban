@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { 
@@ -160,9 +161,9 @@ export default function Sidebar({
                   key={item.href}
                   className="relative group"
               >
-                  <div 
+                  <Link 
+                      href={item.href}
                       onClick={() => {
-                        router.push(item.href);
                         if (isMobile) onClose();
                       }}
                       className={`relative flex items-center ${effectiveCollapsed ? 'justify-center px-0 gap-0' : 'justify-start px-4 gap-3'} py-3.5 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden ${
@@ -196,7 +197,7 @@ export default function Sidebar({
                       {!isActive && (
                           <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12" />
                       )}
-                  </div>
+                  </Link>
               </div>
             );
           })}
