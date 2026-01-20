@@ -161,15 +161,22 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
 
                 <div className="grid grid-cols-1 @pc:grid-cols-4 gap-6">
                     <div className="@pc:col-span-1">
-                        <motion.div whileHover={{ y: -2 }} onClick={() => router.push('/peralatan')} className="bg-slate-900/60 border border-white/5 p-6 rounded-3xl relative overflow-hidden group cursor-pointer h-full flex flex-col justify-center min-h-[160px]">
-                            <div className="flex flex-col items-start gap-3 relative z-10 font-bold">
-                                <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400"><Database size={24} /></div>
-                                <div>
-                                    <div className="text-xs text-slate-500 uppercase tracking-widest mb-1">Total Aset</div>
-                                    <div className="text-5xl font-black text-white tracking-tight">{stats.peralatanTotal} <span className="text-lg font-medium text-slate-500">Unit</span></div>
-                                </div>
+                        <motion.div 
+                            whileHover={{ scale: 1.02 }} 
+                            onClick={() => router.push('/peralatan')} 
+                            className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl relative overflow-hidden group cursor-pointer h-full flex items-center justify-center gap-4"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-white/5 shrink-0">
+                                <Database size={20} className="text-blue-400" />
                             </div>
-                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity"><Database size={100} /></div>
+                            
+                            <div className="flex items-center gap-1.5 font-bold text-slate-200 text-sm uppercase tracking-wide">
+                                <span className="whitespace-nowrap opacity-70">Total Aset:</span>
+                                <span>{stats.peralatanTotal} Unit</span>
+                            </div>
+
+                            {/* Subtle Glow */}
+                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-blue-500/10 blur-xl rounded-full" />
                         </motion.div>
                     </div>
 
@@ -179,26 +186,41 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                             <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full -z-10" />
                         </div>
                         <div className="flex-1 w-full space-y-6">
-                            <div className="grid grid-cols-1 @tablet:grid-cols-2 gap-4">
-                                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                        <span className="text-sm font-bold text-slate-200">Laik Operasi</span>
+                            <div className="grid grid-cols-1 gap-3">
+                                {/* Laik Operasi */}
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-emerald-500/30">
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover/item:scale-110 transition-transform">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white tracking-wide">Laik Operasi</span>
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Kondisi Normal</span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-black text-white">{stats.peralatanLaik} Unit</div>
-                                        <div className="text-[10px] font-bold text-emerald-400">{persenLaik}%</div>
+                                    <div className="relative z-10 text-right">
+                                        <div className="text-lg font-black text-white">{stats.peralatanLaik} <span className="text-[10px] text-slate-500">UNIT</span></div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-emerald-500/10 text-[10px] font-black text-emerald-400 border border-emerald-500/20">{persenLaik}%</div>
                                     </div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                                 </div>
-                                <div className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${stats.peralatanRusak > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-white/5 border-white/5"}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
-                                        <span className="text-sm font-bold text-slate-200">Tidak Laik</span>
+
+                                {/* Tidak Laik */}
+                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border overflow-hidden transition-all duration-300 ${stats.peralatanRusak > 0 ? "border-rose-500/30" : "border-white/5 hover:border-rose-500/20"}`}>
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform group-hover/item:scale-110 ${stats.peralatanRusak > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/50 border-white/5"}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)] ${stats.peralatanRusak > 0 ? "bg-rose-500 animate-pulse" : "bg-rose-500/40"}`} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white tracking-wide">Tidak Laik</span>
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Perlu Atensi</span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-black text-white">{stats.peralatanRusak} Unit</div>
-                                        <div className="text-[10px] font-bold text-rose-400">{persenRusak}%</div>
+                                    <div className="relative z-10 text-right">
+                                        <div className="text-lg font-black text-white">{stats.peralatanRusak} <span className="text-[10px] text-slate-500">UNIT</span></div>
+                                        <div className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-black border ${stats.peralatanRusak > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-white/5 text-slate-500 border-white/5"}`}>{persenRusak}%</div>
                                     </div>
+                                    {stats.peralatanRusak > 0 && <div className="absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5" />}
                                 </div>
                             </div>
                             {stats.peralatanRusak > 0 && (
@@ -209,6 +231,11 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            {/* Divider Premium */}
+            <div className="py-4 px-4">
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent shadow-[0_0_15px_rgba(99,102,241,0.4)]" />
             </div>
 
             {/* --- Section 2: Log Aktivitas Peralatan (Proporsi Donut) --- */}
@@ -230,15 +257,22 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                 <div className="grid grid-cols-1 @pc:grid-cols-4 gap-6">
                     {/* Scorecard: Total Log Hari Ini */}
                     <div className="@pc:col-span-1">
-                        <motion.div whileHover={{ y: -2 }} onClick={() => router.push('/log-peralatan')} className="bg-slate-900/60 border border-indigo-500/20 p-6 rounded-3xl relative overflow-hidden group cursor-pointer h-full flex flex-col justify-center min-h-[160px]">
-                            <div className="flex flex-col items-start gap-3 relative z-10 font-bold">
-                                <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-400"><Activity size={24} /></div>
-                                <div>
-                                    <div className="text-xs text-slate-500 uppercase tracking-widest mb-1">Total Log Hari Ini</div>
-                                    <div className="text-5xl font-black text-white tracking-tight">{stats.logTotalHariIni} <span className="text-lg font-medium text-slate-500">Aktivitas</span></div>
-                                </div>
+                        <motion.div 
+                            whileHover={{ scale: 1.02 }} 
+                            onClick={() => router.push('/log-peralatan')} 
+                            className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl relative overflow-hidden group cursor-pointer h-full flex items-center justify-center gap-4"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-white/5 shrink-0">
+                                <Activity size={20} className="text-indigo-400" />
                             </div>
-                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={100} /></div>
+                            
+                            <div className="flex items-center gap-1.5 font-bold text-slate-200 text-sm uppercase tracking-wide">
+                                <span className="whitespace-nowrap opacity-70">Log Hari Ini:</span>
+                                <span>{stats.logTotalHariIni} Log</span>
+                            </div>
+
+                            {/* Subtle Glow */}
+                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-indigo-500/10 blur-xl rounded-full" />
                         </motion.div>
                     </div>
 
@@ -248,35 +282,64 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                             <LogStatusDonut normal={stats.logNormalOps} perawatan={stats.logPerluPerawatan} perbaikan={stats.logPerluPerbaikan} />
                             <div className="absolute inset-0 bg-indigo-500/5 blur-3xl rounded-full -z-10" />
                         </div>
-                        <div className="flex-1 w-full space-y-4">
-                            <div className="grid grid-cols-1 @tablet:grid-cols-3 gap-3">
+                        <div className="flex-1 w-full space-y-6">
+                            <div className="grid grid-cols-1 gap-3">
                                 {/* Normal Ops */}
-                                <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Normal Ops</span>
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-emerald-500/30">
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover/item:scale-110 transition-transform">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white tracking-wide">Normal Ops</span>
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Aktivitas Normal</span>
+                                        </div>
                                     </div>
-                                    <div className="text-xl font-black text-emerald-400">{stats.logNormalOps}</div>
+                                    <div className="relative z-10 text-right">
+                                        <div className="text-lg font-black text-white">{stats.logNormalOps} <span className="text-[10px] text-slate-500">INPUT</span></div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-emerald-500/10 text-[10px] font-black text-emerald-400 border border-emerald-500/20">HARIAN</div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                                 </div>
+
                                 {/* Perawatan */}
-                                <div className="p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Perawatan</span>
+                                <div className="group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border border-white/5 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover/item:scale-110 transition-transform">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white tracking-wide">Perawatan</span>
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Pemeliharaan</span>
+                                        </div>
                                     </div>
-                                    <div className="text-xl font-black text-amber-400">{stats.logPerluPerawatan}</div>
+                                    <div className="relative z-10 text-right">
+                                        <div className="text-lg font-black text-white">{stats.logPerluPerawatan} <span className="text-[10px] text-slate-500">INPUT</span></div>
+                                        <div className="inline-flex px-2 py-0.5 rounded-md bg-amber-500/10 text-[10px] font-black text-amber-400 border border-amber-500/20">HARIAN</div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/0 to-amber-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                                 </div>
+
                                 {/* Perbaikan */}
-                                <div className="p-3 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-rose-500" />
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Perbaikan</span>
+                                <div className={`group/item relative flex items-center justify-between p-4 rounded-2xl bg-slate-950/40 border overflow-hidden transition-all duration-300 ${stats.logPerluPerbaikan > 0 ? "border-rose-500/30" : "border-white/5 hover:border-rose-500/20"}`}>
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-transform group-hover/item:scale-110 ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-slate-800/50 border-white/5"}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)] ${stats.logPerluPerbaikan > 0 ? "bg-rose-500 animate-pulse" : "bg-rose-500/40"}`} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white tracking-wide">Perbaikan</span>
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Tindak Lanjut</span>
+                                        </div>
                                     </div>
-                                    <div className="text-xl font-black text-rose-400">{stats.logPerluPerbaikan}</div>
+                                    <div className="relative z-10 text-right">
+                                        <div className="text-lg font-black text-white">{stats.logPerluPerbaikan} <span className="text-[10px] text-slate-500">INPUT</span></div>
+                                        <div className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-black border ${stats.logPerluPerbaikan > 0 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-white/5 text-slate-500 border-white/5"}`}>HARIAN</div>
+                                    </div>
+                                    {stats.logPerluPerbaikan > 0 && <div className="absolute inset-0 bg-gradient-to-r from-rose-500/0 via-rose-500/0 to-rose-500/5" />}
                                 </div>
                             </div>
                             
-                            <p className="text-[11px] text-slate-500 italic text-center @tablet:text-left mt-2 px-1">
+                            <p className="text-[11px] text-slate-500 italic text-center @pc:text-left mt-2 px-1">
                                 * Data proporsi status berdasarkan seluruh log yang tercatat hari ini.
                             </p>
                         </div>

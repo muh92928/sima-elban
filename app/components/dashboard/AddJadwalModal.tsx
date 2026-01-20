@@ -12,9 +12,10 @@ interface AddJadwalModalProps {
   onSuccess: () => void;
   initialData?: Jadwal | null;
   defaultDate?: string;
+  currentUser?: any;
 }
 
-export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData, defaultDate }: AddJadwalModalProps) {
+export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData, defaultDate, currentUser }: AddJadwalModalProps) {
   const [loading, setLoading] = useState(false);
   const [technicians, setTechnicians] = useState<{nip: string, nama: string}[]>([]);
   
@@ -44,8 +45,8 @@ export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData
       const fetchTechs = async () => {
           const { data } = await supabase
               .from('akun')
-              .select('nip, nama')
-              .eq('peran', 'TEKNISI_ELBAN')
+              .select('nip, nama, peran')
+              .in('peran', ['TEKNISI_ELBAN', 'KANIT_ELBAN'])
               .order('nama');
           if (data) {
               setTechnicians(data);
@@ -54,6 +55,26 @@ export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData
       
       if (isOpen) fetchTechs();
   }, [isOpen]);
+
+  // Handle Role Logic: Pre-select and filter if TEKNISI_ELBAN
+  useEffect(() => {
+    if (isOpen && technicians.length > 0 && currentUser) {
+        const role = (currentUser.peran || "").toUpperCase();
+        if (role === 'TEKNISI_ELBAN') {
+            // Only show self
+            const self = technicians.find(t => t.nip === currentUser.nip);
+            if (self) {
+                setTechnicians([self]);
+                setSelectedTech(self.nip);
+            } else if (currentUser.nip && currentUser.nama) {
+                // If not in standard tech list but is TEKNISI_ELBAN
+                const selfObj = { nip: currentUser.nip, nama: currentUser.nama };
+                setTechnicians([selfObj]);
+                setSelectedTech(selfObj.nip);
+            }
+        }
+    }
+  }, [isOpen, technicians.length, currentUser]);
 
   // Populate Form if Editing
   useEffect(() => {
@@ -177,7 +198,8 @@ export default function AddJadwalModal({ isOpen, onClose, onSuccess, initialData
                                     required
                                     value={selectedTech}
                                     onChange={(e) => setSelectedTech(e.target.value)}
-                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
+                                    disabled={(currentUser?.peran || "").toUpperCase() === 'TEKNISI_ELBAN'}
+                                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                                 >
                                     <option value="" disabled hidden>Pilih Teknisi...</option>
                                     {technicians.map(tech => (

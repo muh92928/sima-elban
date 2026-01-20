@@ -171,32 +171,34 @@ export default function DashboardPage() {
             <AkunAlert count={stats.akunPending} />
 
             {/* Premium Tab Navigation */}
-            <div className="flex flex-wrap items-center justify-center gap-4">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`
-                            relative px-6 py-3 rounded-full flex items-center gap-2 text-sm font-bold tracking-wide transition-all duration-300
-                            ${activeTab === tab.id 
-                                ? "text-white shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)]" 
-                                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                            }
-                        `}
-                    >
-                        {activeTab === tab.id && (
-                            <motion.div
-                                layoutId="activeTab"
-                                className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full"
-                                initial={false}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                        )}
-                        <span className="relative z-10 flex items-center gap-2">
-                           {tab.label}
-                        </span>
-                    </button>
-                ))}
+            <div className="flex justify-center px-2">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-1 rounded-full flex flex-wrap items-center justify-center gap-1 w-full @tablet:w-auto">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`
+                                relative px-2 @tablet:px-8 py-2.5 rounded-full flex items-center justify-center gap-2 text-[10px] @tablet:text-sm font-bold tracking-wide transition-all duration-300 flex-1 @tablet:flex-none
+                                ${activeTab === tab.id 
+                                    ? "text-white" 
+                                    : "text-slate-400 hover:text-slate-200"
+                                }
+                            `}
+                        >
+                            {activeTab === tab.id && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full shadow-lg shadow-indigo-600/20"
+                                    initial={false}
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                />
+                            )}
+                            <span className="relative z-10 flex items-center gap-2">
+                               {tab.label}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Tab Content Area */}

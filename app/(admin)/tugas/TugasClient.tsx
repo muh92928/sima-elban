@@ -12,14 +12,14 @@ import { Plus,
   CheckCircle2,
   AlertCircle,
   ListTodo,
-  X
+  X,
+  ChevronDown
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Tugas, Akun, Peralatan } from "@/lib/types";
 import TugasTable from "@/app/components/dashboard/TugasTable";
 import TugasModal from "@/app/components/dashboard/TugasModal";
-import TugasStats from "@/app/components/dashboard/TugasStats";
 import { notify } from "@/lib/notify";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -247,32 +247,22 @@ export default function TugasClient({
 
   return (
     <div className="space-y-8">
-        {/* Header */}
+        {/* Header Section - Minimal Centered Style */}
         <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4"
+            className="flex flex-col items-center text-center space-y-2 mb-6"
         >
-        <div className="flex flex-col gap-2">
-           <div className="flex items-center gap-4">
-              <motion.div 
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
-              >
-                 <ListTodo className="text-blue-400" size={26} />
-              </motion.div>
-              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
-                  Manajemen Tugas
-              </h1>
-           </div>
-           <p className="text-slate-400 font-medium text-base">
-               Kelola penugasan teknisi dan perbaikan peralatan.
-           </p>
-        </div>
+            <h1 className="text-3xl @tablet:text-4xl @pc:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 pb-1">
+                Manajemen Tugas
+            </h1>
             
-            <div className="flex items-center gap-3">
+            <p className="text-slate-400 font-medium text-sm @tablet:text-base max-w-2xl leading-relaxed">
+                Kelola instruksi penugasan teknisi dan tindak lanjut perbaikan <br className="hidden @tablet:block" />
+                Unit Elektronika Fasilitas Bandara
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
                 {canManage && (
                     <button 
                         onClick={() => setIsAddModalOpen(true)}
@@ -283,14 +273,11 @@ export default function TugasClient({
                         <span className="lg:hidden">Baru</span>
                     </button>
                 )}
-
- 
             </div>
         </motion.div>
 
 
 
-      <TugasStats data={tasks} type="kanit" />
 
         {/* Manual Tasks Table (Kanit Only) */}
       {/* Search & Filter */}
@@ -298,83 +285,86 @@ export default function TugasClient({
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col @tablet:flex-row gap-3"
+         className="flex flex-col pc:flex-row gap-4"
       >
-        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
-          <input
-            type="text"
-            placeholder="Cari tugas..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-          />
-        </div>
-        
-        <div className="w-full @tablet:w-48 relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
-            >
-                <option value="all">Semua Status</option>
-                <option value="PENDING">Pending</option>
-                <option value="PROSES">Diproses</option>
-                <option value="SELESAI">Selesai</option>
-            </select>
+        {/* Filter Group: Search, Status, Time */}
+        <div className="flex flex-col pc:flex-row items-center gap-3 flex-1">
+          {/* Search */}
+          <div className="relative w-full pc:flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
+            <input
+              type="text"
+              placeholder="Cari tugas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+            />
+          </div>
+          
+          {/* Status Filter */}
+          <div className="w-full pc:flex-1 relative group">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400" size={18} />
+              <select 
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70 transition-all font-medium"
+              >
+                  <option value="all">Semua Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PROSES">Diproses</option>
+                  <option value="SELESAI">Selesai</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <ChevronDown size={14} />
+              </div>
+          </div>
+
+          {/* Time Filter */}
+          <div className="w-full pc:flex-1 self-stretch pc:self-auto">
+               <div className="relative group h-full">
+                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
+                   <button 
+                      onClick={() => dateInputRef.current?.showPicker()}
+                      className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70 font-medium"
+                   >
+                      {dateFilter ? (
+                          new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilter)
+                      ) : (
+                          <span className="text-slate-500">Semua Waktu</span>
+                      )}
+                   </button>
+                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                       <ChevronDown size={14} />
+                   </div>
+                   <input 
+                       ref={dateInputRef}
+                       type="month"
+                       value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
+                       onChange={(e) => {
+                           if (e.target.value) {
+                               setDateFilter(new Date(e.target.value + "-01"));
+                           } else {
+                               setDateFilter(null);
+                           }
+                       }}
+                       className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
+                   />
+               </div>
+          </div>
         </div>
 
-         <div className="flex gap-3 w-full @tablet:w-auto">
-             <div className="relative group min-w-[160px]">
-                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
-                 <button 
-                    onClick={() => dateInputRef.current?.showPicker()}
-                    className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70"
-                 >
-                    {dateFilter ? (
-                        new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilter)
-                    ) : (
-                        <span className="text-slate-500">Semua Waktu</span>
-                    )}
-                 </button>
-                 {dateFilter && (
-                     <button 
-                        onClick={(e) => { e.stopPropagation(); setDateFilter(null); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-                     >
-                         <X size={14} />
-                     </button>
-                 )}
-                 <input 
-                     ref={dateInputRef}
-                     type="month"
-                     value={dateFilter ? dateFilter.toISOString().slice(0, 7) : ''}
-                     onChange={(e) => {
-                         if (e.target.value) {
-                             setDateFilter(new Date(e.target.value + "-01"));
-                         } else {
-                             setDateFilter(null);
-                         }
-                     }}
-                     className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
-                 />
-             </div>
-         </div>
-
-         {/* Action Button Moved Here */}
-         {canManage && (
-            <div className="ml-auto w-full @tablet:w-auto flex justify-end">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 justify-end whitespace-nowrap pt-2 pc:pt-0">
+            {canManage && (
                 <button 
                     onClick={() => setIsAddModalOpen(true)}
-                    className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
+                    className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <Plus size={16} />
-                    <span className="hidden lg:inline">Tambah Tugas</span>
-                    <span className="lg:hidden">Baru</span>
+                    <span>Tambah Tugas</span>
                 </button>
-            </div>
-         )}
+            )}
+        </div>
       </motion.div>
 
         {/* Manual Tasks Table (Kanit Only) */}
@@ -392,81 +382,80 @@ export default function TugasClient({
             />
         </div>
 
-      <div className="pt-10">
-         <TugasStats data={tasks} type="log" />
-      </div>
 
-      {/* Search & Filter Log Tasks */}
+       {/* Filter Group Log Tasks: Search, Status, Time */}
       <motion.div 
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col @tablet:flex-row gap-3 pt-6 border-t border-white/5"
+         className="flex flex-col pc:flex-row gap-4 pt-6 border-t border-white/5"
       >
-        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
-          <input
-            type="text"
-            placeholder="Cari tugas log..."
-            value={searchQueryLog}
-            onChange={(e) => setSearchQueryLog(e.target.value)}
-            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-          />
-        </div>
-        
-        <div className="w-full @tablet:w-48 relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <select 
-                value={statusFilterLog}
-                onChange={(e) => setStatusFilterLog(e.target.value)}
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
-            >
-                <option value="all">Semua Status</option>
-                <option value="PENDING">Pending</option>
-                <option value="PROSES">Diproses</option>
-                <option value="SELESAI">Selesai</option>
-            </select>
-        </div>
+        <div className="flex flex-col pc:flex-row items-center gap-3 flex-1">
+          {/* Search */}
+          <div className="relative w-full pc:flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
+            <input
+              type="text"
+              placeholder="Cari tugas log..."
+              value={searchQueryLog}
+              onChange={(e) => setSearchQueryLog(e.target.value)}
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+            />
+          </div>
+          
+          {/* Status Filter */}
+          <div className="w-full pc:flex-1 relative group">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400" size={18} />
+              <select 
+                  value={statusFilterLog}
+                  onChange={(e) => setStatusFilterLog(e.target.value)}
+                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70 transition-all font-medium"
+              >
+                  <option value="all">Semua Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PROSES">Diproses</option>
+                  <option value="SELESAI">Selesai</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <ChevronDown size={14} />
+              </div>
+          </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
-             <div className="relative group min-w-[160px]">
-                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
-                 <button 
-                    onClick={() => dateInputLogRef.current?.showPicker()}
-                    className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70"
-                 >
-                    {dateFilterLog ? (
-                        new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilterLog)
-                    ) : (
-                        <span className="text-slate-500">Semua Waktu</span>
-                    )}
-                 </button>
-                 {dateFilterLog && (
-                     <button 
-                        onClick={(e) => { e.stopPropagation(); setDateFilterLog(null); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-                     >
-                         <X size={14} />
-                     </button>
-                 )}
-                 <input 
-                     ref={dateInputLogRef}
-                     type="month"
-                     value={dateFilterLog ? dateFilterLog.toISOString().slice(0, 7) : ''}
-                     onChange={(e) => {
-                         if (e.target.value) {
-                             setDateFilterLog(new Date(e.target.value + "-01"));
-                         } else {
-                             setDateFilterLog(null);
-                         }
-                     }}
-                     className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
-                 />
-             </div>
-         </div>
-         
+          {/* Time Filter */}
+          <div className="w-full pc:flex-1 self-stretch pc:self-auto">
+               <div className="relative group h-full">
+                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-400 transition-colors z-10" size={18} />
+                   <button 
+                      onClick={() => dateInputLogRef.current?.showPicker()}
+                      className="w-full h-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-left flex items-center group-hover:bg-slate-900/70 font-medium"
+                   >
+                      {dateFilterLog ? (
+                          new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(dateFilterLog)
+                      ) : (
+                          <span className="text-slate-500">Semua Waktu</span>
+                      )}
+                   </button>
+                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                       <ChevronDown size={14} />
+                   </div>
+                   <input 
+                       ref={dateInputLogRef}
+                       type="month"
+                       value={dateFilterLog ? dateFilterLog.toISOString().slice(0, 7) : ''}
+                       onChange={(e) => {
+                           if (e.target.value) {
+                               setDateFilterLog(new Date(e.target.value + "-01"));
+                           } else {
+                               setDateFilterLog(null);
+                           }
+                       }}
+                       className="absolute inset-0 opacity-0 -z-10 pointer-events-none"
+                   />
+               </div>
+          </div>
+        </div>
       </motion.div>
-
+         
         <div className="space-y-4">
              <TugasTable 
                 title="Tugas dari Log Peralatan"

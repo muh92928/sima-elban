@@ -139,10 +139,17 @@ export default function DashboardLayoutClient({
                 {/* Content Container */}
                 <div className="@container/main relative z-10 w-full max-w-full print:max-w-none flex flex-col items-stretch">
                     
-                    {/* Unified Sticky Notification Wrapper */}
+                    {/* Floating Notifications (No layout shift) */}
+                    <div className="pointer-events-none">
+                        <ComplaintNotification 
+                            userRole={role} 
+                            onVisibilityChange={setIsComplaintVisible} 
+                            suppress={isModalOpen}
+                        />
+                    </div>
+
+                    {/* Unified Sticky Toaster Wrapper (Flows naturally) */}
                     <div className="sticky top-16 md:top-2 z-40 mb-6 flex flex-col gap-4 transition-all duration-300 pointer-events-none">
-                        
-                        {/* Toaster: Flows naturally, takes space */}
                         <div className="w-full empty:hidden pointer-events-auto">
                             <Toaster 
                                 position="top-center"
@@ -164,15 +171,6 @@ export default function DashboardLayoutClient({
                                     },
                                 }}
                             />
-                        </div>
-
-                        {/* Complaint Notification */}
-                        <div className={`
-                            w-full transition-all duration-300 pointer-events-auto
-                            ${!shouldShowNotification ? 'hidden' : 'block'} 
-                            ${!shouldShowNotification ? 'opacity-0 translate-y-[-20px] pointer-events-none hidden' : 'opacity-100 translate-y-0'}
-                        `}>
-                            <ComplaintNotification userRole={role} onVisibilityChange={setIsComplaintVisible} />
                         </div>
                     </div>
 

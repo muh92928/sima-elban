@@ -80,7 +80,7 @@ export default function TugasStats({ data, type }: TugasStatsProps) {
                 <div className={`w-1.5 h-6 rounded-full ${section.color === 'indigo' ? 'bg-indigo-500' : 'bg-rose-500'}`} />
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">{section.title}</h3>
              </div>
-             <div className="grid grid-cols-1 @tablet:grid-cols-2 @pc:grid-cols-4 gap-4">
+             <div className="grid grid-cols-2 @pc:grid-cols-4 gap-4">
                 {cards.map((card, index) => (
                   <motion.div
                     key={card.title}

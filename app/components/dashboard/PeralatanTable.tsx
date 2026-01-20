@@ -146,14 +146,11 @@ export default function PeralatanTable({
                 const val = info.getValue() as string;
                 const isLaik = val !== "TIDAK LAIK OPERASI";
                 return (
-                  <div className={`inline-flex items-center gap-1.5 min-w-[120px] justify-center px-3 py-1 rounded-full border ${
+                  <div className={`inline-flex items-center min-w-[120px] justify-center px-4 py-1.5 rounded-full border ${
                         !isLaik
                         ? "bg-red-500/10 border-red-500/20 text-red-400" 
                         : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     }`}>
-                        <div className={`w-1.5 h-1.5 rounded-full print:hidden ${
-                             !isLaik ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-                        }`} />
                         <span className="text-[10px] font-bold tracking-wide uppercase whitespace-nowrap">
                             {val || "UNKNOWN"}
                         </span>

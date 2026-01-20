@@ -85,7 +85,7 @@ export default function DayDetailsModal({
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {events.length === 0 ? (
                         <div className="py-12 text-center text-slate-500 italic border-2 border-dashed border-white/5 rounded-2xl">
-                            Tidak ada kegiatan hari ini.
+                            Tidak ada jadwal dinas hari ini.
                         </div>
                     ) : (
                         events.map((item) => {

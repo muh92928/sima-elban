@@ -8,12 +8,12 @@ import {
   Printer,
   User,
   Filter,
-  Users
+  Users,
+  ChevronDown
 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import AddPersonelModal from "@/app/components/dashboard/AddPersonelModal";
 import PersonelTable from "@/app/components/dashboard/PersonelTable";
-import PersonelStats from "@/app/components/dashboard/PersonelStats";
 import { deletePersonel } from "./actions";
 import { useRouter } from "next/navigation";
 import { Personel } from "@/lib/types";
@@ -109,30 +109,20 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
         `}
       </style>
 
-      {/* Header & Actions */}
+      {/* Header Section - Minimal Centered Style */}
       <motion.div 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col @tablet:flex-row @tablet:items-center justify-between gap-4 print:hidden"
+        className="flex flex-col items-center text-center space-y-2 print:hidden mb-6"
       >
-        <div>
-        <div className="flex flex-col gap-2">
-           <div className="flex items-center gap-4">
-              <motion.div 
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                className="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20"
-              >
-                 <Users className="text-blue-400" size={26} />
-              </motion.div>
-              <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.3)] pb-1">
-                Data Personel
-              </h1>
-           </div>
-           <p className="text-slate-400 font-medium text-base">Manajemen data anggota dan pegawai.</p>
-        </div>
-        </div>
+        <h1 className="text-3xl @tablet:text-4xl @pc:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 pb-1">
+            Data Personel
+        </h1>
+        
+        <p className="text-slate-400 font-medium text-sm @tablet:text-base max-w-2xl leading-relaxed">
+            Sistem Informasi Manajemen Data Anggota & SDM Teknisi <br className="hidden @tablet:block" />
+            Unit Elektronika Fasilitas Bandara
+        </p>
       </motion.div>
 
        {/* Print Only Header (Official Format) */}
@@ -186,67 +176,68 @@ export default function PersonelClient({ initialData }: PersonelClientProps) {
          </div>
        </div>
 
-      {/* Stats Widget */}
-      <div className="print:hidden">
-          <PersonelStats data={personelData} />
-      </div>
 
       {/* Search & Filter */}
       <motion.div 
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 0.1 }}
-         className="flex flex-col @tablet:flex-row gap-3 print:hidden"
+         className="flex flex-col pc:flex-row gap-4 print:hidden"
       >
-        <div className="relative w-full @tablet:flex-1 @tablet:max-w-sm group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
-          <input
-            type="text"
-            placeholder="Cari Nama, NIP, atau Jabatan..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-          />
+        {/* Filter Group: Search & Jabatan */}
+        <div className="flex flex-col pc:flex-row items-center gap-3 flex-1">
+          {/* Search */}
+          <div className="relative w-full pc:flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" size={18} />
+            <input
+              type="text"
+              placeholder="Cari Nama, NIP, atau Jabatan..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+            />
+          </div>
+          
+          {/* Jabatan Filter */}
+          <div className="w-full pc:flex-1 relative group">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400" size={18} />
+               <select 
+                  value={jabatanFilter}
+                  onChange={(e) => setJabatanFilter(e.target.value)}
+                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70 transition-all font-medium"
+              >
+                  <option value="all">Semua Jabatan</option>
+                  {/* Dynamically Generate Jabatan Options */}
+                  {uniqueJabatan.map(jab => (
+                     <option key={jab} value={jab || ''}>{jab}</option>
+                  ))}
+               </select>
+               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <ChevronDown size={14} />
+              </div>
+          </div>
         </div>
-        
-         <div className="w-full @tablet:w-auto relative group">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-             <select 
-                value={jabatanFilter}
-                onChange={(e) => setJabatanFilter(e.target.value)}
-                className="w-full @tablet:w-48 bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer hover:bg-slate-900/70"
-            >
-                <option value="all">Semua Jabatan</option>
-                {/* Dynamically Generate Jabatan Options */}
-                {uniqueJabatan.map(jab => (
-                   <option key={jab} value={jab || ''}>{jab}</option>
-                ))}
-            </select>
-         </div>
 
-         {/* Actions Moved Here */}
-         <div className="flex items-center gap-3 ml-auto w-full @tablet:w-auto justify-end">
+         {/* Actions */}
+         <div className="flex items-center gap-3 justify-end whitespace-nowrap pt-2 pc:pt-0">
              <button 
                 onClick={() => {
                     setEditingItem(null);
                     setIsModalOpen(true);
                 }}
-                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center whitespace-nowrap"
+                className="btn btn-sm h-10 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-lg shadow-indigo-500/20 gap-2 rounded-xl flex items-center transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
                 <Plus size={16} />
-                <span className="hidden lg:inline">Tambah Personel</span>
-                <span className="lg:hidden">Baru</span>
+                <span>Tambah Personel</span>
             </button>
             <button 
                 onClick={() => window.print()}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all hover:scale-105 active:scale-95"
                 title="Cetak Data"
             >
                 <Printer size={18} />
             </button>
          </div>
-
-
       </motion.div>
 
       {/* Content Section */}

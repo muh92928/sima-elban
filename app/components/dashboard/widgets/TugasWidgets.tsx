@@ -76,7 +76,7 @@ export default function TugasWidgets({ stats, variants }: TugasWidgetsProps) {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 @tablet:grid-cols-2 @pc:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 @pc:grid-cols-4 gap-4">
                         {section.items.map((item, idx) => (
                             <motion.div 
                                 key={idx}
@@ -95,7 +95,7 @@ export default function TugasWidgets({ stats, variants }: TugasWidgetsProps) {
                                     <item.icon size={24} />
                                 </div>
 
-                                <div>
+                                <div className="flex-1 text-center pr-2">
                                     <div className="text-3xl font-bold text-white tracking-tight">{item.value}</div>
                                     <div className="text-sm font-medium text-slate-300">{item.label}</div>
                                     <div className="text-xs text-slate-500">{item.sub}</div>

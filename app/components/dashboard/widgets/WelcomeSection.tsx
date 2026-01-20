@@ -15,18 +15,18 @@ export default function WelcomeSection({ user, profile, variants }: WelcomeSecti
     return (
         <motion.div 
             variants={variants}
-            className={`${CARD_STYLES.CONTAINER} ${CARD_STYLES.HEADER}`}
+            className={`${CARD_STYLES.CONTAINER} ${CARD_STYLES.HEADER} items-center`}
         >
             <div className={CARD_STYLES.GLASS_OVERLAY} />
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute -inset-24 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
             
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col items-center @tablet:items-start text-center @tablet:text-left flex-1">
                 <h1 className="text-2xl @tablet:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-white mb-2">
                     Selamat Datang, {profile?.nama || user?.user_metadata?.full_name || "Petugas"}
                 </h1>
                 <p className="text-slate-400">Sistem Informasi Manajemen Unit Elektronika Bandara (SIMA ELBAN)</p>
                 
-                <div className="flex flex-wrap items-center gap-3 mt-5">
+                <div className="flex flex-wrap items-center justify-center @tablet:justify-start gap-3 mt-5">
                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_-3px_rgba(99,102,241,0.4)]">
                         {(profile?.peran || user?.user_metadata?.peran || "").replace(/_/g, " ")}
                      </div>
@@ -38,7 +38,7 @@ export default function WelcomeSection({ user, profile, variants }: WelcomeSecti
                 </div>
             </div>
             
-            <div className="relative z-10 hidden @tablet:block mr-4">
+            <div className="relative z-10 hidden @tablet:block ml-4">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 border border-white/20">
                     <Activity className="text-white" size={40} />
                 </div>
