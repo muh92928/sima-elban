@@ -135,7 +135,7 @@ export default function PeralatanDetailModal({ isOpen, onClose, data, userRole =
                     <img src="/logo_kemenhub.png" className="w-10 h-10 object-contain" />
                     <div className="text-left">
                         <p className="text-[10px] font-bold uppercase leading-tight">Direktorat Jenderal Perhubungan Udara</p>
-                        <p className="text-[12px] font-black uppercase leading-tight">Bandara Karel Sadsuitubun</p>
+                        <p className="text-[12px] font-black uppercase leading-tight">UPBU KAREL SADSUITUBUN LANGGUR</p>
                     </div>
                 </div>
                 

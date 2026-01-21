@@ -160,9 +160,25 @@ export default function PeralatanList({ initialData }: PeralatanListProps) {
           .no-print { display: none !important; }
           .print-block { display: block !important; }
           .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-          .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: black !important; }
-          .print-table th { background-color: #B4C6E7 !important; font-weight: bold !important; text-align: center; vertical-align: middle; }
-          .print-table td { vertical-align: top; color: black !important; }
+          .print-table th, .print-table td { 
+            border: 1px solid #000 !important; 
+            padding: 8px 4px !important; 
+            color: black !important; 
+            vertical-align: middle !important;
+            text-align: center !important;
+          }
+          .print-table th { background-color: #B4C6E7 !important; font-weight: bold !important; }
+          .print-table td { color: black !important; }
+          
+          /* Force centering for containers inside cells */
+          .print-table td > div {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
           
           /* Force Text Color */
           * { color: black !important; text-shadow: none !important; }

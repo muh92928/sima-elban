@@ -66,10 +66,10 @@ export default function PeralatanTable({
           },
           {
             accessorKey: "nama",
-            header: () => <div className="min-w-[180px] mx-auto">Nama Peralatan</div>,
+            header: () => <div className="min-w-[180px] text-center mx-auto">Nama Peralatan</div>,
             size: 180,
             cell: (info) => (
-              <div className="min-w-[180px] mx-auto">
+              <div className="min-w-[180px] text-center mx-auto">
                 <span className="font-medium text-white group-hover:text-blue-200 transition-colors line-clamp-2" title={info.getValue() as string}>
                   {info.getValue() as string}
                 </span>
@@ -81,17 +81,17 @@ export default function PeralatanTable({
             header: "Jenis",
             size: 120,
             cell: (info) => (
-                <div className="min-w-[120px] mx-auto">
+                <div className="min-w-[120px] text-center mx-auto">
                     <span className="text-slate-300 line-clamp-2">{info.getValue() as string}</span>
                 </div>
             ),
           },
           {
             accessorKey: "merk",
-            header: () => <div className="min-w-[150px] mx-auto">Merk / Tipe / S.N</div>,
+            header: () => <div className="min-w-[150px] text-center mx-auto">Merk / Tipe / S.N</div>,
             size: 150,
             cell: (info) => (
-              <div className="min-w-[150px] mx-auto">
+              <div className="min-w-[150px] text-center mx-auto">
                 <span className="text-slate-400 font-mono text-xs line-clamp-2" title={info.getValue() as string}>
                     {info.getValue() as string || "-"}
                 </span>
@@ -105,13 +105,15 @@ export default function PeralatanTable({
             cell: (info) => {
               const val = info.getValue() as string;
               return val && val !== "-" ? (
-                <div className="min-w-[130px] mx-auto truncate">
-                    <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] uppercase font-bold print:bg-transparent print:text-black" title={val}>
+                <div className="min-w-[130px] text-center mx-auto truncate">
+                    <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] uppercase font-bold print:bg-transparent print:border-none print:p-0 print:text-black print:text-xs" title={val}>
                     {val}
                     </span>
                 </div>
               ) : (
-                <span className="text-slate-500 print:text-black">-</span>
+                <div className="min-w-[130px] text-center mx-auto">
+                  <span className="text-slate-500 print:text-black">-</span>
+                </div>
               );
             },
           },
@@ -135,7 +137,11 @@ export default function PeralatanTable({
                if (val >= 90) color = "text-emerald-400";
                else if (val >= 70) color = "text-amber-400";
                
-               return <span className={`font-bold ${color}`}>{val}%</span>;
+               return (
+                 <div className="text-center">
+                   <span className={`font-bold ${color}`}>{val}%</span>
+                 </div>
+               );
             }
           },
           {
@@ -146,12 +152,12 @@ export default function PeralatanTable({
                 const val = info.getValue() as string;
                 const isLaik = val !== "TIDAK LAIK OPERASI";
                 return (
-                  <div className={`inline-flex items-center min-w-[120px] justify-center px-4 py-1.5 rounded-full border ${
+                  <div className={`inline-flex items-center min-w-[120px] justify-center px-4 py-1.5 rounded-full border print:border-none print:bg-transparent print:p-0 print:rounded-none ${
                         !isLaik
                         ? "bg-red-500/10 border-red-500/20 text-red-400" 
                         : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     }`}>
-                        <span className="text-[10px] font-bold tracking-wide uppercase whitespace-nowrap">
+                        <span className="text-[10px] font-bold tracking-wide uppercase whitespace-nowrap print:text-black print:text-xs">
                             {val || "UNKNOWN"}
                         </span>
                   </div>
@@ -160,10 +166,10 @@ export default function PeralatanTable({
           },
           {
             accessorKey: "keterangan",
-            header: () => <div className="min-w-[150px] mx-auto">Keterangan</div>,
+            header: () => <div className="min-w-[150px] text-center mx-auto">Keterangan</div>,
             size: 150,
             cell: (info) => (
-                <div className="min-w-[150px] mx-auto">
+                <div className="min-w-[150px] text-center mx-auto">
                     <span className="text-slate-400 text-xs italic line-clamp-1" title={info.getValue() as string}>
                         {info.getValue() as string || "-"}
                     </span>
