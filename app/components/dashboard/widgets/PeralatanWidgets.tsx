@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Database, CheckCircle, AlertTriangle, ArrowUpRight, Activity, Wrench, ClipboardCheck } from "lucide-react";
+import { Database, ArrowUpRight, Activity, ClipboardCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
@@ -173,10 +173,8 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
 
                 <div className="grid grid-cols-1 @pc:grid-cols-4 gap-6">
                     <div className="@pc:col-span-1">
-                        <motion.div 
-                            whileHover={{ scale: 1.02 }} 
-                            onClick={() => router.push('/peralatan')} 
-                            className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl relative overflow-hidden group cursor-pointer h-full flex items-center justify-center gap-4"
+                        <div 
+                            className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl relative overflow-hidden h-full flex items-center justify-center gap-4"
                         >
                             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-white/5 shrink-0">
                                 <Database size={20} className="text-blue-400" />
@@ -188,8 +186,8 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                             </div>
 
                             {/* Subtle Glow */}
-                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-blue-500/10 blur-xl rounded-full" />
-                        </motion.div>
+                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-blue-500/10 blur-xl rounded-full"></div>
+                        </div>
                     </div>
 
                     <div className="bg-slate-900/60 border border-white/5 p-8 rounded-3xl flex flex-col @tablet:flex-row items-center gap-8 @pc:col-span-3">
@@ -290,7 +288,7 @@ export default function PeralatanWidgets({ stats, variants }: PeralatanWidgetsPr
                             </div>
 
                             {/* Subtle Glow */}
-                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-indigo-500/10 blur-xl rounded-full" />
+                            <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-indigo-500/10 blur-xl rounded-full"></div>
                         </motion.div>
                     </div>
 
