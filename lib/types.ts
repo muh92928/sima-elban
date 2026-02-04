@@ -101,6 +101,13 @@ export interface Pengaduan {
   created_at: string;
 }
 
+export interface Sertifikat {
+  id: string; // Internal frontend ID
+  jenis: string;
+  nomor: string;
+  kompetensi: string;
+}
+
 export interface Personel {
   id: string; // UUID
   nama: string;
@@ -109,9 +116,10 @@ export interface Personel {
   tanggalLahir: string | null;
   jabatan: string | null;
   formasiPendidikan: string | null;
-  kompetensiPendidikan: string | null;
-  noSertifikat: string | null;
-  jenisSertifikat: string | null;
+  kompetensiPendidikan: string | null; // Will store stringified JSON for multiple if needed
+  noSertifikat: string | null; // Will store stringified JSON for multiple if needed
+  jenisSertifikat: string | null; // Will store stringified JSON for multiple if needed
+  sertifikats?: Sertifikat[]; // Helper for UI
   keterangan: string | null;
   createdAt: string;
   updatedAt: string;

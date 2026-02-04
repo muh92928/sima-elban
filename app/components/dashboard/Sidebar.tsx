@@ -17,7 +17,7 @@ import {
   ChevronRight,
   X,
   PanelLeft,
-  Users // Added icon
+  Users
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 

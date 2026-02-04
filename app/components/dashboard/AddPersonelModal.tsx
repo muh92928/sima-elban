@@ -7,6 +7,8 @@ import { toast, useToaster } from "react-hot-toast";
 import { createPersonel, updatePersonel } from "@/app/(admin)/personel/actions";
 import { useLayout } from "@/app/context/LayoutContext";
 import { supabase } from "@/lib/supabase";
+import { Plus, Trash2, Award } from "lucide-react";
+import { Sertifikat } from "@/lib/types";
 
 interface PersonelData {
   id?: string;
@@ -51,6 +53,23 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
     keterangan: ""
   });
 
+  const [sertifikats, setSertifikats] = useState<Sertifikat[]>([]);
+
+  const addSertifikat = () => {
+    setSertifikats(prev => [
+      ...prev, 
+      { id: Math.random().toString(36).substr(2, 9), jenis: "", nomor: "", kompetensi: "" }
+    ]);
+  };
+
+  const removeSertifikat = (id: string) => {
+    setSertifikats(prev => prev.filter(s => s.id !== id));
+  };
+
+  const updateSertifikat = (id: string, field: keyof Sertifikat, value: string) => {
+    setSertifikats(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -65,7 +84,29 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
         jenisSertifikat: initialData.jenisSertifikat || "",
         keterangan: initialData.keterangan || ""
       });
+
+      // Parse sertifikats if available (stored in kompetensiPendidikan as JSON)
+      try {
+        if (initialData.kompetensiPendidikan && initialData.kompetensiPendidikan.startsWith('[')) {
+          setSertifikats(JSON.parse(initialData.kompetensiPendidikan));
+        } else {
+          // Fallback: If only old single data exists, convert to first item in array
+          if (initialData.jenisSertifikat || initialData.noSertifikat || initialData.kompetensiPendidikan) {
+            setSertifikats([{
+                id: 'legacy',
+                jenis: initialData.jenisSertifikat || "",
+                nomor: initialData.noSertifikat || "",
+                kompetensi: initialData.kompetensiPendidikan || ""
+            }]);
+          } else {
+            setSertifikats([]);
+          }
+        }
+      } catch (e) {
+        setSertifikats([]);
+      }
     } else {
+      setSertifikats([]);
       setFormData({
         nama: "",
         nip: "",
@@ -135,14 +176,22 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
     setLoading(true);
 
     try {
+      const payload = {
+        ...formData,
+        kompetensiPendidikan: JSON.stringify(sertifikats),
+        // Keep single latest for compatibility if needed, or summary
+        jenisSertifikat: sertifikats.length > 0 ? sertifikats.map(s => s.jenis).join(", ") : "-",
+        noSertifikat: sertifikats.length > 0 ? sertifikats.map(s => s.nomor).join(", ") : "-"
+      };
+
       if (initialData?.id) {
          // Update mode
-         const res = await updatePersonel(initialData.id, formData);
+         const res = await updatePersonel(initialData.id, payload);
          if (!res.success) throw new Error(res.error);
          toast.success("Data personel berhasil diperbarui!");
       } else {
         // Insert mode
-        const res = await createPersonel(formData);
+        const res = await createPersonel(payload);
          if (!res.success) throw new Error(res.error);
         toast.success("Personel berhasil ditambahkan!");
       }
@@ -283,52 +332,91 @@ export default function AddPersonelModal({ isOpen, onClose, onSuccess, initialDa
                         />
                     </div>
 
-                    {/* Pendidikan & Kompetensi */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
+                    {/* Pendidikan */}
+                    <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-300">Formasi Pendidikan</label>
                         <input 
-                          name="formasiPendidikan"
-                          value={formData.formasiPendidikan}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Contoh: D3 Teknik Listrik Bandara"
+                            name="formasiPendidikan"
+                            value={formData.formasiPendidikan}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
+                            placeholder="Contoh: D3 Teknik Listrik Bandara"
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Kompetensi Pendidikan</label>
-                        <input 
-                          name="kompetensiPendidikan"
-                          value={formData.kompetensiPendidikan}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Detail Kompetensi"
-                        />
-                      </div>
                     </div>
 
-                    {/* Sertifikat Kompetensi */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Jenis Sertifikat</label>
-                        <input 
-                          name="jenisSertifikat"
-                          value={formData.jenisSertifikat}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Contoh: SKP Ahli"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Nomor Sertifikat</label>
-                        <input 
-                          name="noSertifikat"
-                          value={formData.noSertifikat}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white placeholder:text-slate-500"
-                          placeholder="Nomor Sertifikat"
-                        />
-                      </div>
+                    {/* Dynamic Kompetensi Rows */}
+                    <div className="space-y-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-white font-bold">
+                                <Award size={18} className="text-orange-400" />
+                                <h3>Kompetensi</h3>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={addSertifikat}
+                                className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-all border border-indigo-500/20"
+                            >
+                                <Plus size={14} />
+                                Tambah Kompetensi
+                            </button>
+                        </div>
+
+                        {sertifikats.length === 0 ? (
+                            <div className="text-center py-6 bg-slate-800/30 border border-dashed border-white/5 rounded-xl text-slate-500 text-xs italic">
+                                Belum ada kompetensi yang ditambahkan.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {sertifikats.map((s, idx) => (
+                                    <div key={s.id} className="p-4 bg-slate-800/50 border border-white/10 rounded-xl space-y-3 relative group">
+                                        <div className="absolute -left-1 top-4 w-1 h-8 bg-orange-500/50 rounded-full" />
+                                        
+                                        {/* Row 1: Detail Kompetensi (Full Width) */}
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase">Detail Kompetensi</label>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    value={s.kompetensi}
+                                                    onChange={(e) => updateSertifikat(s.id, 'kompetensi', e.target.value)}
+                                                    className="flex-1 px-3 py-2 bg-slate-900 border border-white/5 rounded-lg text-sm text-white focus:ring-1 focus:ring-orange-500 outline-none"
+                                                    placeholder=""
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => removeSertifikat(s.id)}
+                                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                                    title="Hapus baris ini"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Jenis & Nomor Sertifikat */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Jenis Sertifikat</label>
+                                                <input 
+                                                    value={s.jenis}
+                                                    onChange={(e) => updateSertifikat(s.id, 'jenis', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-slate-900 border border-white/5 rounded-lg text-sm text-white focus:ring-1 focus:ring-orange-500 outline-none"
+                                                    placeholder=""
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Nomor Sertifikat</label>
+                                                <input 
+                                                    value={s.nomor}
+                                                    onChange={(e) => updateSertifikat(s.id, 'nomor', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-slate-900 border border-white/5 rounded-lg text-sm text-white focus:ring-1 focus:ring-orange-500 outline-none"
+                                                    placeholder=""
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Keterangan */}

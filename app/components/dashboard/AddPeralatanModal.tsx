@@ -92,7 +92,7 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
             (newData as any)[name] = value;
         }
 
-        // Auto-calc logic for Condition based on Year
+        // Auto-calc logic for Condition and Status based on Year
         if (name === 'tahun_instalasi' && value !== "") {
             const year = parseInt(value);
             const currentYear = new Date().getFullYear();
@@ -104,6 +104,9 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
                    condition = Math.max(0, 100 - (age * 10));
                 }
                 newData.kondisi_persen = condition;
+                
+                // Auto-determine status: di atas 20% LAIK, 20% ke bawah TIDAK LAIK
+                newData.status_laik = condition > 20 ? "LAIK OPERASI" : "TIDAK LAIK OPERASI";
             }
         }
 
@@ -121,8 +124,8 @@ export default function AddPeralatanModal({ isOpen, onClose, onSuccess, initialD
       const finalKondisi = typeof formData.kondisi_persen === 'string' ? (parseInt(formData.kondisi_persen) || 0) : formData.kondisi_persen;
 
       // Auto-Determine Status
-      // Logic: If condition > 0 => LAIK OPERASI. Adapt as needed.
-      const finalStatus = finalKondisi > 0 ? "LAIK OPERASI" : "TIDAK LAIK OPERASI";
+      // Logic: Diatas 20% LAIK, 20% ke bawah TIDAK LAIK
+      const finalStatus = finalKondisi > 20 ? "LAIK OPERASI" : "TIDAK LAIK OPERASI";
 
       const payload = {
         nama: formData.nama,

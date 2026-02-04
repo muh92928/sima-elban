@@ -133,24 +133,27 @@ export default function PeralatanTable({
             size: 80,
             cell: (info) => {
                const val = info.getValue() as number || 0;
-               let color = "text-red-400";
-               if (val >= 90) color = "text-emerald-400";
-               else if (val >= 70) color = "text-amber-400";
-               
-               return (
-                 <div className="text-center">
-                   <span className={`font-bold ${color}`}>{val}%</span>
-                 </div>
-               );
-            }
+                const color = val > 20 ? "text-emerald-400" : "text-red-400";
+                
+                return (
+                  <div className="text-center">
+                    <span className={`font-bold ${color}`}>{val}%</span>
+                  </div>
+                );
+             }
           },
           {
             accessorKey: "status_laik",
             header: "Status Laik",
             size: 140,
-            cell: (info) => {
+             cell: (info) => {
                 const val = info.getValue() as string;
-                const isLaik = val !== "TIDAK LAIK OPERASI";
+                const kondisi = info.row.original.kondisi_persen || 0;
+                
+                // Aturan: Diatas 20% LAIK, 20% kebawah TIDAK LAIK
+                const isLaik = kondisi > 20;
+                const displayStatus = isLaik ? "LAIK OPERASI" : "TIDAK LAIK OPERASI";
+
                 return (
                   <div className={`inline-flex items-center min-w-[120px] justify-center px-4 py-1.5 rounded-full border print:border-none print:bg-transparent print:p-0 print:rounded-none ${
                         !isLaik
@@ -158,7 +161,7 @@ export default function PeralatanTable({
                         : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     }`}>
                         <span className="text-[10px] font-bold tracking-wide uppercase whitespace-nowrap print:text-black print:text-xs">
-                            {val || "UNKNOWN"}
+                            {displayStatus || "UNKNOWN"}
                         </span>
                   </div>
                 );
@@ -287,8 +290,7 @@ export default function PeralatanTable({
                                     <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1">
                                         <div 
                                         className={`h-1.5 rounded-full ${
-                                            kondisi >= 90 ? "bg-emerald-500" : 
-                                            kondisi >= 70 ? "bg-amber-500" : "bg-red-500"
+                                            kondisi > 20 ? "bg-emerald-500" : "bg-red-500"
                                         }`} 
                                         style={{ width: `${kondisi}%` }}
                                         />

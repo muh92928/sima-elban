@@ -19,10 +19,22 @@ import {
   GraduationCap,
   Award
 } from "lucide-react";
-import { Personel } from "@/lib/types";
+import { Personel, Sertifikat } from "@/lib/types";
 import { TABLE_STYLES } from "@/lib/tableStyles";
 import LoadingSpinner from "@/app/components/ui/LoadingSpinner";
 import TablePagination from "./TablePagination";
+
+// Helper to parse certificates safely
+const parseSertifikats = (data: any): Sertifikat[] => {
+    try {
+        if (typeof data === 'string' && data.startsWith('[')) {
+            return JSON.parse(data);
+        }
+        return [];
+    } catch (e) {
+        return [];
+    }
+};
 
 interface PersonelTableProps {
   data: Personel[];
@@ -127,29 +139,38 @@ export default function PersonelTable({
       },
       {
         id: "sertifikat",
-        header: () => <div className="text-center">Sertifikat</div>,
+        header: () => <div className="text-center">Sertifikat & Kompetensi</div>,
         cell: (info) => {
             const item = info.row.original;
-            return (
-                <div className="flex flex-col gap-0.5 items-center justify-center min-w-[150px] mx-auto">
-                    <div className="text-orange-300 text-xs font-medium text-center line-clamp-2" title={item.jenisSertifikat || ""}>
-                        {item.jenisSertifikat || "-"}
+            const certs = parseSertifikats(item.kompetensiPendidikan);
+            
+            if (certs.length === 0) {
+                return (
+                    <div className="flex flex-col gap-0.5 items-center justify-center min-w-[200px] mx-auto text-slate-500 italic text-xs">
+                        -
                     </div>
+                );
+            }
+
+            return (
+                <div className="flex flex-col gap-2 items-center justify-center min-w-[250px] mx-auto py-2">
+                    {certs.map((s, idx) => (
+                        <div key={idx} className="w-full bg-slate-800/40 border border-white/5 rounded-lg p-2 space-y-1">
+                            <div className="flex items-center gap-1.5">
+                                <Award size={12} className="text-orange-400 shrink-0" />
+                                <span className="text-orange-200 text-[11px] font-bold uppercase tracking-tight line-clamp-1">{s.jenis}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono pl-4">No: {s.nomor}</div>
+                            <div className="text-[10px] text-slate-300 italic pl-4 line-clamp-2 leading-relaxed border-l border-white/10 mt-1">
+                                {s.kompetensi}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             );
         },
       },
-      {
-        accessorKey: "kompetensiPendidikan",
-        header: () => <div className="text-center">Kompetensi</div>,
-        cell: (info) => (
-            <div className="flex justify-center">
-                <span className="text-slate-400 text-xs italic block text-center min-w-[150px] truncate" title={info.getValue() as string}>
-                    {info.getValue() as string || "-"}
-                </span>
-            </div>
-        )
-      },
+
       {
         accessorKey: "keterangan",
         header: () => <div className="text-center">Keterangan</div>,
@@ -252,16 +273,23 @@ export default function PersonelTable({
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Sertifikat</p>
-                                    <div className="flex items-center gap-1.5 text-orange-300 font-medium">
-                                        <Award size={14} />
-                                        {item.jenisSertifikat || "-"}
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-2">Sertifikat Kompetensi</p>
+                                    <div className="space-y-2">
+                                        {parseSertifikats(item.kompetensiPendidikan).length > 0 ? (
+                                            parseSertifikats(item.kompetensiPendidikan).map((s, idx) => (
+                                                <div key={idx} className="bg-white/5 rounded-lg p-2 border border-white/5">
+                                                    <div className="flex items-center gap-2 text-orange-300 font-bold text-[10px] uppercase">
+                                                        <Award size={12} />
+                                                        {s.jenis}
+                                                    </div>
+                                                    <div className="text-[9px] text-slate-500 font-mono mt-0.5">No: {s.nomor}</div>
+                                                    <div className="text-[10px] text-slate-400 italic mt-1 leading-tight">{s.kompetensi}</div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-slate-500 italic">-</div>
+                                        )}
                                     </div>
-                                    {item.noSertifikat && (
-                                        <div className="text-[10px] text-slate-500 font-mono mt-1">
-                                           No: {item.noSertifikat}
-                                        </div>
-                                    )}
                                 </div>
                                 {item.keterangan && (
                                     <div>
