@@ -18,6 +18,7 @@ import { LogPeralatan, Peralatan } from "@/lib/types";
 import AddLogModal from "@/app/components/dashboard/AddLogModal";
 import EditLogModal from "@/app/components/dashboard/EditLogModal";
 import LogPeralatanTable from "@/app/components/dashboard/LogPeralatanTable";
+import LogPeralatanMatrixPrint from "@/app/components/dashboard/LogPeralatanMatrixPrint";
 
 import { notify } from "@/lib/notify";
 
@@ -167,7 +168,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
 
        <style type="text/css" media="print">
         {`
-          @page { size: landscape; margin: 20mm; }
+          @page { size: landscape; margin: 10mm; }
           body { 
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact; 
@@ -176,13 +177,15 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
           }
           .print-hidden { display: none !important; }
           .print-block { display: block !important; }
-          .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-          .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #black !important; }
-          .print-table th { background-color: #B4C6E7 !important; font-weight: bold !important; text-align: center; vertical-align: middle; }
-          .print-table td { vertical-align: top; color: black !important; }
+          
+          /* Matrix Container Adjustments */
+          .print-container { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
           
           /* Force Text Color */
           * { color: black !important; text-shadow: none !important; }
+
+          /* Hide UI elements during print */
+          .no-print { display: none !important; }
         `}
       </style>
 
@@ -191,7 +194,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center text-center space-y-2 print:hidden mb-6"
+        className="flex flex-col items-center text-center space-y-2 print:hidden mb-6 no-print"
       >
         <h1 className="text-3xl @tablet:text-4xl @pc:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 pb-1">
             Log Peralatan
@@ -261,7 +264,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex flex-col pc:flex-row gap-4 print:hidden"
+        className="flex flex-col pc:flex-row gap-4 print:hidden no-print"
       >
         {/* Filter Group: Search, Status, Date */}
         <div className="flex flex-col pc:flex-row items-center gap-3 flex-1">
@@ -353,6 +356,7 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="no-print print:hidden"
       >
           <LogPeralatanTable 
             data={filteredData}
@@ -361,6 +365,15 @@ export default function LogPeralatanClient({ initialData, initialPeralatanList }
             onEdit={handleEdit}
           />
       </motion.div>
+
+      {/* Monthly Matrix View (Print Only) */}
+      <div className="hidden print-block print-container">
+          <LogPeralatanMatrixPrint 
+            logs={data} 
+            peralatanList={peralatanList} 
+            reportDate={reportDate || new Date()} 
+          />
+      </div>
 
        {/* Print Footer (Signatures) */}
        <div className="hidden print-block mt-8 text-black text-xs">
