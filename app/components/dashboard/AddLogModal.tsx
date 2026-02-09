@@ -406,12 +406,6 @@ export default function AddLogModal({ isOpen, onClose, onSuccess, peralatanList 
 
                           {/* Filter & Global Values */}
                           <div className="lg:col-span-3 bg-indigo-500/5 border border-indigo-500/10 rounded-lg p-3 flex flex-col justify-center">
-                               <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-[11px] font-bold text-indigo-300 uppercase tracking-wide flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"/> Nilai Metrik Default (Global)
-                                    </h4>
-                                    <span className="text-[10px] text-slate-500 italic">Otomatis terisi jika "Pakai Default" dicentang</span>
-                               </div>
                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-2">
                                     {[
                                         { label: "Waktu Operasi Aktual", key: "waktu_operasi_aktual", type: "number" },
